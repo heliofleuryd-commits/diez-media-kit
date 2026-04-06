@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 interface Summary {
   views7d: number; views30d: number;
@@ -49,12 +48,11 @@ export default function AdminDashboard() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [noKV, setNoKV] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     fetch('/api/admin/analytics')
       .then(r => {
-        if (r.status === 401) { router.push('/admin/login'); return null; }
+        if (r.status === 401) { window.location.href = '/admin/login'; return null; }
         return r.json();
       })
       .then(d => {
@@ -71,22 +69,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#09090B] text-white">
-      {/* Header */}
-      <header className="border-b border-[#27272A] px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-xl font-black text-[#00E5FF]">DIEZ</span>
-          <span className="text-[#52525B] text-sm">/ Admin</span>
-        </div>
-        <button
-          onClick={logout}
-          className="text-sm text-[#71717A] hover:text-white transition-colors"
-        >
-          Sign out
-        </button>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-6 py-10 space-y-8">
+    <div className="space-y-8">
         <h1 className="text-2xl font-bold">Analytics</h1>
 
         {loading && (
@@ -221,7 +204,6 @@ export default function AdminDashboard() {
             </div>
           </>
         )}
-      </main>
     </div>
   );
 }
