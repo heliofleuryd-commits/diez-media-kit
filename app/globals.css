@@ -2,15 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --brand: #00E5FF;
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: #09090B;
-  color: #FAFAFA;
+  background: #00E5FF;
+  color: #000;
 }
 
-.stat-glow {
-  text-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+.hero-glow {
+  text-shadow: 0 0 40px rgba(0, 0, 0, 0.15);
+}
+
+.grad-line {
+  background: linear-gradient(90deg, #000 0%, #FF0080 100%);
+}
+
+.grad-text {
+  background: linear-gradient(135deg, #000 0%, #FF0080 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
 }

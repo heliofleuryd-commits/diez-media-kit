@@ -1,8 +1,14 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Montserrat } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '900'],
+  style: ['normal', 'italic'],
+  variable: '--font-montserrat',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Diez | Media Kit',
@@ -16,17 +22,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className={montserrat.variable}>
+      <body className="font-montserrat">
         {children}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
             function send(payload) {
               navigator.sendBeacon('/api/track', JSON.stringify(payload));
             }
-            // Page view
             send({ type: 'pageview', referrer: document.referrer });
-            // Expose CTA tracker globally
             window.trackCTA = function(name) {
               send({ type: 'cta_click', referrer: document.referrer, ctaName: name });
             };
