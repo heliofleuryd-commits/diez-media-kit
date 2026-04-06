@@ -79,7 +79,7 @@ export async function GET() {
         platform: 'tiktok',
         handle: '@diez.ball',
         displayName: 'Diez · Football',
-        followers: tiktokByAccount('diez.ball')?.authorMeta?.fans || 27900,
+        followers: tiktokByAccount('diez.ball')?.authorMeta?.fans || 26900,
         totalViews: tiktokVideos.filter(v => v.account === 'diez.ball').reduce((s, v) => s + v.views, 0),
         videoCount: tiktokVideos.filter(v => v.account === 'diez.ball').length,
         url: 'https://tiktok.com/@diez.ball',

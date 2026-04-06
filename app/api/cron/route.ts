@@ -8,12 +8,11 @@ export async function GET(req: NextRequest) {
   }
 
   const runs = await Promise.all([
-    triggerRun('apidojo~tiktok-scraper', {
-      startUrls: [
+    triggerRun('clockworks~tiktok-profile-scraper', {
+      profiles: [
         'https://www.tiktok.com/@diez.gg',
         'https://www.tiktok.com/@diez.ball',
       ],
-      maxItems: 20,
     }),
     triggerRun('streamers~youtube-scraper', {
       startUrls: [{ url: 'https://www.youtube.com/@imDiez' }],

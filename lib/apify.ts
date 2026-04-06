@@ -15,7 +15,7 @@ async function getLastRunItems(actorId: string): Promise<any[]> {
 }
 
 export async function getTikTokData() {
-  return getLastRunItems('apidojo~tiktok-scraper');
+  return getLastRunItems('clockworks~tiktok-profile-scraper');
 }
 
 export async function getYouTubeData() {
