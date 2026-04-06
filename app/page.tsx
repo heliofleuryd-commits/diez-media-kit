@@ -1,4 +1,5 @@
 import StatsClient from './components/StatsClient';
+import TrackingCTA from './components/TrackingCTA';
 
 const PLATFORM_COLORS: Record<string, string> = {
   tiktok: '#FF0050',
@@ -96,12 +97,7 @@ export default function MediaKitPage() {
           <p className="text-[#A1A1AA] mb-8 max-w-md mx-auto">
             Brand deals, sponsored content, and collaborations across gaming and football niches.
           </p>
-          <a
-            href="mailto:heliofleuryd@gmail.com"
-            className="inline-flex items-center gap-2 bg-[#00E5FF] text-black font-bold px-8 py-3 rounded-full hover:bg-[#00C8E0] transition-colors"
-          >
-            Get in Touch →
-          </a>
+          <TrackingCTA />
         </div>
       </section>
 

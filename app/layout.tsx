@@ -17,7 +17,22 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        {children}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            function send(payload) {
+              navigator.sendBeacon('/api/track', JSON.stringify(payload));
+            }
+            // Page view
+            send({ type: 'pageview', referrer: document.referrer });
+            // Expose CTA tracker globally
+            window.trackCTA = function(name) {
+              send({ type: 'cta_click', referrer: document.referrer, ctaName: name });
+            };
+          })();
+        ` }} />
+      </body>
     </html>
   );
 }
