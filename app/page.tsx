@@ -20,6 +20,20 @@ export default function MediaKitPage() {
       {/* ── Hero ── */}
       <section className="relative border-b border-[#27272A] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#00E5FF]/5 via-transparent to-transparent pointer-events-none" />
+        {/* Let's Talk CTA — top right */}
+        <div className="absolute top-6 right-6 hidden md:flex flex-col items-end gap-1">
+          <a
+            href="mailto:hello@diez.gg"
+            className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] hover:border-[#00E5FF]/50 text-white hover:text-[#00E5FF] px-4 py-2 rounded-full text-sm font-medium transition-all group"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00E5FF] animate-pulse" />
+            Let's Talk
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="group-hover:translate-x-0.5 transition-transform">
+              <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </a>
+          <span className="text-[#52525B] text-xs">hello@diez.gg</span>
+        </div>
         <div className="max-w-6xl mx-auto px-6 py-20 text-center">
 
           <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-1.5 text-sm text-[#A1A1AA] mb-8">
