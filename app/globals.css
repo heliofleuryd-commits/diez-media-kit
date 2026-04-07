@@ -8,8 +8,16 @@
 }
 
 body {
-  background: #00E5FF;
-  color: #000;
+  min-height: 100vh;
+  color: #fff;
+}
+
+.text-stroke {
+  text-shadow: 0 1px 4px rgba(0,0,0,0.55), 0 2px 12px rgba(0,0,0,0.35);
+}
+
+.text-stroke-sm {
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7), 0 1px 8px rgba(0,0,0,0.4);
 }
 
 .hero-glow {
@@ -35,3 +43,7 @@ body {
 .animate-pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
 }
+
+.scroll-float { overflow: hidden; }
+.scroll-float-text { font-weight: 900; text-align: center; line-height: 1.5; }
+.char, .scroll-float-text { display: inline-block; }

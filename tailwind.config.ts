@@ -15,7 +15,7 @@ const config: Config = {
         border: '#27272A',
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'sans-serif'],
+        montserrat: ['var(--font-montserrat)', 'sans-serif'],
       },
     },
   },
