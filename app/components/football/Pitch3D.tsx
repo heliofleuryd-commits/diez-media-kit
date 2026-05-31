@@ -1,30 +1,83 @@
 'use client';
 
-import { useRef, useMemo, Suspense } from 'react';
+import React, { useRef, useMemo, Suspense, Component, type ReactNode } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Text, Trail, Stars } from '@react-three/drei';
+import { OrbitControls, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 import { getPlayerPos, getBallPos, getBallOwner } from '@/lib/football/animation';
 import type { SceneState, AnimationAction } from '@/lib/football/types';
 
-// World space: pitch is W×D centred at origin, players move in XZ plane
+// ─── Error boundary: shows a message instead of white-screening ───────────────
+class CanvasErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: string | null }
+> {
+  state = { error: null };
+  static getDerivedStateFromError(err: Error) { return { error: err.message }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-[#050810] gap-3">
+          <span className="text-white/50 text-xs">3D rendering failed</span>
+          <span className="text-white/20 text-[9px] font-mono max-w-xs text-center">{this.state.error}</span>
+          <button
+            className="text-[9px] text-violet-400 hover:text-violet-300 border border-violet-400/30 px-3 py-1 rounded"
+            onClick={() => this.setState({ error: null })}
+          >Retry</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// ─── World space ──────────────────────────────────────────────────────────────
 const W = 10, D = 15;
 function normToWorld(nx: number, ny: number): [number, number] {
   return [(nx / 100) * W - W / 2, (ny / 100) * D - D / 2];
 }
 
+// ─── Canvas-texture label (no CDN fonts, always works) ─────────────────────
+function useLabelTexture(text: string) {
+  return useMemo(() => {
+    const size = 128;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+    // transparent bg
+    ctx.clearRect(0, 0, size, size);
+    // stroke for outline
+    ctx.font = `bold ${size * 0.42}px "Arial Black", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = size * 0.1;
+    ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+    ctx.strokeText(text, size / 2, size / 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(text, size / 2, size / 2);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.needsUpdate = true;
+    return tex;
+  }, [text]);
+}
+
 // ─── Pitch floor ──────────────────────────────────────────────────────────────
 function PitchFloor() {
+  const stripes = 10;
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[W, D]} />
         <meshStandardMaterial color="#1e7a1e" roughness={0.9} metalness={0} />
       </mesh>
-      {Array.from({ length: 10 }).map((_, i) => (
-        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]}
-          position={[0, 0.001, -D / 2 + (i + 0.5) * (D / 10)]}>
-          <planeGeometry args={[W, D / 10 - 0.015]} />
+      {Array.from({ length: stripes }).map((_, i) => (
+        <mesh
+          key={i}
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, 0.001, -D / 2 + (i + 0.5) * (D / stripes)]}
+        >
+          <planeGeometry args={[W, D / stripes - 0.02]} />
           <meshStandardMaterial color={i % 2 ? '#175d17' : '#1e7a1e'} roughness={0.9} />
         </mesh>
       ))}
@@ -33,67 +86,62 @@ function PitchFloor() {
 }
 
 // ─── Pitch markings ───────────────────────────────────────────────────────────
-const LM = '#ffffff';
-
-function LineRect({ x1, z1, x2, z2 }: { x1: number; z1: number; x2: number; z2: number }) {
+function LineRect({ x1, z1, x2, z2 }: { x1:number; z1:number; x2:number; z2:number }) {
   const y = 0.005, t = 0.04;
   const w = Math.abs(x2 - x1), d = Math.abs(z2 - z1);
   const cx = (x1 + x2) / 2, cz = (z1 + z2) / 2;
+  const segs = [
+    { x: cx, z: z1, w, d: t }, { x: cx, z: z2, w, d: t },
+    { x: x1, z: cz, w: t, d }, { x: x2, z: cz, w: t, d },
+  ];
   return (
     <>
-      {[
-        { x: cx, z: z1, w, d: t }, { x: cx, z: z2, w, d: t },
-        { x: x1, z: cz, w: t, d }, { x: x2, z: cz, w: t, d },
-      ].map((s, i) => (
+      {segs.map((s, i) => (
         <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[s.x, y, s.z]}>
           <planeGeometry args={[s.w, s.d]} />
-          <meshStandardMaterial color={LM} emissive={LM} emissiveIntensity={0.6} />
+          <meshStandardMaterial color="#fff" emissive="#fff" emissiveIntensity={0.5} />
         </mesh>
       ))}
     </>
   );
 }
 
-function CircleLine3D({ cx = 0, cz = 0, r }: { cx?: number; cz?: number; r: number }) {
-  const obj = useMemo(() => {
+function CentreCircle() {
+  const line = useMemo(() => {
     const pts: THREE.Vector3[] = [];
     for (let i = 0; i <= 80; i++) {
       const a = (i / 80) * Math.PI * 2;
-      pts.push(new THREE.Vector3(cx + Math.cos(a) * r, 0.005, cz + Math.sin(a) * r));
+      pts.push(new THREE.Vector3(Math.cos(a) * 1.5, 0.005, Math.sin(a) * 1.5));
     }
     return new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(pts),
-      new THREE.LineBasicMaterial({ color: LM }),
+      new THREE.LineBasicMaterial({ color: '#ffffff' }),
     );
-  }, [cx, cz, r]);
-  return <primitive object={obj} />;
+  }, []);
+  return <primitive object={line} />;
 }
 
 function PitchMarkings() {
   return (
     <group>
-      <LineRect x1={-W / 2} z1={-D / 2} x2={W / 2} z2={D / 2} />
-      {/* Halfway line */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
+      <LineRect x1={-W/2} z1={-D/2} x2={W/2} z2={D/2} />
+      <mesh rotation={[-Math.PI/2,0,0]} position={[0,0.005,0]}>
         <planeGeometry args={[W, 0.04]} />
-        <meshStandardMaterial color={LM} emissive={LM} emissiveIntensity={0.6} />
+        <meshStandardMaterial color="#fff" emissive="#fff" emissiveIntensity={0.5} />
       </mesh>
-      <CircleLine3D r={1.5} />
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
-        <circleGeometry args={[0.07, 20]} />
-        <meshStandardMaterial color={LM} emissive={LM} emissiveIntensity={0.6} />
+      <CentreCircle />
+      <mesh rotation={[-Math.PI/2,0,0]} position={[0,0.005,0]}>
+        <circleGeometry args={[0.07, 16]} />
+        <meshStandardMaterial color="#fff" emissive="#fff" emissiveIntensity={0.5} />
       </mesh>
-      {/* Penalty boxes */}
-      <LineRect x1={-2.25} z1={-D / 2} x2={2.25} z2={-D / 2 + 2.6} />
-      <LineRect x1={-2.25} z1={D / 2 - 2.6} x2={2.25} z2={D / 2} />
-      {/* Goal areas */}
-      <LineRect x1={-1.1} z1={-D / 2} x2={1.1} z2={-D / 2 + 1.1} />
-      <LineRect x1={-1.1} z1={D / 2 - 1.1} x2={1.1} z2={D / 2} />
-      {/* Penalty spots */}
+      <LineRect x1={-2.25} z1={-D/2} x2={2.25} z2={-D/2+2.6} />
+      <LineRect x1={-2.25} z1={D/2-2.6} x2={2.25} z2={D/2} />
+      <LineRect x1={-1.1} z1={-D/2} x2={1.1} z2={-D/2+1.1} />
+      <LineRect x1={-1.1} z1={D/2-1.1} x2={1.1} z2={D/2} />
       {([-1, 1] as const).map(s => (
-        <mesh key={s} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, s * (D / 2 - 1.8)]}>
-          <circleGeometry args={[0.06, 14]} />
-          <meshStandardMaterial color={LM} emissive={LM} emissiveIntensity={0.6} />
+        <mesh key={s} rotation={[-Math.PI/2,0,0]} position={[0,0.005,s*(D/2-1.8)]}>
+          <circleGeometry args={[0.06, 12]} />
+          <meshStandardMaterial color="#fff" emissive="#fff" emissiveIntensity={0.5} />
         </mesh>
       ))}
     </group>
@@ -108,13 +156,13 @@ function Goals() {
         <group key={side} position={[0, 0, side * D / 2]}>
           {[-0.7, 0.7].map(ox => (
             <mesh key={ox} position={[ox, 0.3, 0]} castShadow>
-              <cylinderGeometry args={[0.04, 0.04, 0.6, 12]} />
-              <meshStandardMaterial color="#fff" metalness={0.6} roughness={0.2} emissive="#fff" emissiveIntensity={0.4} />
+              <cylinderGeometry args={[0.04, 0.04, 0.6, 10]} />
+              <meshStandardMaterial color="#fff" emissive="#fff" emissiveIntensity={0.4} metalness={0.5} roughness={0.2} />
             </mesh>
           ))}
-          <mesh position={[0, 0.62, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
-            <cylinderGeometry args={[0.04, 0.04, 1.4, 12]} />
-            <meshStandardMaterial color="#fff" metalness={0.6} roughness={0.2} emissive="#fff" emissiveIntensity={0.4} />
+          <mesh position={[0, 0.62, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.04, 0.04, 1.4, 10]} />
+            <meshStandardMaterial color="#fff" emissive="#fff" emissiveIntensity={0.4} metalness={0.5} roughness={0.2} />
           </mesh>
         </group>
       ))}
@@ -126,27 +174,30 @@ function Goals() {
 function Stadium() {
   return (
     <group>
-      {/* Ground apron */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
         <planeGeometry args={[80, 80]} />
         <meshStandardMaterial color="#050810" roughness={1} />
       </mesh>
-      {/* Curved outer wall */}
       <mesh position={[0, 4, 0]}>
-        <cylinderGeometry args={[25, 25, 11, 56, 1, true]} />
-        <meshStandardMaterial color="#0b0d1a" side={THREE.BackSide} roughness={1} />
+        <cylinderGeometry args={[25, 25, 12, 48, 1, true]} />
+        <meshStandardMaterial color="#0a0d1a" side={THREE.BackSide} roughness={1} />
       </mesh>
-      {/* Stands tier */}
-      <mesh position={[0, 1.2, 0]}>
-        <torusGeometry args={[16, 3.5, 6, 56]} />
+      <mesh position={[0, 1.5, 0]}>
+        <torusGeometry args={[16, 3.5, 6, 48]} />
         <meshStandardMaterial color="#0d1020" roughness={1} />
       </mesh>
-      {/* Corner light towers */}
-      {([[-9, -13], [9, -13], [-9, 13], [9, 13]] as [number, number][]).map(([tx, tz], i) => (
-        <mesh key={i} position={[tx, 5, tz]}>
-          <boxGeometry args={[0.28, 10, 0.28]} />
-          <meshStandardMaterial color="#1a1f30" roughness={0.8} metalness={0.3} />
-        </mesh>
+      {([[-9,-13],[9,-13],[-9,13],[9,13]] as [number,number][]).map(([tx,tz],i) => (
+        <group key={i}>
+          <mesh position={[tx, 5, tz]}>
+            <boxGeometry args={[0.25, 10, 0.25]} />
+            <meshStandardMaterial color="#1a1f30" roughness={0.8} />
+          </mesh>
+          {/* lamp housing */}
+          <mesh position={[tx, 9, tz]}>
+            <sphereGeometry args={[0.14, 8, 8]} />
+            <meshStandardMaterial color="#ffe8a0" emissive="#ffe8a0" emissiveIntensity={10} />
+          </mesh>
+        </group>
       ))}
     </group>
   );
@@ -154,30 +205,26 @@ function Stadium() {
 
 // ─── Lighting ─────────────────────────────────────────────────────────────────
 function Lighting() {
-  const towers = [[-9, -13], [9, -13], [-9, 13], [9, 13]] as [number, number][];
   return (
     <>
-      <ambientLight color="#1e2a4a" intensity={0.9} />
-      <hemisphereLight args={['#2a3860', '#080c14', 0.8]} />
-      {towers.map(([tx, tz], i) => (
-        <group key={i}>
-          <pointLight
-            position={[tx, 16, tz]}
-            color="#fff8e0"
-            intensity={280}
-            distance={38}
-            decay={2}
-            castShadow
-            shadow-mapSize-width={512}
-            shadow-mapSize-height={512}
-          />
-          {/* Lamp housing glow */}
-          <mesh position={[tx, 9, tz]}>
-            <sphereGeometry args={[0.14, 8, 8]} />
-            <meshStandardMaterial color="#ffe8a0" emissive="#ffe8a0" emissiveIntensity={12} />
-          </mesh>
-        </group>
-      ))}
+      <ambientLight color="#1e2a50" intensity={1.2} />
+      <directionalLight
+        position={[-8, 16, -12]}
+        color="#fff8e8"
+        intensity={2.5}
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-near={1}
+        shadow-camera-far={60}
+        shadow-camera-left={-15}
+        shadow-camera-right={15}
+        shadow-camera-top={20}
+        shadow-camera-bottom={-20}
+      />
+      <directionalLight position={[8, 14, 12]} color="#fff0d0" intensity={1.8} />
+      {/* Rim/fill */}
+      <pointLight position={[0, 8, 0]} color="#3050a0" intensity={15} distance={25} decay={2} />
     </>
   );
 }
@@ -194,82 +241,65 @@ interface TokenProps {
 }
 
 function PlayerToken3D({ pid, primaryColor, ringColor, label, clockRef, scene, actions }: TokenProps) {
-  const groupRef  = useRef<THREE.Group>(null!);
-  const ballDotRef = useRef<THREE.Mesh>(null!);
+  const groupRef   = useRef<THREE.Group>(null!);
+  const dotRef     = useRef<THREE.Mesh>(null!);
+  const glowMatRef = useRef<THREE.MeshStandardMaterial>(null!);
+  const labelTex   = useLabelTexture(label);
 
   const [ix, iz] = useMemo(() => {
     const [team, slotId] = pid.split('.');
-    const t = scene.teams[team as 'home' | 'away'];
-    const slot = t?.slots.find(s => s.slotId === slotId);
+    const slot = scene.teams[team as 'home' | 'away']?.slots.find(s => s.slotId === slotId);
     return normToWorld(slot?.position[0] ?? 50, slot?.position[1] ?? 50);
   }, [pid, scene]);
 
   useFrame(() => {
     if (!groupRef.current) return;
     const frame = Math.floor(clockRef.current * 30);
-    const pos = getPlayerPos(pid, frame, scene, actions);
-    const [wx, wz] = normToWorld(pos[0], pos[1]);
+    const [wx, wz] = normToWorld(...getPlayerPos(pid, frame, scene, actions));
     groupRef.current.position.x = wx;
     groupRef.current.position.z = wz;
-    if (ballDotRef.current) {
-      ballDotRef.current.visible = getBallOwner(frame, scene, actions) === pid;
-    }
+    const hasBall = getBallOwner(frame, scene, actions) === pid;
+    if (dotRef.current) dotRef.current.visible = hasBall;
+    if (glowMatRef.current) glowMatRef.current.emissiveIntensity = hasBall ? 4 : 2.5;
   });
 
   return (
     <group ref={groupRef} position={[ix, 0, iz]}>
-      {/* Floor glow ring */}
+      {/* Floor glow */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.003, 0]}>
-        <ringGeometry args={[0.22, 0.4, 36]} />
-        <meshStandardMaterial color={ringColor} emissive={ringColor} emissiveIntensity={2.8} transparent opacity={0.8} />
+        <ringGeometry args={[0.21, 0.38, 32]} />
+        <meshStandardMaterial ref={glowMatRef} color={ringColor} emissive={ringColor} emissiveIntensity={2.5} transparent opacity={0.8} />
       </mesh>
-
-      {/* Disc body */}
+      {/* Disc */}
       <mesh position={[0, 0.1, 0]} castShadow>
-        <cylinderGeometry args={[0.22, 0.22, 0.14, 28]} />
+        <cylinderGeometry args={[0.21, 0.21, 0.13, 24]} />
         <meshStandardMaterial color={primaryColor} metalness={0.65} roughness={0.2} />
       </mesh>
-
-      {/* Glowing outer ring */}
+      {/* Neon ring */}
       <mesh position={[0, 0.1, 0]}>
-        <torusGeometry args={[0.22, 0.048, 12, 36]} />
+        <torusGeometry args={[0.21, 0.045, 10, 32]} />
         <meshStandardMaterial color={ringColor} emissive={ringColor} emissiveIntensity={5} />
       </mesh>
-
-      {/* Shiny top cap */}
-      <mesh position={[0, 0.172, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.14, 24]} />
+      {/* Shiny top */}
+      <mesh position={[0, 0.17, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.135, 24]} />
         <meshStandardMaterial color={primaryColor} metalness={0.95} roughness={0.04} />
       </mesh>
-
-      {/* Ball indicator dot (visibility toggled in useFrame) */}
-      <mesh ref={ballDotRef} position={[0, 0.32, 0]}>
+      {/* Label sprite (canvas texture – no CDN font) */}
+      <sprite position={[0, 0.2, 0]} scale={[0.28, 0.28, 1]}>
+        <spriteMaterial map={labelTex} transparent depthTest={false} />
+      </sprite>
+      {/* Ball indicator */}
+      <mesh ref={dotRef} position={[0, 0.33, 0]}>
         <sphereGeometry args={[0.065, 10, 10]} />
-        <meshStandardMaterial color="#ffe566" emissive="#ffe566" emissiveIntensity={7} />
+        <meshStandardMaterial color="#ffe566" emissive="#ffe566" emissiveIntensity={8} />
       </mesh>
-
-      {/* Position label */}
-      <Suspense fallback={null}>
-        <Text
-          position={[0, 0.215, 0]}
-          fontSize={0.13}
-          color="#ffffff"
-          anchorX="center"
-          anchorY="middle"
-          outlineColor="#000000"
-          outlineWidth={0.013}
-        >
-          {label}
-        </Text>
-      </Suspense>
     </group>
   );
 }
 
 // ─── Ball ─────────────────────────────────────────────────────────────────────
-function Ball3D({
-  clockRef, scene, actions,
-}: {
+function Ball3D({ clockRef, scene, actions }: {
   clockRef: React.MutableRefObject<number>;
   scene: SceneState;
   actions: AnimationAction[];
@@ -279,98 +309,69 @@ function Ball3D({
 
   useFrame(() => {
     const frame = Math.floor(clockRef.current * 30);
-    const pos = getBallPos(frame, scene, actions);
-    const [wx, wz] = normToWorld(pos[0], pos[1]);
+    const [wx, wz] = normToWorld(...getBallPos(frame, scene, actions));
     if (groupRef.current) {
       groupRef.current.position.x = wx;
       groupRef.current.position.z = wz;
     }
     if (meshRef.current) {
       meshRef.current.rotation.x += 0.07;
-      meshRef.current.rotation.z += 0.03;
+      meshRef.current.rotation.z += 0.04;
     }
   });
 
   return (
     <group ref={groupRef}>
-      {/* Ground shadow */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.002, 0]}>
-        <circleGeometry args={[0.14, 18]} />
-        <meshStandardMaterial color="#000000" opacity={0.5} transparent depthWrite={false} />
+      {/* Shadow */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.003, 0]}>
+        <circleGeometry args={[0.13, 16]} />
+        <meshStandardMaterial color="#000" opacity={0.5} transparent depthWrite={false} />
       </mesh>
-
-      {/* Soft glow aura */}
+      {/* Soft glow corona */}
       <mesh position={[0, 0.12, 0]}>
-        <sphereGeometry args={[0.21, 12, 12]} />
-        <meshStandardMaterial color="#fffae0" emissive="#ffe088" emissiveIntensity={1.0} transparent opacity={0.22} depthWrite={false} />
+        <sphereGeometry args={[0.2, 12, 12]} />
+        <meshStandardMaterial color="#fffae0" emissive="#ffe088" emissiveIntensity={1.2} transparent opacity={0.2} depthWrite={false} />
       </mesh>
-
-      {/* Ball sphere — refs owned by us (Trail uses target prop, not child ref) */}
+      {/* Ball */}
       <mesh ref={meshRef} position={[0, 0.12, 0]} castShadow>
-        <sphereGeometry args={[0.12, 24, 24]} />
-        <meshStandardMaterial color="#f8f8f8" roughness={0.25} metalness={0.04} emissive="#fffce8" emissiveIntensity={0.55} />
+        <sphereGeometry args={[0.12, 20, 20]} />
+        <meshStandardMaterial color="#f5f5f5" roughness={0.25} metalness={0.05} emissive="#fffde8" emissiveIntensity={0.6} />
       </mesh>
-
-      {/* drei v10 Trail: uses target prop — no child ref conflict */}
-      <Trail
-        target={meshRef}
-        width={0.55}
-        length={10}
-        color="#fffae0"
-        attenuation={t => t * t * t}
-      />
-
-      {/* Warm point light from ball */}
-      <pointLight position={[0, 0.12, 0]} color="#ffe8a0" intensity={3.5} distance={3.5} decay={2} />
+      {/* Ball light */}
+      <pointLight position={[0, 0.12, 0]} color="#ffe8a0" intensity={4} distance={3.5} decay={2} />
     </group>
   );
 }
 
-// ─── Internal animation clock ─────────────────────────────────────────────────
-function SceneClock({
-  playing,
-  durationSeconds,
-  clockRef,
-}: {
-  playing: boolean;
-  durationSeconds: number;
-  clockRef: React.MutableRefObject<number>;
-}) {
+// ─── Internal animation clock (drives everything, no React state) ─────────────
+function SceneClock({ playing, dur, clockRef }: { playing: boolean; dur: number; clockRef: React.MutableRefObject<number> }) {
   useFrame((_, delta) => {
-    if (!playing) return;
-    clockRef.current = (clockRef.current + delta) % durationSeconds;
+    if (playing) clockRef.current = (clockRef.current + delta) % dur;
   });
   return null;
 }
 
-// ─── Full 3D scene ────────────────────────────────────────────────────────────
-function Scene3D({
-  scene, actions, durationSeconds, playing,
-}: {
+// ─── Main 3D scene ────────────────────────────────────────────────────────────
+function Scene3D({ scene, actions, durationSeconds, playing }: {
   scene: SceneState;
   actions: AnimationAction[];
   durationSeconds: number;
   playing: boolean;
 }) {
-  // Mutable clock shared by all animated children via ref (no React re-renders)
   const clockRef = useRef(0);
 
   return (
     <>
-      <SceneClock playing={playing} durationSeconds={durationSeconds} clockRef={clockRef} />
-
-      <fog attach="fog" args={['#050810', 22, 55]} />
-      <color attach="background" args={['#050810']} />
+      <SceneClock playing={playing} dur={durationSeconds} clockRef={clockRef} />
 
       <Lighting />
-      <Stars radius={38} depth={28} count={1400} factor={3} saturation={0.3} fade speed={0.35} />
+      <Stars radius={40} depth={25} count={1200} factor={3} saturation={0.25} fade speed={0.3} />
 
       <Stadium />
       <PitchFloor />
       <PitchMarkings />
       <Goals />
 
-      {/* Home team */}
       {scene.teams.home.slots.map(slot => (
         <PlayerToken3D
           key={`home.${slot.slotId}`}
@@ -384,7 +385,6 @@ function Scene3D({
         />
       ))}
 
-      {/* Away team */}
       {scene.teams.away?.slots.map(slot => (
         <PlayerToken3D
           key={`away.${slot.slotId}`}
@@ -412,13 +412,13 @@ function Scene3D({
   );
 }
 
-// ─── Public export ────────────────────────────────────────────────────────────
+// ─── Public component ─────────────────────────────────────────────────────────
 export function Pitch3D({
   scene,
   actions = [],
   durationSeconds = 6,
   playing = true,
-  frame: _frame = 0,   // kept for prop-compatibility, clock is internal
+  frame: _frame = 0,
 }: {
   scene: SceneState;
   actions?: AnimationAction[];
@@ -428,30 +428,33 @@ export function Pitch3D({
 }) {
   return (
     <div className="w-full h-full relative" style={{ background: '#050810' }}>
-      <Canvas
-        shadows
-        camera={{ position: [0, 14, 13], fov: 40, near: 0.1, far: 120 }}
-        gl={{ antialias: true, alpha: false }}
-        onCreated={({ gl }) => {
-          gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1.25;
-          gl.shadowMap.enabled = true;
-          gl.shadowMap.type = THREE.PCFSoftShadowMap;
-        }}
-        dpr={[1, 1.5]}
-        style={{ width: '100%', height: '100%' }}
-      >
-        <Suspense fallback={null}>
-          <Scene3D
-            scene={scene}
-            actions={actions}
-            durationSeconds={durationSeconds}
-            playing={playing}
-          />
-        </Suspense>
-      </Canvas>
-      <div className="absolute bottom-3 right-3 text-[9px] text-white/20 font-mono pointer-events-none select-none">
-        Drag to orbit · Scroll to zoom
+      <CanvasErrorBoundary>
+        <Canvas
+          shadows
+          camera={{ position: [0, 14, 13], fov: 40, near: 0.1, far: 120 }}
+          gl={{ antialias: true, alpha: false }}
+          onCreated={({ gl }) => {
+            gl.toneMapping = THREE.ACESFilmicToneMapping;
+            gl.toneMappingExposure = 1.1;
+          }}
+          dpr={[1, 1.5]}
+          style={{ width: '100%', height: '100%' }}
+        >
+          {/* Background/fog always set — not inside Suspense */}
+          <color attach="background" args={['#050810']} />
+          <fog attach="fog" args={['#050810', 22, 55]} />
+          <Suspense fallback={null}>
+            <Scene3D
+              scene={scene}
+              actions={actions}
+              durationSeconds={durationSeconds}
+              playing={playing}
+            />
+          </Suspense>
+        </Canvas>
+      </CanvasErrorBoundary>
+      <div className="absolute bottom-2 right-3 text-[9px] text-white/20 font-mono pointer-events-none select-none">
+        Drag · Scroll zoom
       </div>
     </div>
   );
