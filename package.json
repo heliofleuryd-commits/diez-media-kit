@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.99.0",
-    "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.6.1",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.17.10",
     "@react-three/postprocessing": "^3.0.4",
     "@remotion/player": "^4.0.468",
     "@vercel/kv": "^3.0.0",
@@ -22,7 +22,7 @@
     "react": "^18",
     "react-dom": "^18",
     "remotion": "^4.0.468",
-    "three": "^0.184.0",
+    "three": "^0.169.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
