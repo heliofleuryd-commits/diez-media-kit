@@ -43,15 +43,6 @@ function makeLabel(text: string): THREE.CanvasTexture {
 
 // ─── Pitch ─────────────────────────────────────────────────────────────────────
 function Pitch() {
-  const line = useMemo(() => {
-    const pts: THREE.Vector3[] = [];
-    for (let i = 0; i <= 80; i++) {
-      const a = (i / 80) * Math.PI * 2;
-      pts.push(new THREE.Vector3(Math.cos(a) * 1.5, 0.01, Math.sin(a) * 1.5));
-    }
-    return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: '#fff' }));
-  }, []);
-
   return (
     <group>
       {/* Green surface */}
@@ -85,8 +76,16 @@ function Pitch() {
         <planeGeometry args={[W, 0.04]} />
         <meshStandardMaterial color="#fff" />
       </mesh>
-      {/* Centre circle */}
-      <primitive object={line} />
+      {/* Centre circle — declarative ring, no raw THREE.Line */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+        <ringGeometry args={[1.46, 1.54, 64]} />
+        <meshStandardMaterial color="#ffffff" opacity={0.9} transparent />
+      </mesh>
+      {/* Centre spot */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.011, 0]}>
+        <circleGeometry args={[0.07, 16]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
     </group>
   );
 }
