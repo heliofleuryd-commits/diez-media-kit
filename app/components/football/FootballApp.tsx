@@ -1,7 +1,22 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, Component, type ReactNode } from 'react';
 import dynamic from 'next/dynamic';
+
+class ThreeErrorBoundary extends Component<{ children: ReactNode }, { err: string | null }> {
+  state = { err: null };
+  static getDerivedStateFromError(e: Error) { return { err: e.message }; }
+  render() {
+    if (this.state.err) return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-[#050810] gap-2">
+        <span className="text-red-400 text-xs font-mono">3D error — check console</span>
+        <span className="text-white/20 text-[9px] font-mono max-w-sm text-center break-all">{this.state.err}</span>
+        <button onClick={() => this.setState({ err: null })} className="text-[9px] text-violet-400 border border-violet-400/30 px-3 py-1 rounded mt-1">Retry</button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
 import { FootballPreview } from './FootballPreview';
 import { PitchEditor } from './PitchEditor';
 import { PlayerPicker } from './PlayerPicker';
@@ -472,7 +487,7 @@ export function FootballApp() {
         <div className="flex items-center justify-center overflow-hidden bg-gray-100" style={{ height: previewHeightPx, minHeight: 200 }}>
           {centerTab === 'preview' ? (
             view3D
-              ? <Pitch3D scene={scene} actions={actions} durationSeconds={duration} frame={frame3D} playing={playing3D} />
+              ? <ThreeErrorBoundary><Pitch3D scene={scene} actions={actions} durationSeconds={duration} frame={frame3D} playing={playing3D} /></ThreeErrorBoundary>
               : <FootballPreview scene={scene} actions={actions} durationSeconds={duration} playerKey={playerKey} fill />
           ) : (
             <div className="flex flex-col items-center justify-center w-full h-full p-4">

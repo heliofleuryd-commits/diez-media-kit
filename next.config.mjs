@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['remotion', '@remotion/player'],
+  transpilePackages: ['remotion', '@remotion/player', 'three', '@react-three/fiber', '@react-three/drei', 'three-stdlib', 'meshline'],
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
   images: {
