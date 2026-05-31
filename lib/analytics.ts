@@ -18,7 +18,7 @@ export function parseDevice(ua: string): 'mobile' | 'tablet' | 'desktop' {
   return 'desktop';
 }
 
-// ── KV helpers (graceful no-op if KV not configured) ──────────────────────────
+// ── KV helpers ────────────────────────────────────────────────────────────────
 
 async function getKV() {
   if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) return null;
@@ -27,30 +27,51 @@ async function getKV() {
 }
 
 export interface AnalyticsEvent {
-  type: 'pageview' | 'cta_click';
+  type: 'pageview' | 'cta_click' | 'duration';
   timestamp: number;
   referrer: string;
   userAgent: string;
   country: string;
   device: string;
+  path: string;
+  visitorId: string;   // persistent per-browser UUID
+  sessionId: string;   // per-tab session UUID
   ctaName?: string;
+  duration?: number;   // seconds on page (from duration events)
 }
 
 export async function pushEvent(event: AnalyticsEvent) {
   const kv = await getKV();
   if (!kv) return;
-  // Keep last 5000 events, 90-day TTL handled at read time
+
+  // Track all visitor IDs in a set for reliable unique counting
+  if (event.visitorId && event.type === 'pageview') {
+    await kv.sadd('analytics:visitors:all', event.visitorId);
+    await kv.sadd(`analytics:visitors:path:${event.path}`, event.visitorId);
+    // Daily set for new vs returning
+    const day = new Date(event.timestamp).toISOString().slice(0, 10);
+    await kv.sadd(`analytics:visitors:day:${day}`, event.visitorId);
+  }
+
   await kv.lpush('analytics:events', JSON.stringify(event));
-  await kv.ltrim('analytics:events', 0, 4999);
+  await kv.ltrim('analytics:events', 0, 9999);
 }
 
 export async function getEvents(): Promise<AnalyticsEvent[]> {
   const kv = await getKV();
   if (!kv) return [];
-  const raw = await kv.lrange<string>('analytics:events', 0, 4999);
+  const raw = await kv.lrange<string>('analytics:events', 0, 9999);
   const now = Date.now();
   const cutoff = now - 90 * 24 * 60 * 60 * 1000;
   return raw
     .map(r => (typeof r === 'string' ? JSON.parse(r) : r) as AnalyticsEvent)
     .filter(e => e.timestamp > cutoff);
+}
+
+// True unique visitor counts from KV sets (accurate, not estimated)
+export async function getUniqueVisitorCount(path?: string): Promise<number> {
+  const kv = await getKV();
+  if (!kv) return 0;
+  const key = path ? `analytics:visitors:path:${path}` : 'analytics:visitors:all';
+  return kv.scard(key);
 }

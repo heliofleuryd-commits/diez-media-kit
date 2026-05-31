@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import StarBorder from './StarBorder';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -437,8 +438,8 @@ function AccountRow({ account, followers, period }: { account: AccountStat; foll
 
 function HeroSection({ totalFollowers }: { totalFollowers: number }) {
   return (
-    <div className="mb-4 sm:mb-5">
-      <div className="flex items-stretch gap-4 sm:gap-5 mb-4">
+    <div className="mb-2 sm:mb-5">
+      <div className="flex items-stretch gap-4 sm:gap-5 mb-2 sm:mb-4">
         {/* Avatar */}
         <div className="relative flex-shrink-0 self-start">
           <div
@@ -456,6 +457,7 @@ function HeroSection({ totalFollowers }: { totalFollowers: number }) {
 
         {/* Identity */}
         <div className="flex flex-col gap-2 sm:gap-3 flex-1 py-0.5">
+          {/* Top row: DIEZ + badge */}
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h1 className="font-black italic text-4xl sm:text-5xl leading-none tracking-tight text-white text-stroke">DIEZ</h1>
@@ -474,21 +476,6 @@ function HeroSection({ totalFollowers }: { totalFollowers: number }) {
             <div className="font-black italic text-3xl sm:text-4xl leading-none text-white text-stroke" style={{ letterSpacing: '-0.02em' }}>
               {totalFollowers > 0 ? fmt(totalFollowers) : '1.4M'}
             </div>
-          </div>
-
-          {/* Let's Talk CTA */}
-          <div>
-            <a
-              href="mailto:hello@diez.gg"
-              onClick={() => (window as any).trackCTA?.('lets-talk')}
-              className="cursor-target inline-flex items-center gap-2 px-4 py-2 rounded-full font-black italic text-sm uppercase tracking-wider bg-white text-black hover:opacity-80 transition-opacity"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-              </svg>
-              Let&apos;s Talk
-            </a>
-            <p className="text-white/40 text-xs font-medium mt-1">hello@diez.gg</p>
           </div>
         </div>
       </div>
@@ -553,12 +540,12 @@ export default function StatsClient() {
     accs.reduce((best, a) => parseFloat(a.engRate[period]) > parseFloat(best) ? a.engRate[period] : best, accs[0]?.engRate[period] ?? '');
 
   return (
-    <div className="min-h-screen px-4 py-4 sm:py-6 max-w-3xl mx-auto">
+    <div className="min-h-screen px-4 py-3 sm:py-6 max-w-3xl mx-auto">
 
       <HeroSection totalFollowers={totalFollowers} />
 
       {/* Platform audience bar — 5 platforms */}
-      <div className="grid grid-cols-5 gap-2 sm:gap-3 mb-3 sm:mb-4">
+      <div className="grid grid-cols-5 gap-2 sm:gap-3 mb-2 sm:mb-4">
         {[
           { platform: 'tiktok',    count: liveAccounts.filter(a => a.platform === 'tiktok').reduce((s, a) => s + a.followers, 0),     label: 'TikTok',    staticCount: 0 },
           { platform: 'youtube',   count: liveAccounts.find(a => a.platform === 'youtube')?.followers ?? 0,                            label: 'YouTube',   staticCount: 0 },
@@ -578,7 +565,35 @@ export default function StatsClient() {
         ))}
       </div>
 
-      <div className="border-b border-white/10 mb-4 sm:mb-5" />
+      {/* Loadouts CTA */}
+      <StarBorder as="a" href="/loadouts" onClick={() => (window as any).trackCTA?.('loadouts')} color="cyan" speed="5s" className="cursor-target w-full mb-1.5 hover:opacity-90 transition-opacity active:scale-[0.99]">
+        <div className="flex items-center justify-between px-5 sm:px-6 py-2.5 rounded-[13px]" style={{ background: 'rgba(255,255,255,0.95)' }}>
+          <div className="flex items-center gap-2.5">
+            <span className="text-base">📝</span>
+            <span className="font-black italic text-sm sm:text-base text-black uppercase tracking-widest">All My Loadouts</span>
+          </div>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
+      </StarBorder>
+
+      {/* Full-width Let's Talk CTA */}
+      <StarBorder as="a" href="mailto:hello@diez.gg" onClick={() => (window as any).trackCTA?.('lets-talk')} color="white" speed="7s" className="cursor-target w-full mb-2 sm:mb-4 hover:opacity-90 transition-opacity active:scale-[0.99]">
+        <div className="flex items-center justify-between px-5 sm:px-6 py-2.5 rounded-[13px]" style={{ background: 'rgba(255,255,255,0.95)' }}>
+          <div className="flex items-center gap-2.5">
+            <span className="text-base">📩</span>
+            <span className="font-black italic text-sm sm:text-base text-black/40 uppercase tracking-widest">Let&apos;s Talk</span>
+            <span className="text-black/25 font-bold">·</span>
+            <span className="font-black italic text-sm sm:text-base text-black tracking-tight">hello@diez.gg</span>
+          </div>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+          </svg>
+        </div>
+      </StarBorder>
+
+      <div className="border-b border-white/10 mb-2 sm:mb-5" />
 
       <ScrollFloat
         animationDuration={1}
