@@ -129,36 +129,54 @@ async function fetchGoogleNews() {
   } catch { return []; }
 }
 
-// ── TikTok: Apify scraper ─────────────────────────────────────────────────────
+// ── TikTok: Tokapi via RapidAPI ───────────────────────────────────────────────
 async function fetchTikTok() {
-  const token = process.env.APIFY_TOKEN;
-  if (!token) return { items: [], note: 'No APIFY_TOKEN set' };
+  const rapidKey = process.env.RAPIDAPI_KEY;
+  if (!rapidKey) return { hashtags: [], videos: [], note: 'No RAPIDAPI_KEY set' };
+
+  const HOST = 'tokapi-mobile-version.p.rapidapi.com';
+  const headers = { 'x-rapidapi-key': rapidKey, 'x-rapidapi-host': HOST };
+
+  const tags = ['WorldCup2026', 'FIFA2026', 'LamineYamal', 'football', 'Messi', 'WorldCup', 'Spain2026'];
+  const hashtags: { tag: string; views: string }[] = [];
+
+  await Promise.all(tags.map(async (tag) => {
+    try {
+      const res = await fetch(
+        `https://${HOST}/v1/hashtag/posts?hashtag_name=${tag}&count=5&offset=0`,
+        { headers, next: { revalidate: 0 } } as any
+      );
+      if (!res.ok) return;
+      const json = await res.json();
+      const viewCount = json.ch_info?.view_count || 0;
+      hashtags.push({
+        tag: `#${tag}`,
+        views: viewCount > 0 ? `${(viewCount / 1_000_000_000).toFixed(1)}B views` : '',
+      });
+    } catch { /* skip */ }
+  }));
+
+  // Search for trending WC videos
+  let videos: { desc: string; plays: number }[] = [];
   try {
-    const queries = ['World Cup 2026', 'FIFA 2026', 'football 2026'];
     const res = await fetch(
-      `https://api.apify.com/v2/acts/clockworks~free-tiktok-scraper/run-sync-get-dataset-items?token=${token}&timeout=25`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          searchQueries: queries,
-          searchSection: 'top',
-          maxSearchResults: 5,
-        }),
-        signal: AbortSignal.timeout(28000),
-      }
+      `https://${HOST}/v1/search/keyword?keyword=world+cup+2026&count=10&offset=0`,
+      { headers, next: { revalidate: 0 } } as any
     );
-    if (!res.ok) return { items: [], note: `Apify error: ${res.status}` };
-    const data = await res.json();
-    const items = (data || []).slice(0, 12).map((v: any) => ({
-      desc: (v.text || v.desc || '').slice(0, 100),
-      plays: v.playCount || v.stats?.playCount || 0,
-      likes: v.likeCount || v.stats?.diggCount || 0,
-    }));
-    return { items, note: null };
-  } catch (e: any) {
-    return { items: [], note: `TikTok unavailable: ${e.message?.slice(0, 60)}` };
-  }
+    if (res.ok) {
+      const json = await res.json();
+      videos = (json.item_list || json.data || []).slice(0, 8).map((v: any) => ({
+        desc: (v.desc || '').slice(0, 90),
+        plays: v.statistics?.play_count || 0,
+      })).filter((v: any) => v.desc);
+    }
+  } catch { /* skip */ }
+
+  return {
+    hashtags,
+    videos,
+    note: hashtags.length === 0 ? 'Rate limited — refreshes shortly' : null,
+  };
 }
 
 // ── Skill loader ──────────────────────────────────────────────────────────────
@@ -213,10 +231,13 @@ export async function POST() {
       '## World Cup News: What journalists are covering',
       news.slice(0, 10).map((n: any) => `- [${n.source}] ${n.title}`).join('\n'),
       '',
-      '## TikTok: Trending World Cup content',
-      tiktok.items.length > 0
-        ? tiktok.items.map((v: any) => `- [${(v.plays/1000).toFixed(0)}K plays] ${v.desc}`).join('\n')
+      '## TikTok: Trending Hashtags',
+      tiktok.hashtags?.length > 0
+        ? tiktok.hashtags.map((h: any) => `- ${h.tag} ${h.views}`).join('\n')
         : tiktok.note || 'Unavailable',
+      tiktok.videos?.length > 0
+        ? '\n## TikTok: Top World Cup Videos\n' + tiktok.videos.map((v: any) => `- ${v.desc}`).join('\n')
+        : '',
     ].join('\n');
 
     const response = await client.messages.create({
