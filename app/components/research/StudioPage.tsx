@@ -168,6 +168,8 @@ function SignalsSidebar({ signals }: { signals: any }) {
 export function StudioPage() {
   const [tab, setTab] = useState<'scripts' | 'news'>('scripts');
   const [signals, setSignals] = useState<any>(null);
+  const [signalsAge, setSignalsAge] = useState<string>('');
+  const [refreshingSignals, setRefreshingSignals] = useState(false);
 
   // 3-step script workflow
   type ScriptStep = 'idle' | 'researching' | 'pick' | 'generating' | 'done';
@@ -191,9 +193,45 @@ export function StudioPage() {
 
   const copy = (text: string, key: string) => { navigator.clipboard.writeText(text); setCopied(key); setTimeout(() => setCopied(null), 1500); };
 
-  useEffect(() => {
-    fetch('/api/football/research').then(r => r.json()).then(d => { if (d.ok) setSignals(d); });
-  }, []);
+  const CACHE_KEY = 'diez_signals_cache';
+  const CACHE_TTL = 8 * 60 * 60 * 1000; // 8 hours
+
+  const formatAge = (ts: number) => {
+    const mins = Math.floor((Date.now() - ts) / 60000);
+    if (mins < 2) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    return `${Math.floor(mins / 60)}h ago`;
+  };
+
+  const loadSignals = async (force = false) => {
+    if (!force) {
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const { data, ts } = JSON.parse(cached);
+          if (Date.now() - ts < CACHE_TTL) {
+            setSignals(data);
+            setSignalsAge(formatAge(ts));
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+    }
+    setRefreshingSignals(true);
+    try {
+      const res = await fetch('/api/football/research');
+      const d = await res.json();
+      if (d.ok) {
+        setSignals(d);
+        const ts = Date.now();
+        setSignalsAge(formatAge(ts));
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: d, ts }));
+      }
+    } catch { /* ignore */ }
+    finally { setRefreshingSignals(false); }
+  };
+
+  useEffect(() => { loadSignals(); }, []);
 
   // Step 1: research → get 10 topics
   const researchTopics = async () => {
@@ -263,8 +301,19 @@ export function StudioPage() {
 
       {/* ── SIGNALS sidebar ───────────────────────────────────────── */}
       <aside className="shrink-0 flex flex-col border-r border-gray-200 bg-white overflow-hidden" style={{ width: 210 }}>
-        <div className="px-3 py-2.5 border-b border-gray-100 shrink-0">
-          <p className="text-[9px] font-black tracking-widest uppercase text-gray-400">Live Signals</p>
+        <div className="px-3 py-2.5 border-b border-gray-100 shrink-0 flex items-center justify-between">
+          <div>
+            <p className="text-[9px] font-black tracking-widest uppercase text-gray-400">Live Signals</p>
+            {signalsAge && <p className="text-[7px] text-gray-300 mt-0.5">{signalsAge}</p>}
+          </div>
+          <button
+            onClick={() => loadSignals(true)}
+            disabled={refreshingSignals}
+            title="Refresh signals"
+            className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-all disabled:opacity-40"
+          >
+            <span className={`text-[11px] ${refreshingSignals ? 'animate-spin inline-block' : ''}`}>↺</span>
+          </button>
         </div>
         <div className="flex-1 overflow-y-auto bg-white">
           <SignalsSidebar signals={signals} />
