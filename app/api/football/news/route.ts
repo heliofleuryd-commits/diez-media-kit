@@ -6,6 +6,8 @@ import { CREATOR_BIAS } from '@/lib/football/creatorBias';
 
 const client = new Anthropic();
 const YT_KEY = process.env.YOUTUBE_API_KEY || '';
+const M_FAST   = 'claude-haiku-4-5-20251001'; // bullets
+const M_SCRIPT = 'claude-sonnet-4-6';          // flash news script
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
 
 // ── ESPN: live scores, results, fixtures ──────────────────────────────────────
@@ -162,39 +164,64 @@ Hit the top 6–8 stories fast and punchy. Bias toward Spain/Yamal/Barcelona/Arg
 Clean script only — no brackets, no direction notes, just the spoken words.
 Add as "flash_script" string in your JSON output.` : '';
 
-  const response = await client.messages.create({
-    model: 'claude-opus-4-8',
-    max_tokens: 3000,
-    system: [
-      {
-        type: 'text',
-        text: `You are a football news analyst for a TikTok creator covering the 2026 FIFA World Cup. Output only valid JSON. No markdown fences.\n${CREATOR_BIAS}`,
-        cache_control: { type: 'ephemeral' },
-      },
-      generateScript ? {
-        type: 'text' as const,
-        text: `Creator style:\n${loadSkills().slice(0, 3000)}`,
-        cache_control: { type: 'ephemeral' },
-      } : null,
-    ].filter(Boolean) as any,
-    messages: [{ role: 'user', content: bulletPrompt + scriptPrompt }],
+  // Bullets: Haiku (fast + cheap — just summarising facts)
+  const bulletRes = await client.messages.create({
+    model: M_FAST,
+    max_tokens: 2000,
+    system: [{
+      type: 'text',
+      text: `You are a football news analyst. Output only valid JSON. No markdown fences.\n${CREATOR_BIAS}`,
+      cache_control: { type: 'ephemeral' },
+    }],
+    messages: [{ role: 'user', content: bulletPrompt }],
   });
 
+  // Flash script (only if requested): Sonnet — good creative writing, not as expensive as Opus
+  let scriptRes: any = null;
+  if (generateScript) {
+    scriptRes = await client.messages.create({
+      model: M_SCRIPT,
+      max_tokens: 1500,
+      system: [
+        {
+          type: 'text',
+          text: `You are a TikTok football creator writing a Flash News script. Output only valid JSON with a "flash_script" string field. No markdown fences.\n${CREATOR_BIAS}`,
+          cache_control: { type: 'ephemeral' },
+        },
+        {
+          type: 'text',
+          text: `Creator style reference:\n${loadSkills().slice(0, 2000)}`,
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
+      messages: [{ role: 'user', content: `Today is ${today}. Raw data:\n${rawData}\n\n${scriptPrompt}` }],
+    });
+  }
+
+  const response = bulletRes;
+
+  // Parse bullets
   const raw = response.content[0].type === 'text' ? response.content[0].text : '[]';
   let bullets: string[] = [];
-  let flash_script: string | null = null;
-
   try {
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      bullets = parsed;
-    } else {
-      bullets = parsed.bullets || parsed.items || [];
-      flash_script = parsed.flash_script || null;
-    }
+    bullets = Array.isArray(parsed) ? parsed : (parsed.bullets || parsed.items || []);
   } catch {
     const arr = raw.match(/\[[\s\S]+\]/);
     if (arr) { try { bullets = JSON.parse(arr[0]); } catch { /* ignore */ } }
+  }
+
+  // Parse flash script from separate call
+  let flash_script: string | null = null;
+  if (scriptRes) {
+    const sraw = scriptRes.content[0].type === 'text' ? scriptRes.content[0].text : '{}';
+    try {
+      const sp = JSON.parse(sraw);
+      flash_script = sp.flash_script || null;
+    } catch {
+      const m = sraw.match(/"flash_script"\s*:\s*"([\s\S]+?)(?:"\s*\}|"$)/);
+      flash_script = m ? m[1].replace(/\\n/g, '\n') : null;
+    }
   }
 
   return NextResponse.json({ ok: true, bullets, flash_script, date: today, rawCount: newsItems.length + ytItems.length });

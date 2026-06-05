@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       : 'No content generated yet in this session.';
 
     const response = await client.messages.create({
-      model: 'claude-opus-4-8',
+      model: 'claude-sonnet-4-6', // chat doesn't need Opus
       max_tokens: 4000,
       system: [
         {

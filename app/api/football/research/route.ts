@@ -8,6 +8,10 @@ const client = new Anthropic();
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
 const YT_KEY = process.env.YOUTUBE_API_KEY || '';
 
+// Model tiers
+const M_FAST   = 'claude-haiku-4-5-20251001';  // topics + news bullets ($0.80/$4 per MTok)
+const M_SCRIPT = 'claude-opus-4-8';             // scripts only — quality non-negotiable
+
 // ── YouTube: what people are SEARCHING ───────────────────────────────────────
 async function fetchYouTubeSearchTrends() {
   const seedQueries = [
@@ -184,7 +188,13 @@ function loadSkills(): string {
   if (!fs.existsSync(SKILLS_DIR)) return 'No skills extracted yet.';
   return fs.readdirSync(SKILLS_DIR)
     .filter(f => f.endsWith('.md'))
-    .map(f => `### ${f}\n${fs.readFileSync(path.join(SKILLS_DIR, f), 'utf-8').slice(0, 1500)}`)
+    .map(f => {
+      const content = fs.readFileSync(path.join(SKILLS_DIR, f), 'utf-8');
+      // Channel profiles: abbreviated (less useful for daily scripts)
+      // Format/hook/viral files: kept fuller (directly used in writing)
+      const limit = f.startsWith('channel-') ? 400 : 1200;
+      return `### ${f}\n${content.slice(0, limit)}`;
+    })
     .join('\n---\n\n');
 }
 
@@ -258,7 +268,7 @@ export async function POST(req: Request) {
     // ── STEP 1: generate 10 topic ideas ──────────────────────────────────────
     if (mode === 'topics') {
       const response = await client.messages.create({
-        model: 'claude-opus-4-8',
+        model: M_FAST,
         max_tokens: 3000,
         system: [
           { type: 'text', text: SYSTEM_STRATEGIST, cache_control: { type: 'ephemeral' } },
@@ -371,7 +381,7 @@ OUTPUT valid JSON only, no fences:
 
           try {
             const res = await client.messages.create({
-              model: 'claude-opus-4-8',
+              model: M_SCRIPT,
               max_tokens: 2000,
               system: systemBlocks,
               messages: [{ role: 'user', content: prompt }],
