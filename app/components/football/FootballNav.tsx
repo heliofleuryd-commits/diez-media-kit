@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 const NAV = [
   { href: '/football/tactics',  label: 'Tactics Board', icon: '⚽' },
   { href: '/football/research', label: 'Research',      icon: '🔬' },
+  { href: '/football/news',     label: 'Flash News',    icon: '📰' },
 ];
 
 export function FootballNav() {
