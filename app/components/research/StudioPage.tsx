@@ -185,6 +185,7 @@ export function StudioPage() {
 
   const [loadingNews, setLoadingNews] = useState(false);
   const [bullets, setBullets] = useState<string[]>([]);
+  const [selectedBullets, setSelectedBullets] = useState<Set<number>>(new Set());
   const [flashDate, setFlashDate] = useState('');
   const [flashScript, setFlashScript] = useState<string | null>(null);
   const [showFlashScript, setShowFlashScript] = useState(false);
@@ -339,21 +340,40 @@ export function StudioPage() {
     } catch (e: any) { setError(e.message); setScriptStep('pick'); }
   };
 
-  const getNews = async (withScript = false) => {
-    withScript ? setGeneratingFlash(true) : setLoadingNews(true);
-    setError(null);
+  const getNews = async () => {
+    setLoadingNews(true); setError(null);
     try {
       const res = await fetch('/api/football/news', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ generateScript: withScript }),
+        body: JSON.stringify({ generateScript: false }),
       });
       const json = await res.json();
       if (!json.ok) { setError(json.error); return; }
       trackCost(json.cost || 0);
-      setBullets(json.bullets || []); setFlashDate(json.date || '');
-      if (withScript) { setFlashScript(json.flash_script); setShowFlashScript(true); }
+      setBullets(json.bullets || []);
+      setSelectedBullets(new Set());
+      setFlashDate(json.date || '');
+      setFlashScript(null); setShowFlashScript(false);
     } catch (e: any) { setError(e.message); }
-    finally { setLoadingNews(false); setGeneratingFlash(false); }
+    finally { setLoadingNews(false); }
+  };
+
+  const generateFlashFromSelected = async () => {
+    const chosen = bullets.filter((_, i) => selectedBullets.has(i));
+    if (!chosen.length) return;
+    setGeneratingFlash(true); setError(null);
+    try {
+      const res = await fetch('/api/football/news', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ generateScript: true, selectedBullets: chosen, date: flashDate }),
+      });
+      const json = await res.json();
+      if (!json.ok) { setError(json.error); return; }
+      trackCost(json.cost || 0);
+      setFlashScript(json.flash_script);
+      setShowFlashScript(true);
+    } catch (e: any) { setError(e.message); }
+    finally { setGeneratingFlash(false); }
   };
 
   const chatContext = { trendsText, scripts, bullets, flashScript };
@@ -607,54 +627,97 @@ export function StudioPage() {
         {tab === 'news' && (
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="px-5 py-3 border-b border-gray-200 bg-white flex items-center justify-between shrink-0">
-              <p className="text-[10px] text-gray-400">
-                {flashDate ? `World Cup Flash News — ${flashDate}` : 'Every score, injury and talking point from the last 24 hours'}
-              </p>
-              <button onClick={() => getNews(false)} disabled={loadingNews || generatingFlash}
+              <div>
+                <p className="text-[10px] text-gray-400">
+                  {flashDate ? `World Cup Flash News — ${flashDate}` : 'Every score, injury and talking point from the last 24 hours'}
+                </p>
+                {bullets.length > 0 && (
+                  <p className="text-[9px] text-gray-300 mt-0.5">Select stories → Generate script</p>
+                )}
+              </div>
+              <button onClick={getNews} disabled={loadingNews}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-[11px] font-black disabled:opacity-50 shadow-sm"
                 style={{ background: loadingNews ? '#9ca3af' : 'linear-gradient(135deg,#dc2626,#b91c1c)' }}>
                 {loadingNews ? <><span className="animate-spin inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full" />Scanning…</> : <>⚡ Get Flash News</>}
               </button>
             </div>
+
             {bullets.length === 0 && !loadingNews ? (
               <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
                 <div className="text-4xl">📰</div>
-                <p className="text-gray-400 text-xs max-w-xs leading-relaxed">20 bullets covering every score, injury, controversy, and group standing from the last 24 hours.</p>
+                <p className="text-gray-400 text-xs max-w-xs leading-relaxed">20 bullets ranked by importance — scores, injuries, controversies, group standings. Select the ones you want, then generate a Flash News script.</p>
               </div>
             ) : (
               <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
                 <div className="max-w-2xl">
+
+                  {/* Selection controls */}
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400">{bullets.length} stories</p>
-                    <button onClick={() => copy(bullets.map((b,i)=>`${i+1}. ${b}`).join('\n'),'all')} className="text-[8px] text-violet-500 font-semibold">{copied==='all'?'✓ Copied':'Copy all'}</button>
+                    <div className="flex items-center gap-3">
+                      <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400">{bullets.length} stories</p>
+                      {selectedBullets.size > 0 && (
+                        <span className="text-[8px] font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200">
+                          {selectedBullets.size} selected
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => setSelectedBullets(new Set(bullets.map((_,i)=>i)))} className="text-[8px] text-violet-500 font-semibold">Select all</button>
+                      <span className="text-gray-200">·</span>
+                      <button onClick={() => setSelectedBullets(new Set())} className="text-[8px] text-gray-400 font-semibold">Clear</button>
+                      <span className="text-gray-200">·</span>
+                      <button onClick={() => copy(bullets.map((b,i)=>`${i+1}. ${b}`).join('\n'),'all')} className="text-[8px] text-gray-400 font-semibold">{copied==='all'?'✓ Copied':'Copy all'}</button>
+                    </div>
                   </div>
-                  <div className="space-y-1.5 mb-5">
-                    {bullets.map((b, i) => (
-                      <div key={i} className="flex gap-2.5 items-start group p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 transition-colors">
-                        <span className="shrink-0 w-5 h-5 rounded-full bg-red-100 text-red-600 text-[8px] font-black flex items-center justify-center mt-0.5">{i+1}</span>
-                        <p className="text-[11px] text-gray-700 leading-relaxed flex-1">{b}</p>
-                        <button onClick={() => copy(b,`b${i}`)} className="shrink-0 opacity-0 group-hover:opacity-100 text-[8px] text-violet-500 transition-opacity">{copied===`b${i}`?'✓':'Copy'}</button>
-                      </div>
-                    ))}
+
+                  {/* Bullets — clickable */}
+                  <div className="space-y-1.5 mb-4">
+                    {bullets.map((b, i) => {
+                      const sel = selectedBullets.has(i);
+                      return (
+                        <button key={i} onClick={() => setSelectedBullets(prev => { const n = new Set(prev); sel ? n.delete(i) : n.add(i); return n; })}
+                          className={`w-full flex gap-2.5 items-start p-3 rounded-xl border text-left transition-all ${sel ? 'bg-violet-50 border-violet-300 shadow-sm' : 'bg-white border-gray-100 hover:border-gray-300'}`}>
+                          <span className={`shrink-0 w-5 h-5 rounded-full text-[8px] font-black flex items-center justify-center mt-0.5 transition-all ${sel ? 'bg-violet-600 text-white' : 'bg-red-100 text-red-600'}`}>
+                            {sel ? '✓' : i+1}
+                          </span>
+                          <p className={`text-[11px] leading-relaxed flex-1 ${sel ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>{b}</p>
+                        </button>
+                      );
+                    })}
                   </div>
+
+                  {/* Generate script from selected */}
                   <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm">
-                    <button onClick={flashScript ? () => setShowFlashScript(s=>!s) : () => getNews(true)} disabled={generatingFlash}
-                      className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition-colors">
+                    <div className="px-4 py-3.5 flex items-center justify-between border-b border-gray-100">
                       <div className="flex items-center gap-3">
                         <span>🎙</span>
-                        <div className="text-left">
-                          <p className="text-[11px] font-black text-gray-900">{flashScript ? `World Cup Flash News — ${flashDate}` : 'Generate Flash News Script'}</p>
-                          <p className="text-[9px] text-gray-400 mt-0.5">60–90 sec · straight to camera · clean script</p>
+                        <div>
+                          <p className="text-[11px] font-black text-gray-900">
+                            {flashScript ? `World Cup Flash News — ${flashDate}` : 'World Cup Flash News Script'}
+                          </p>
+                          <p className="text-[9px] text-gray-400 mt-0.5">
+                            {selectedBullets.size === 0
+                              ? 'Select stories above then generate'
+                              : `${selectedBullets.size} stories selected · straight to camera · facts only`}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {generatingFlash && <span className="animate-spin inline-block w-3 h-3 border-2 border-violet-500 border-t-transparent rounded-full" />}
-                        {!flashScript && !generatingFlash && <span className="text-[10px] px-3 py-1 rounded-full text-white font-bold shadow-sm" style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>Generate</span>}
-                        {flashScript && <span className="text-gray-400">{showFlashScript?'▲':'▼'}</span>}
+                        {!generatingFlash && selectedBullets.size > 0 && (
+                          <button onClick={() => flashScript ? setShowFlashScript(s=>!s) : generateFlashFromSelected()}
+                            className="text-[10px] px-3 py-1.5 rounded-xl text-white font-black shadow-sm"
+                            style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
+                            {flashScript ? (showFlashScript ? 'Hide' : 'Show') : `Generate for ${selectedBullets.size}`}
+                          </button>
+                        )}
+                        {!generatingFlash && flashScript && selectedBullets.size > 0 && (
+                          <button onClick={generateFlashFromSelected} className="text-[9px] text-gray-400 hover:text-gray-600 font-semibold">↺ Redo</button>
+                        )}
                       </div>
-                    </button>
+                    </div>
                     {showFlashScript && flashScript && (
-                      <div className="border-t border-gray-100 p-4">
+                      <div className="p-4">
                         <div className="flex justify-between items-center mb-3">
                           <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400">Read straight to camera</p>
                           <button onClick={() => copy(flashScript,'fs')} className="text-[9px] text-violet-500 font-semibold">{copied==='fs'?'✓ Copied':'Copy'}</button>

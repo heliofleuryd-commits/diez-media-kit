@@ -1,12 +1,12 @@
-import { FootballNav } from '@/app/components/football/FootballNav';
+import { AppSidebar } from '@/app/components/AppSidebar';
 
 export const metadata = { title: 'Football — diez.gg', robots: 'noindex,nofollow' };
 
 export default function FootballLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#f9fafb', zIndex: 10, display: 'flex', overflow: 'hidden' }}>
-      <FootballNav />
-      <div style={{ flex: 1, overflow: 'hidden', background: '#f9fafb' }}>
+    <div style={{ position: 'fixed', inset: 0, display: 'flex', background: '#f9fafb' }}>
+      <AppSidebar />
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {children}
       </div>
     </div>

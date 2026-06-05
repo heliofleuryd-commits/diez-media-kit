@@ -159,11 +159,38 @@ Each bullet: one punchy sentence, specific facts, no vague statements.
 If Spain, Lamine Yamal, Barcelona players, or Argentina/Messi are involved — prioritise those higher.
 Output ONLY a JSON array of 20 strings (ranked #1 first), no other text.`;
 
-  const scriptPrompt = generateScript ? `\n\nAlso generate a "World Cup Flash News — ${today}" script.
-60–90 seconds, straight to camera, start with: "World Cup Flash News — [day and date]"
-Hit the top 6–8 stories fast and punchy. Bias toward Spain/Yamal/Barcelona/Argentina angles where relevant.
-Clean script only — no brackets, no direction notes, just the spoken words.
-Add as "flash_script" string in your JSON output.` : '';
+  const selectedBullets: string[] = body.selectedBullets || [];
+  const scriptDate = body.date || today;
+
+  // Format date as "Monday, July 11th"
+  const scriptDateFormatted = (() => {
+    try {
+      const d = new Date(scriptDate + 'T12:00:00');
+      const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
+      const month = d.toLocaleDateString('en-US', { month: 'long' });
+      const day = d.getDate();
+      const ord = day === 1||day===21||day===31?'st':day===2||day===22?'nd':day===3||day===23?'rd':'th';
+      return `${weekday}, ${month} ${day}${ord}`;
+    } catch { return today; }
+  })();
+
+  const bulletListForScript = selectedBullets.length > 0
+    ? selectedBullets.map((b, i) => `${i+1}. ${b}`).join('\n')
+    : null;
+
+  const scriptPrompt = (generateScript && bulletListForScript) ? `Generate a "World Cup Flash News — ${scriptDateFormatted}" script from these selected stories:
+
+${bulletListForScript}
+
+RULES:
+- Start with exactly: "World Cup Flash News — ${scriptDateFormatted}"
+- Read every story fast and factual — no padding, no waffle, no transitions like "meanwhile" or "in other news"
+- One punchy sentence per story, straight into the next
+- Facts only: scores, names, numbers — nothing vague
+- No sign-off, no outro — just end after the last story
+- Spoken words only, no brackets or notes
+
+Output JSON with only a "flash_script" string field.` : '';
 
   // Bullets: Haiku (fast + cheap — just summarising facts)
   const bulletRes = await client.messages.create({

@@ -1,10 +1,10 @@
-import Sidebar from '../components/Sidebar';
+import { AppSidebar } from '@/app/components/AppSidebar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#09090B] text-white flex">
-      <Sidebar />
-      <main className="flex-1 ml-56 p-8">
+    <div style={{ position: 'fixed', inset: 0, display: 'flex', background: '#09090B' }}>
+      <AppSidebar />
+      <main style={{ flex: 1, overflow: 'auto', minWidth: 0 }} className="p-8">
         {children}
       </main>
     </div>
