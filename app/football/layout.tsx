@@ -1,10 +1,14 @@
-export const metadata = { title: 'Tactics Studio — diez.gg', robots: 'noindex,nofollow' };
+import { FootballNav } from '@/app/components/football/FootballNav';
+
+export const metadata = { title: 'Football — diez.gg', robots: 'noindex,nofollow' };
 
 export default function FootballLayout({ children }: { children: React.ReactNode }) {
   return (
-    // Covers the purple gradient from root layout with a clean white surface
-    <div style={{ position: 'fixed', inset: 0, background: '#f9fafb', zIndex: 10, overflow: 'hidden' }}>
-      {children}
+    <div style={{ position: 'fixed', inset: 0, background: '#0d0f14', zIndex: 10, display: 'flex', overflow: 'hidden' }}>
+      <FootballNav />
+      <div style={{ flex: 1, overflow: 'hidden', background: '#f9fafb' }}>
+        {children}
+      </div>
     </div>
   );
 }

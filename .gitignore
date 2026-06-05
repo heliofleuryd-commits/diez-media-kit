@@ -137,3 +137,11 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# content-plan
+content-plan/.venv/
+content-plan/.env
+content-plan/corpus/
+content-plan/cache/
+content-plan/logs/
+
