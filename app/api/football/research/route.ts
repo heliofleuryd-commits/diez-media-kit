@@ -298,67 +298,102 @@ OUTPUT valid JSON only, no fences:
 
       const raw = response.content[0].type === 'text' ? response.content[0].text : '';
       let parsed;
-      try { parsed = JSON.parse(raw); }
-      catch { const m = raw.match(/\{[\s\S]+\}/); parsed = m ? JSON.parse(m[0]) : { error: 'Parse failed', raw: raw.slice(0,200) }; }
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        // Try to extract JSON object even from truncated response
+        const m = raw.match(/\{[\s\S]+/);
+        if (m) {
+          try {
+            // Attempt to close truncated JSON by finding last complete topic
+            const partial = m[0];
+            const lastComplete = partial.lastIndexOf('},');
+            if (lastComplete > 0) {
+              const fixed = partial.slice(0, lastComplete + 1) + ']}';
+              parsed = JSON.parse(fixed);
+            } else {
+              parsed = { error: 'Parse failed', raw: raw.slice(0, 200) };
+            }
+          } catch { parsed = { error: 'Parse failed', raw: raw.slice(0, 200) }; }
+        } else {
+          parsed = { error: 'Parse failed', raw: raw.slice(0, 200) };
+        }
+      }
 
       return NextResponse.json({ ok: true, mode: 'topics', data: parsed, trends });
     }
 
-    // ── STEP 2: generate full scripts for selected topics ─────────────────────
+    // ── STEP 2: generate scripts — one API call per topic, in parallel ───────
     if (mode === 'scripts') {
       const selectedTopics: any[] = body.topics || [];
       if (selectedTopics.length === 0) {
         return NextResponse.json({ ok: false, error: 'No topics selected' }, { status: 400 });
       }
 
-      const topicsText = selectedTopics.map((t: any, i: number) =>
-        `TOPIC ${i+1}: "${t.title}"\nAngle: ${t.angle}\nHook idea: ${t.hook_idea}\nFormat: ${t.format}\nSignal: ${t.platform_signal}`
-      ).join('\n\n');
+      const skillsBlock = `## SKILL FILES\n\n${loadSkills()}`;
+      const systemBlocks: any[] = [
+        { type: 'text', text: SYSTEM_STRATEGIST, cache_control: { type: 'ephemeral' } },
+        { type: 'text', text: skillsBlock, cache_control: { type: 'ephemeral' } },
+      ];
 
-      const response = await client.messages.create({
-        model: 'claude-opus-4-8',
-        max_tokens: 4000 * selectedTopics.length,
-        system: [
-          { type: 'text', text: SYSTEM_STRATEGIST, cache_control: { type: 'ephemeral' } },
-          { type: 'text', text: `## SKILL FILES\n\n${loadSkills()}`, cache_control: { type: 'ephemeral' } },
-        ],
-        messages: [{
-          role: 'user',
-          content: `Generate a complete, fully-written script for each of the ${selectedTopics.length} selected topics below.
+      // One call per topic — eliminates truncation, same wall-clock time
+      const scriptResults = await Promise.all(
+        selectedTopics.map(async (topic: any) => {
+          const prompt = `Write one complete TikTok script for this topic.
 
-Use ALL your knowledge from the skill files. These scripts should be the best possible version — not a first draft.
-Each script: 45–65 seconds when read aloud naturally. Strong hook. Payoff that earns the watch. Clean spoken words only — no brackets, no markers.
+TOPIC: "${topic.title}"
+ANGLE: ${topic.angle}
+HOOK IDEA: ${topic.hook_idea}
+FORMAT: ${topic.format}
+SIGNAL: ${topic.platform_signal}
+${topic.Spain_Yamal_angle ? `SPAIN/YAMAL ANGLE: ${topic.Spain_Yamal_angle}` : ''}
 
-TODAY'S CONTEXT:
-${trendsText}
+TODAY'S CONTEXT (use for accuracy):
+${trendsText.slice(0, 1500)}
 
-SELECTED TOPICS TO SCRIPT:
-${topicsText}
+REQUIREMENTS:
+- 45–65 seconds read aloud naturally
+- Use the hook idea as a starting point but make it the best possible version
+- Strong payoff that earns the full watch
+- Clean spoken words only — absolutely no brackets, no [CAM], no [BROLL], no direction notes
 
 OUTPUT valid JSON only, no fences:
 {
-  "scripts": [
-    {
-      "topic_id": 1,
-      "title": "topic title",
-      "virality_score": 92,
-      "hook": "Exact opening line",
-      "script": "Full clean script — spoken words only, natural delivery, no brackets or notes",
-      "caption": "TikTok caption under 150 chars",
-      "hashtags": ["#tag1", "#tag2"],
-      "on_screen_text": ["overlay 1", "overlay 2"]
-    }
-  ]
-}`,
-        }],
+  "topic_id": ${topic.id},
+  "title": "${topic.title}",
+  "virality_score": ${topic.virality_score},
+  "hook": "exact opening line",
+  "script": "full clean script, spoken words only",
+  "caption": "TikTok caption under 150 chars",
+  "hashtags": ["#tag1", "#tag2", "#tag3"],
+  "on_screen_text": ["overlay 1", "overlay 2"]
+}`;
+
+          try {
+            const res = await client.messages.create({
+              model: 'claude-opus-4-8',
+              max_tokens: 2000,
+              system: systemBlocks,
+              messages: [{ role: 'user', content: prompt }],
+            });
+            const raw = res.content[0].type === 'text' ? res.content[0].text : '';
+            try { return JSON.parse(raw); }
+            catch {
+              const m = raw.match(/\{[\s\S]+\}/);
+              return m ? JSON.parse(m[0]) : { topic_id: topic.id, title: topic.title, error: 'Parse failed' };
+            }
+          } catch (e: any) {
+            return { topic_id: topic.id, title: topic.title, error: e.message };
+          }
+        })
+      );
+
+      return NextResponse.json({
+        ok: true,
+        mode: 'scripts',
+        data: { scripts: scriptResults },
+        trends,
       });
-
-      const raw = response.content[0].type === 'text' ? response.content[0].text : '';
-      let parsed;
-      try { parsed = JSON.parse(raw); }
-      catch { const m = raw.match(/\{[\s\S]+\}/); parsed = m ? JSON.parse(m[0]) : { error: 'Parse failed' }; }
-
-      return NextResponse.json({ ok: true, mode: 'scripts', data: parsed, trends });
     }
 
     return NextResponse.json({ ok: false, error: 'Invalid mode' }, { status: 400 });
