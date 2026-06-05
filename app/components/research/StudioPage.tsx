@@ -195,6 +195,7 @@ export function StudioPage() {
 
   const CACHE_KEY = 'diez_signals_cache';
   const CACHE_TTL = 8 * 60 * 60 * 1000; // 8 hours
+  const todayKey = () => new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
   const formatAge = (ts: number) => {
     const mins = Math.floor((Date.now() - ts) / 60000);
@@ -233,9 +234,22 @@ export function StudioPage() {
 
   useEffect(() => { loadSignals(); }, []);
 
-  // Step 1: research → get 10 topics
+  // Step 1: research → get 10 topics (cached per day)
   const researchTopics = async () => {
-    setScriptStep('researching'); setError(null); setTopics([]); setSelectedIds(new Set()); setScripts([]);
+    setScriptStep('researching'); setError(null); setSelectedIds(new Set()); setScripts([]);
+
+    // Check daily cache first
+    const cacheKey = `diez_topics_${todayKey()}`;
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const { topics: ct, summary, trendsText: tt } = JSON.parse(cached);
+        setTopics(ct); setTrendsSummary(summary); setTrendsText(tt);
+        setScriptStep('pick');
+        return;
+      }
+    } catch { /* ignore */ }
+
     try {
       const res = await fetch('/api/football/research', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -243,15 +257,18 @@ export function StudioPage() {
       });
       const json = await res.json();
       if (!json.ok) { setError(json.error); setScriptStep('idle'); return; }
-      setTopics(json.data.topics || []);
-      setTrendsSummary(json.data.trends_summary || '');
-      setSignals(json.trends);
+      const newTopics = json.data.topics || [];
+      const summary = json.data.trends_summary || '';
       const t = json.trends;
-      setTrendsText([
+      const tt = [
         t.ytSearch?.slice(0,4).map((s: YTSearchItem) => `YouTube: "${s.query}" → ${s.suggestions.slice(0,3).join(', ')}`).join('\n'),
         t.googleTrends?.slice(0,6).map((tr: TrendItem) => `Trends: ${tr.title}`).join('\n'),
         t.news?.slice(0,4).map((n: NewsItem) => `News: ${n.title}`).join('\n'),
-      ].filter(Boolean).join('\n'));
+      ].filter(Boolean).join('\n');
+
+      setTopics(newTopics); setTrendsSummary(summary); setSignals(t); setTrendsText(tt);
+      // Save to daily cache
+      try { localStorage.setItem(cacheKey, JSON.stringify({ topics: newTopics, summary, trendsText: tt })); } catch { /* ignore */ }
       setScriptStep('pick');
     } catch (e: any) { setError(e.message); setScriptStep('idle'); }
   };
@@ -260,10 +277,23 @@ export function StudioPage() {
     setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   };
 
-  // Step 3: generate full scripts for selected topics
+  // Step 3: generate scripts (cached per day + selected topic combo)
   const generateScripts = async () => {
     const selected = topics.filter(t => selectedIds.has(t.id));
     if (!selected.length) return;
+
+    // Cache key: date + sorted topic IDs
+    const scriptCacheKey = `diez_scripts_${todayKey()}_${[...selectedIds].sort().join('_')}`;
+    try {
+      const cached = localStorage.getItem(scriptCacheKey);
+      if (cached) {
+        setScripts(JSON.parse(cached));
+        setExpandedScript(0);
+        setScriptStep('done');
+        return;
+      }
+    } catch { /* ignore */ }
+
     setScriptStep('generating'); setError(null);
     try {
       const res = await fetch('/api/football/research', {
@@ -272,9 +302,12 @@ export function StudioPage() {
       });
       const json = await res.json();
       if (!json.ok) { setError(json.error); setScriptStep('pick'); return; }
-      setScripts(json.data.scripts || []);
+      const newScripts = json.data.scripts || [];
+      setScripts(newScripts);
       setExpandedScript(0);
       setScriptStep('done');
+      // Save to daily cache
+      try { localStorage.setItem(scriptCacheKey, JSON.stringify(newScripts)); } catch { /* ignore */ }
     } catch (e: any) { setError(e.message); setScriptStep('pick'); }
   };
 
@@ -373,9 +406,12 @@ export function StudioPage() {
                 )}
                 {scriptStep === 'pick' && (
                   <div className="flex items-center gap-2">
-                    <button onClick={() => { setScriptStep('idle'); setTopics([]); setSelectedIds(new Set()); }}
+                    <button onClick={() => {
+                        try { localStorage.removeItem(`diez_topics_${todayKey()}`); } catch { /* ignore */ }
+                        setScriptStep('idle'); setTopics([]); setSelectedIds(new Set());
+                      }}
                       className="text-[9px] text-gray-400 hover:text-gray-600 font-semibold px-2 py-1">
-                      ↺ Re-research
+                      ↺ Fresh research
                     </button>
                     <button onClick={generateScripts} disabled={selectedIds.size === 0}
                       className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-[11px] font-black disabled:opacity-40 shadow-sm"
