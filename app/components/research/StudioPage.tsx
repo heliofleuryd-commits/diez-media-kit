@@ -169,11 +169,15 @@ export function StudioPage() {
   const [tab, setTab] = useState<'scripts' | 'news'>('scripts');
   const [signals, setSignals] = useState<any>(null);
 
-  const [generatingScripts, setGeneratingScripts] = useState(false);
-  const [scripts, setScripts] = useState<Script[]>([]);
-  const [trendsText, setTrendsText] = useState('');
+  // 3-step script workflow
+  type ScriptStep = 'idle' | 'researching' | 'pick' | 'generating' | 'done';
+  const [scriptStep, setScriptStep] = useState<ScriptStep>('idle');
+  const [topics, setTopics] = useState<any[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [trendsSummary, setTrendsSummary] = useState('');
+  const [scripts, setScripts] = useState<Script[]>([]);
   const [expandedScript, setExpandedScript] = useState<number | null>(0);
+  const [trendsText, setTrendsText] = useState('');
 
   const [loadingNews, setLoadingNews] = useState(false);
   const [bullets, setBullets] = useState<string[]>([]);
@@ -191,24 +195,49 @@ export function StudioPage() {
     fetch('/api/football/research').then(r => r.json()).then(d => { if (d.ok) setSignals(d); });
   }, []);
 
-  const generateScripts = async () => {
-    setGeneratingScripts(true); setError(null);
+  // Step 1: research → get 10 topics
+  const researchTopics = async () => {
+    setScriptStep('researching'); setError(null); setTopics([]); setSelectedIds(new Set()); setScripts([]);
     try {
-      const res = await fetch('/api/football/research', { method: 'POST' });
+      const res = await fetch('/api/football/research', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'topics' }),
+      });
       const json = await res.json();
-      if (!json.ok) { setError(json.error); return; }
-      setScripts(json.data.scripts || []);
+      if (!json.ok) { setError(json.error); setScriptStep('idle'); return; }
+      setTopics(json.data.topics || []);
       setTrendsSummary(json.data.trends_summary || '');
       setSignals(json.trends);
-      setExpandedScript(0);
       const t = json.trends;
       setTrendsText([
-        t.ytSearch?.slice(0,4).map((s: YTSearchItem) => `YouTube searched: "${s.query}" → ${s.suggestions.slice(0,3).join(', ')}`).join('\n'),
-        t.googleTrends?.slice(0,8).map((tr: TrendItem) => `Google Trends: ${tr.title}`).join('\n'),
-        t.news?.slice(0,5).map((n: NewsItem) => `News: ${n.title}`).join('\n'),
+        t.ytSearch?.slice(0,4).map((s: YTSearchItem) => `YouTube: "${s.query}" → ${s.suggestions.slice(0,3).join(', ')}`).join('\n'),
+        t.googleTrends?.slice(0,6).map((tr: TrendItem) => `Trends: ${tr.title}`).join('\n'),
+        t.news?.slice(0,4).map((n: NewsItem) => `News: ${n.title}`).join('\n'),
       ].filter(Boolean).join('\n'));
-    } catch (e: any) { setError(e.message); }
-    finally { setGeneratingScripts(false); }
+      setScriptStep('pick');
+    } catch (e: any) { setError(e.message); setScriptStep('idle'); }
+  };
+
+  const toggleTopic = (id: number) => {
+    setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  };
+
+  // Step 3: generate full scripts for selected topics
+  const generateScripts = async () => {
+    const selected = topics.filter(t => selectedIds.has(t.id));
+    if (!selected.length) return;
+    setScriptStep('generating'); setError(null);
+    try {
+      const res = await fetch('/api/football/research', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'scripts', topics: selected }),
+      });
+      const json = await res.json();
+      if (!json.ok) { setError(json.error); setScriptStep('pick'); return; }
+      setScripts(json.data.scripts || []);
+      setExpandedScript(0);
+      setScriptStep('done');
+    } catch (e: any) { setError(e.message); setScriptStep('pick'); }
   };
 
   const getNews = async (withScript = false) => {
@@ -257,45 +286,169 @@ export function StudioPage() {
           {error && <p className="text-[9px] text-red-500 self-center pr-4">{error}</p>}
         </div>
 
-        {/* Scripts tab */}
+        {/* Scripts tab — 3-step workflow */}
         {tab === 'scripts' && (
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-200 bg-white flex items-center justify-between shrink-0">
-              <p className="text-[10px] text-gray-400 max-w-sm truncate">
-                {trendsSummary || "Generate 3 viral scripts from today's signals"}
-              </p>
-              <button onClick={generateScripts} disabled={generatingScripts}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-[11px] font-black disabled:opacity-50 shadow-sm"
-                style={{ background: generatingScripts ? '#9ca3af' : 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
-                {generatingScripts ? <><span className="animate-spin inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full" />Generating…</> : <>✨ Generate Scripts</>}
-              </button>
-            </div>
-            {scripts.length === 0 && !generatingScripts ? (
-              <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center p-8">
-                <div className="text-4xl">🎬</div>
-                <p className="text-gray-400 text-xs max-w-xs leading-relaxed">Opus reads today's YouTube searches, Google Trends, and your 120-video skill library to produce 3 World Cup scripts.</p>
+
+            {/* Step indicator bar */}
+            <div className="px-5 py-2.5 border-b border-gray-200 bg-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                {[['1','Research','idle researching'],['2','Pick Topics','pick'],['3','Scripts','generating done']].map(([num, label, states], i) => {
+                  const active = states.split(' ').some(s => s === scriptStep);
+                  const done = (i===0 && ['pick','generating','done'].includes(scriptStep)) || (i===1 && ['generating','done'].includes(scriptStep)) || (i===2 && scriptStep==='done');
+                  return (
+                    <div key={num} className="flex items-center gap-1.5">
+                      {i > 0 && <span className="text-gray-300 text-[10px]">›</span>}
+                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black transition-all ${done ? 'bg-violet-100 text-violet-700' : active ? 'bg-violet-600 text-white' : 'text-gray-300'}`}>
+                        <span>{done ? '✓' : num}</span>
+                        <span>{label}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+                {trendsSummary && <p className="text-[9px] text-gray-400 ml-2 max-w-xs truncate hidden xl:block">{trendsSummary}</p>}
               </div>
-            ) : (
+              <div className="flex items-center gap-2">
+                {scriptStep === 'idle' && (
+                  <button onClick={researchTopics}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-[11px] font-black shadow-sm"
+                    style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
+                    🔍 Research Today's Topics
+                  </button>
+                )}
+                {scriptStep === 'researching' && (
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-[11px] text-gray-500 font-semibold">
+                    <span className="animate-spin inline-block w-3 h-3 border-2 border-violet-500 border-t-transparent rounded-full" />
+                    Researching signals…
+                  </div>
+                )}
+                {scriptStep === 'pick' && (
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => { setScriptStep('idle'); setTopics([]); setSelectedIds(new Set()); }}
+                      className="text-[9px] text-gray-400 hover:text-gray-600 font-semibold px-2 py-1">
+                      ↺ Re-research
+                    </button>
+                    <button onClick={generateScripts} disabled={selectedIds.size === 0}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-[11px] font-black disabled:opacity-40 shadow-sm"
+                      style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
+                      ✨ Generate {selectedIds.size > 0 ? selectedIds.size : ''} Script{selectedIds.size !== 1 ? 's' : ''}
+                    </button>
+                  </div>
+                )}
+                {scriptStep === 'generating' && (
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-[11px] text-gray-500 font-semibold">
+                    <span className="animate-spin inline-block w-3 h-3 border-2 border-violet-500 border-t-transparent rounded-full" />
+                    Writing scripts…
+                  </div>
+                )}
+                {scriptStep === 'done' && (
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setScriptStep('pick')}
+                      className="text-[9px] text-violet-500 hover:text-violet-700 font-semibold px-2 py-1">
+                      ← Back to topics
+                    </button>
+                    <button onClick={researchTopics}
+                      className="text-[9px] text-gray-400 hover:text-gray-600 font-semibold px-2 py-1">
+                      ↺ Fresh research
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Step 1: idle */}
+            {scriptStep === 'idle' && (
+              <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">
+                <div className="text-5xl">🔍</div>
+                <div>
+                  <p className="text-gray-700 text-sm font-black">Start with deep research</p>
+                  <p className="text-gray-400 text-xs mt-1.5 max-w-sm leading-relaxed">
+                    Opus scans YouTube search trends, Google Trends, TikTok, and news — then gives you 10 ranked topic ideas. You pick which ones to script.
+                  </p>
+                </div>
+                <button onClick={researchTopics}
+                  className="flex items-center gap-2 px-6 py-3 rounded-2xl text-white text-sm font-black shadow-md mt-2"
+                  style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
+                  🔍 Research Today's Topics
+                </button>
+              </div>
+            )}
+
+            {/* Step 2: pick topics */}
+            {scriptStep === 'pick' && (
+              <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                    10 topics ranked by virality — click to select, then hit Generate
+                  </p>
+                  <div className="flex gap-2">
+                    <button onClick={() => setSelectedIds(new Set(topics.map(t=>t.id)))} className="text-[8px] text-violet-500 font-semibold">Select all</button>
+                    <button onClick={() => setSelectedIds(new Set())} className="text-[8px] text-gray-400 font-semibold">Clear</button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {topics.map((t, i) => {
+                    const sel = selectedIds.has(t.id);
+                    return (
+                      <button key={t.id} onClick={() => toggleTopic(t.id)}
+                        className={`w-full text-left rounded-2xl border p-4 transition-all ${sel ? 'border-violet-400 bg-violet-50 shadow-md shadow-violet-100' : 'border-gray-200 bg-white hover:border-violet-200 shadow-sm'}`}>
+                        <div className="flex items-start gap-3">
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5 transition-all ${sel ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                            {sel ? '✓' : i+1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className={`text-[12px] font-black leading-tight ${sel ? 'text-violet-900' : 'text-gray-900'}`}>{t.title}</p>
+                              <span className={`text-[10px] font-black shrink-0 ${t.virality_score >= 90 ? 'text-green-600' : t.virality_score >= 75 ? 'text-violet-600' : 'text-gray-400'}`}>{t.virality_score}/100</span>
+                            </div>
+                            <p className="text-[10px] text-gray-600 mt-1 leading-snug">{t.angle}</p>
+                            <div className="flex items-center gap-2 mt-2 flex-wrap">
+                              <span className="text-[8px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-semibold">{t.format}</span>
+                              <span className="text-[8px] text-gray-400">{t.platform_signal}</span>
+                            </div>
+                            {t.Spain_Yamal_angle && (
+                              <p className="text-[9px] text-red-500 mt-1.5">🇪🇸 {t.Spain_Yamal_angle}</p>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Step 2.5: generating */}
+            {scriptStep === 'generating' && (
+              <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">
+                <span className="animate-spin inline-block w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full" />
+                <div>
+                  <p className="text-gray-700 text-sm font-black">Writing {selectedIds.size} script{selectedIds.size!==1?'s':''}…</p>
+                  <p className="text-gray-400 text-xs mt-1">Using all 21 skill files + today's signals. This takes ~30 seconds.</p>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: scripts */}
+            {scriptStep === 'done' && (
               <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
-                {scripts.map((s, i) => {
+                {scripts.map((s: any, i) => {
                   const open = expandedScript === i;
                   return (
                     <div key={i} className={`rounded-2xl border transition-all bg-white ${open ? 'border-violet-300 shadow-md shadow-violet-100' : 'border-gray-200 hover:border-gray-300 shadow-sm'}`}>
                       <button className="w-full flex items-center gap-3 px-4 py-3.5 text-left" onClick={() => setExpandedScript(open ? null : i)}>
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${i===0?'bg-violet-600 text-white':i===1?'bg-indigo-500 text-white':'bg-gray-200 text-gray-600'}`}>#{i+1}</div>
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${i===0?'bg-violet-600 text-white':i===1?'bg-indigo-500 text-white':i===2?'bg-blue-500 text-white':'bg-gray-200 text-gray-600'}`}>#{i+1}</div>
                         <div className="flex-1 min-w-0">
                           <p className="text-[12px] font-black text-gray-900 truncate">{s.title}</p>
-                          <p className="text-[9px] text-gray-400 truncate">{s.search_signal}</p>
+                          <p className="text-[9px] text-gray-400 mt-0.5 truncate">"{s.hook}"</p>
                         </div>
                         <div className="text-right shrink-0 mr-1">
                           <p className="text-[11px] font-black text-violet-600">{s.virality_score}/100</p>
-                          <p className="text-[8px] text-gray-300">virality</p>
                         </div>
                         <span className="text-gray-300">{open?'▲':'▼'}</span>
                       </button>
                       {open && (
                         <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
-                          <p className="text-[10px] text-violet-500 italic">{s.virality_reason}</p>
                           <div>
                             <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">Hook</p>
                             <p className="text-[14px] font-black text-gray-900 leading-snug">"{s.hook}"</p>
@@ -305,18 +458,14 @@ export function StudioPage() {
                               <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Script</p>
                               <button onClick={() => copy(s.script,`s${i}`)} className="text-[8px] text-violet-500 font-semibold">{copied===`s${i}`?'✓ Copied':'Copy'}</button>
                             </div>
-                            <div className="bg-gray-50 rounded-xl p-3 text-[11px] text-gray-700 leading-relaxed whitespace-pre-wrap border border-gray-200">{s.script}</div>
+                            <div className="bg-gray-50 rounded-xl p-4 text-[12px] text-gray-800 leading-relaxed whitespace-pre-wrap border border-gray-200">{s.script}</div>
                           </div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">Shot List</p>
-                              {s.shot_list?.map((sh,j)=><p key={j} className="text-[10px] text-gray-500">{j+1}. {sh}</p>)}
-                            </div>
+                          {s.on_screen_text?.length > 0 && (
                             <div>
                               <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">On-Screen Text</p>
-                              {s.on_screen_text?.map((t,j)=><p key={j} className="text-[10px] text-gray-500">▸ {t}</p>)}
+                              {s.on_screen_text.map((t: string, j: number) => <p key={j} className="text-[10px] text-gray-500">▸ {t}</p>)}
                             </div>
-                          </div>
+                          )}
                           <div>
                             <div className="flex items-center justify-between mb-1">
                               <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Caption + Hashtags</p>
@@ -324,7 +473,7 @@ export function StudioPage() {
                             </div>
                             <p className="text-[10px] text-gray-600">{s.caption}</p>
                             <div className="flex flex-wrap gap-1 mt-1.5">
-                              {s.hashtags?.map((h,j)=><span key={j} className="px-2 py-0.5 rounded-full bg-gray-100 text-[8px] text-gray-500 border border-gray-200">{h}</span>)}
+                              {s.hashtags?.map((h: string, j: number) => <span key={j} className="px-2 py-0.5 rounded-full bg-gray-100 text-[8px] text-gray-500 border border-gray-200">{h}</span>)}
                             </div>
                           </div>
                         </div>

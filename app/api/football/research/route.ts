@@ -204,9 +204,47 @@ export async function GET() {
   }
 }
 
-// ── POST — generate 3 scripts ─────────────────────────────────────────────────
-export async function POST() {
+function buildTrendsText(ytSearch: any, ytContent: any, googleTrends: any, news: any, tiktok: any) {
+  return [
+    '## YouTube: What people are SEARCHING right now',
+    ytSearch.map((s: any) => `"${s.query}" → also searching: ${s.suggestions.join(', ')}`).join('\n'),
+    '',
+    '## YouTube: Trending sports (most popular right now)',
+    ytContent.trending.slice(0, 6).map((v: any) => `- [${v.views} views] ${v.title} (${v.channel})`).join('\n'),
+    '',
+    '## YouTube: World Cup content (most viewed last 48h)',
+    ytContent.recent.slice(0, 8).map((v: any) => `- ${v.title} (${v.channel})`).join('\n'),
+    '',
+    '## Google Trends: Trending searches in US right now',
+    googleTrends.slice(0, 12).map((t: any) => `- ${t.title}${t.traffic ? ` (${t.traffic})` : ''}`).join('\n'),
+    '',
+    '## World Cup News',
+    news.slice(0, 10).map((n: any) => `- [${n.source}] ${n.title}`).join('\n'),
+    '',
+    '## TikTok: Trending Hashtags',
+    tiktok.hashtags?.length > 0 ? tiktok.hashtags.map((h: any) => `- ${h.tag} ${h.views}`).join('\n') : 'Unavailable',
+    tiktok.videos?.length > 0 ? '\n## TikTok: Top World Cup Videos\n' + tiktok.videos.map((v: any) => `- ${v.desc}`).join('\n') : '',
+  ].join('\n');
+}
+
+const SYSTEM_STRATEGIST = `You are a viral TikTok football content strategist for a creator making daily 2026 FIFA World Cup videos.
+
+CREATOR STYLE (non-negotiable):
+- Reference channels: @pechefootball, @fiagoball, @5.at.the.back
+- 50% on-camera presenter / 50% b-roll or match footage
+- Confident, passionate, strong POV — never neutral
+- Structure: bold hook (0–3s) → setup (3–15s) → payoff (15–45s) → CTA (45–60s)
+- Every script needs a hot take or contrarian angle
+- Scripts are clean spoken words only — no brackets, no direction notes whatsoever
+${CREATOR_BIAS}`;
+
+// ── POST — two modes: 'topics' (step 1) and 'scripts' (step 2) ───────────────
+export async function POST(req: Request) {
   try {
+    const body = await req.json().catch(() => ({}));
+    const mode = body.mode || 'topics';
+
+    // Always fetch fresh signals
     const [ytSearch, ytContent, googleTrends, news, tiktok] = await Promise.all([
       fetchYouTubeSearchTrends(),
       fetchYouTubeTrending(),
@@ -214,90 +252,116 @@ export async function POST() {
       fetchGoogleNews(),
       fetchTikTok(),
     ]);
+    const trendsText = buildTrendsText(ytSearch, ytContent, googleTrends, news, tiktok);
+    const trends = { ytSearch, ytContent, googleTrends, news, tiktok };
 
-    const trendsText = [
-      '## YouTube: What people are SEARCHING right now',
-      ytSearch.map(s => `"${s.query}" → also searching: ${s.suggestions.join(', ')}`).join('\n'),
-      '',
-      '## YouTube: Trending sports videos (most popular)',
-      ytContent.trending.slice(0, 6).map((v: any) => `- [${v.views} views] ${v.title} (${v.channel})`).join('\n'),
-      '',
-      '## YouTube: World Cup content (most viewed last 48h)',
-      ytContent.recent.slice(0, 8).map((v: any) => `- ${v.title} (${v.channel})`).join('\n'),
-      '',
-      '## Google Trends: Trending searches in US right now',
-      googleTrends.slice(0, 12).map((t: any) => `- ${t.title}${t.traffic ? ` (${t.traffic} searches)` : ''}`).join('\n'),
-      '',
-      '## World Cup News: What journalists are covering',
-      news.slice(0, 10).map((n: any) => `- [${n.source}] ${n.title}`).join('\n'),
-      '',
-      '## TikTok: Trending Hashtags',
-      tiktok.hashtags?.length > 0
-        ? tiktok.hashtags.map((h: any) => `- ${h.tag} ${h.views}`).join('\n')
-        : tiktok.note || 'Unavailable',
-      tiktok.videos?.length > 0
-        ? '\n## TikTok: Top World Cup Videos\n' + tiktok.videos.map((v: any) => `- ${v.desc}`).join('\n')
-        : '',
-    ].join('\n');
+    // ── STEP 1: generate 10 topic ideas ──────────────────────────────────────
+    if (mode === 'topics') {
+      const response = await client.messages.create({
+        model: 'claude-opus-4-8',
+        max_tokens: 3000,
+        system: [
+          { type: 'text', text: SYSTEM_STRATEGIST, cache_control: { type: 'ephemeral' } },
+          { type: 'text', text: `## SKILL FILES\n\n${loadSkills()}`, cache_control: { type: 'ephemeral' } },
+        ],
+        messages: [{
+          role: 'user',
+          content: `Based on today's signals, generate exactly 10 video topic ideas ranked #1 (highest virality) to #10.
 
-    const response = await client.messages.create({
-      model: 'claude-opus-4-8',
-      max_tokens: 8000,
-      system: [
-        {
-          type: 'text',
-          text: `You are a viral TikTok football content strategist for a creator making daily 2026 FIFA World Cup videos.
-
-STYLE (non-negotiable):
-- Reference channels: @pechefootball, @fiagoball, @5.at.the.back
-- 50% on-camera presenter / 50% b-roll or match footage
-- Confident, passionate, strong POV — never neutral
-- 45–60 seconds read aloud at natural pace
-- Structure: bold hook (0–3s) → setup (3–15s) → payoff (15–45s) → CTA (45–60s)
-- Every script needs a hot take or contrarian angle
-- Prioritise topics with cross-platform signal: trending on BOTH YouTube search AND Google Trends
-- Scripts must be clean spoken words only — no [CAM], no [BROLL], no direction notes, no brackets of any kind. Just the words the creator says out loud.
+These are NOT full scripts — they are strategic topic ideas the creator will choose from.
+Think hard: what are the 10 best angles today that will get the most views?
+Mix formats: hot takes, contrarian angles, stat reveals, reaction hooks, narratives, predictions.
 ${CREATOR_BIAS}
 
-OUTPUT: valid JSON only, no fences:
+TODAY'S SIGNALS:
+${trendsText}
+
+OUTPUT valid JSON only, no fences:
 {
-  "generated_at": "ISO timestamp",
   "trends_summary": "2-sentence summary of the single biggest story today",
-  "scripts": [
+  "topics": [
     {
-      "rank": 1,
-      "title": "Short internal title",
-      "topic": "Trending topic exploited",
-      "search_signal": "Which platform/query this was trending on",
-      "virality_score": 85,
-      "virality_reason": "One sentence: why this will perform",
-      "hook": "Exact opening line (0–3s)",
-      "script": "Full clean script — spoken words only, no brackets, no direction notes",
-      "shot_list": ["Shot 1 description", "Shot 2 description"],
-      "on_screen_text": ["Text overlay 1"],
-      "suggested_sound": "Sound direction",
-      "caption": "TikTok caption under 150 chars",
-      "hashtags": ["#tag1"]
+      "id": 1,
+      "title": "Short punchy title (max 8 words)",
+      "angle": "The specific narrative angle or hot take (1 sentence)",
+      "hook_idea": "The opening line that would stop the scroll (1 sentence, spoken words)",
+      "platform_signal": "Where this is trending and why now",
+      "virality_score": 94,
+      "virality_reason": "Why this will perform — specific and honest",
+      "format": "passionate-hot-take | contrarian-narrative-reveal | hypothetical-explainer | guess-quiz-debate | comedy-lineup-skit",
+      "Spain_Yamal_angle": "How to connect this to Spain/Yamal/Barcelona/Argentina if relevant, or null"
     }
   ]
 }`,
-          cache_control: { type: 'ephemeral' },
-        },
-        {
-          type: 'text',
-          text: `## SKILL FILES\n\n${loadSkills()}`,
-          cache_control: { type: 'ephemeral' },
-        },
-      ],
-      messages: [{ role: 'user', content: `Generate 3 scripts.\n\n${trendsText}` }],
-    });
+        }],
+      });
 
-    const raw = response.content[0].type === 'text' ? response.content[0].text : '';
-    let parsed;
-    try { parsed = JSON.parse(raw); }
-    catch { const m = raw.match(/\{[\s\S]+\}/); parsed = m ? JSON.parse(m[0]) : { error: 'Parse failed' }; }
+      const raw = response.content[0].type === 'text' ? response.content[0].text : '';
+      let parsed;
+      try { parsed = JSON.parse(raw); }
+      catch { const m = raw.match(/\{[\s\S]+\}/); parsed = m ? JSON.parse(m[0]) : { error: 'Parse failed', raw: raw.slice(0,200) }; }
 
-    return NextResponse.json({ ok: true, data: parsed, trends: { ytSearch, ytContent, googleTrends, news, tiktok } });
+      return NextResponse.json({ ok: true, mode: 'topics', data: parsed, trends });
+    }
+
+    // ── STEP 2: generate full scripts for selected topics ─────────────────────
+    if (mode === 'scripts') {
+      const selectedTopics: any[] = body.topics || [];
+      if (selectedTopics.length === 0) {
+        return NextResponse.json({ ok: false, error: 'No topics selected' }, { status: 400 });
+      }
+
+      const topicsText = selectedTopics.map((t: any, i: number) =>
+        `TOPIC ${i+1}: "${t.title}"\nAngle: ${t.angle}\nHook idea: ${t.hook_idea}\nFormat: ${t.format}\nSignal: ${t.platform_signal}`
+      ).join('\n\n');
+
+      const response = await client.messages.create({
+        model: 'claude-opus-4-8',
+        max_tokens: 4000 * selectedTopics.length,
+        system: [
+          { type: 'text', text: SYSTEM_STRATEGIST, cache_control: { type: 'ephemeral' } },
+          { type: 'text', text: `## SKILL FILES\n\n${loadSkills()}`, cache_control: { type: 'ephemeral' } },
+        ],
+        messages: [{
+          role: 'user',
+          content: `Generate a complete, fully-written script for each of the ${selectedTopics.length} selected topics below.
+
+Use ALL your knowledge from the skill files. These scripts should be the best possible version — not a first draft.
+Each script: 45–65 seconds when read aloud naturally. Strong hook. Payoff that earns the watch. Clean spoken words only — no brackets, no markers.
+
+TODAY'S CONTEXT:
+${trendsText}
+
+SELECTED TOPICS TO SCRIPT:
+${topicsText}
+
+OUTPUT valid JSON only, no fences:
+{
+  "scripts": [
+    {
+      "topic_id": 1,
+      "title": "topic title",
+      "virality_score": 92,
+      "hook": "Exact opening line",
+      "script": "Full clean script — spoken words only, natural delivery, no brackets or notes",
+      "caption": "TikTok caption under 150 chars",
+      "hashtags": ["#tag1", "#tag2"],
+      "on_screen_text": ["overlay 1", "overlay 2"]
+    }
+  ]
+}`,
+        }],
+      });
+
+      const raw = response.content[0].type === 'text' ? response.content[0].text : '';
+      let parsed;
+      try { parsed = JSON.parse(raw); }
+      catch { const m = raw.match(/\{[\s\S]+\}/); parsed = m ? JSON.parse(m[0]) : { error: 'Parse failed' }; }
+
+      return NextResponse.json({ ok: true, mode: 'scripts', data: parsed, trends });
+    }
+
+    return NextResponse.json({ ok: false, error: 'Invalid mode' }, { status: 400 });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
   }
