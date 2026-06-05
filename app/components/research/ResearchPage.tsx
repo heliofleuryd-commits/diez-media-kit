@@ -23,12 +23,16 @@ interface GeneratedData {
   scripts: Script[];
 }
 
-interface Trend { title: string; score?: number; comments?: number; source?: string; }
+interface RedditItem  { title: string; score: number; comments: number; }
+interface NewsItem    { title: string; source: string; }
+interface TrendItem  { title: string; traffic: string; }
+interface YTItem     { title: string; channel: string; videoId: string; }
+interface TTTag      { tag: string; posts: string; views: string; }
 
 export function ResearchPage() {
   const [generating, setGenerating] = useState(false);
   const [data, setData] = useState<GeneratedData | null>(null);
-  const [trends, setTrends] = useState<{ reddit: Trend[]; news: Trend[] } | null>(null);
+  const [trends, setTrends] = useState<{ reddit: RedditItem[]; news: NewsItem[]; googleTrends: TrendItem[]; youtube: { items: YTItem[]; note: string | null }; tiktok: { tags: TTTag[]; note: string | null } } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expandedScript, setExpandedScript] = useState<number | null>(0);
   const [loadingTrends, setLoadingTrends] = useState(true);
@@ -37,7 +41,7 @@ export function ResearchPage() {
   useEffect(() => {
     fetch('/api/football/research')
       .then(r => r.json())
-      .then(d => { if (d.ok) setTrends({ reddit: d.reddit, news: d.news }); })
+      .then(d => { if (d.ok) setTrends({ reddit: d.reddit, news: d.news, googleTrends: d.trends, youtube: d.youtube, tiktok: d.tiktok }); })
       .finally(() => setLoadingTrends(false));
   }, []);
 
@@ -48,7 +52,7 @@ export function ResearchPage() {
       const json = await res.json();
       if (!json.ok) { setError(json.error); return; }
       setData(json.data);
-      setTrends({ reddit: json.trends.reddit, news: json.trends.news });
+      setTrends({ reddit: json.trends.reddit, news: json.trends.news, googleTrends: json.trends.googleTrends, youtube: json.trends.youtube, tiktok: json.trends.tiktok });
       setExpandedScript(0);
     } catch (e: any) { setError(e.message); }
     finally { setGenerating(false); }
@@ -76,26 +80,74 @@ export function ResearchPage() {
             </div>
           )}
           {trends && (<>
+            {/* TikTok */}
             <div>
-              <p className="text-[8px] font-bold uppercase tracking-widest text-red-400/70 mb-2">Reddit · Hot</p>
+              <p className="text-[8px] font-bold uppercase tracking-widest text-pink-400/80 mb-2">TikTok · Trending</p>
+              {trends.tiktok.tags.length > 0 ? (
+                <div className="space-y-1.5">
+                  {trends.tiktok.tags.slice(0, 10).map((t, i) => (
+                    <div key={i}>
+                      <p className="text-[11px] font-bold text-pink-300/80">{t.tag}</p>
+                      {t.views && <p className="text-[8px] text-white/25">{t.views}</p>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[9px] text-white/25 italic">{trends.tiktok.note || 'Unavailable'}</p>
+              )}
+            </div>
+
+            {/* YouTube */}
+            <div>
+              <p className="text-[8px] font-bold uppercase tracking-widest text-red-400/80 mb-2">YouTube · Most Viewed 48h</p>
+              {trends.youtube.items.length > 0 ? (
+                <div className="space-y-1.5">
+                  {trends.youtube.items.slice(0, 8).map((v, i) => (
+                    <div key={i}>
+                      <p className="text-[10px] text-white/70 leading-snug">{v.title}</p>
+                      <p className="text-[8px] text-white/25">{v.channel}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[9px] text-white/25 italic">{trends.youtube.note || 'Add YOUTUBE_API_KEY'}</p>
+              )}
+            </div>
+
+            {/* Google Trends */}
+            <div>
+              <p className="text-[8px] font-bold uppercase tracking-widest text-green-400/70 mb-2">Google Trends · US</p>
               <div className="space-y-1.5">
-                {trends.reddit.slice(0, 12).map((r, i) => (
-                  <div key={i} className="group">
-                    <p className="text-[10px] text-white/70 leading-snug group-hover:text-white transition-colors">{r.title}</p>
-                    {r.score !== undefined && (
-                      <p className="text-[8px] text-white/25 mt-0.5">{r.score?.toLocaleString()} pts</p>
-                    )}
+                {trends.googleTrends.slice(0, 10).map((t, i) => (
+                  <div key={i}>
+                    <p className="text-[10px] text-white/65 leading-snug">{t.title}</p>
+                    {t.traffic && <p className="text-[8px] text-white/25">{t.traffic} searches</p>}
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Reddit */}
+            <div>
+              <p className="text-[8px] font-bold uppercase tracking-widest text-orange-400/70 mb-2">Reddit r/soccer</p>
+              <div className="space-y-1.5">
+                {trends.reddit.slice(0, 10).map((r, i) => (
+                  <div key={i}>
+                    <p className="text-[10px] text-white/60 leading-snug">{r.title}</p>
+                    <p className="text-[8px] text-white/25">{r.score?.toLocaleString()} upvotes</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Google News */}
             <div>
               <p className="text-[8px] font-bold uppercase tracking-widest text-blue-400/70 mb-2">Google News</p>
               <div className="space-y-1.5">
-                {trends.news.slice(0, 10).map((n, i) => (
+                {trends.news.slice(0, 8).map((n, i) => (
                   <div key={i}>
-                    <p className="text-[10px] text-white/60 leading-snug">{n.title}</p>
-                    {n.source && <p className="text-[8px] text-white/25 mt-0.5">{n.source}</p>}
+                    <p className="text-[10px] text-white/55 leading-snug">{n.title}</p>
+                    <p className="text-[8px] text-white/25">{n.source}</p>
                   </div>
                 ))}
               </div>
