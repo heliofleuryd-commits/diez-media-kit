@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { getDailySpend, addSpend, formatCost } from '@/lib/football/costTracker';
 
 interface Script {
   rank: number; title: string; topic: string; search_signal: string;
@@ -14,7 +15,7 @@ interface TrendItem { title: string; traffic: string; }
 interface NewsItem { title: string; source: string; }
 
 // ── Chat Panel ────────────────────────────────────────────────────────────────
-function ChatPanel({ context }: { context: any }) {
+function ChatPanel({ context, onCost }: { context: any; onCost: (c: number) => void }) {
   const [messages, setMessages] = useState<ChatMsg[]>([{
     role: 'assistant', id: 'welcome',
     content: "I have your skills, today's signals, and everything generated this session. Ask me to rewrite a script, give you a stronger hook, suggest what to post today, or anything else.",
@@ -38,6 +39,7 @@ function ChatPanel({ context }: { context: any }) {
         body: JSON.stringify({ messages: apiMessages, context }),
       });
       const data = await res.json();
+      if (data.cost) onCost(data.cost);
       setMessages(p => [...p, { role: 'assistant', content: data.ok ? data.message : `Error: ${data.error}`, id: `a${Date.now()}` }]);
     } catch { setMessages(p => [...p, { role: 'assistant', content: 'Network error.', id: `e${Date.now()}` }]); }
     finally { setLoading(false); }
@@ -190,6 +192,28 @@ export function StudioPage() {
 
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [dailySpend, setDailySpend] = useState(0);
+  const [spendAlert, setSpendAlert] = useState<{ message: string; onConfirm: () => void } | null>(null);
+
+  useEffect(() => { setDailySpend(getDailySpend()); }, []);
+
+  const trackCost = useCallback((cost: number) => {
+    if (!cost) return;
+    const total = addSpend(cost);
+    setDailySpend(total);
+    if (total > 2.00) setSpendAlert(null); // already confirmed, just track
+  }, []);
+
+  const guardSpend = useCallback((estimatedCost: number, onConfirm: () => void) => {
+    if (getDailySpend() + estimatedCost > 2.00) {
+      setSpendAlert({
+        message: `Daily spend is ${formatCost(getDailySpend())} — this will push it over $2.00. Continue?`,
+        onConfirm: () => { setSpendAlert(null); onConfirm(); },
+      });
+    } else {
+      onConfirm();
+    }
+  }, []);
 
   const copy = (text: string, key: string) => { navigator.clipboard.writeText(text); setCopied(key); setTimeout(() => setCopied(null), 1500); };
 
@@ -235,7 +259,8 @@ export function StudioPage() {
   useEffect(() => { loadSignals(); }, []);
 
   // Step 1: research → get 10 topics (cached per day)
-  const researchTopics = async () => {
+  const researchTopics = (force = false) => guardSpend(0.02, () => _researchTopics(force));
+  const _researchTopics = async (force = false) => {
     setScriptStep('researching'); setError(null); setSelectedIds(new Set()); setScripts([]);
 
     // Check daily cache first
@@ -257,6 +282,7 @@ export function StudioPage() {
       });
       const json = await res.json();
       if (!json.ok) { setError(json.error); setScriptStep('idle'); return; }
+      trackCost(json.cost || 0);
       const newTopics = json.data.topics || [];
       const summary = json.data.trends_summary || '';
       const t = json.trends;
@@ -278,7 +304,8 @@ export function StudioPage() {
   };
 
   // Step 3: generate scripts (cached per day + selected topic combo)
-  const generateScripts = async () => {
+  const generateScripts = () => guardSpend(selectedIds.size * 0.12, _generateScripts);
+  const _generateScripts = async () => {
     const selected = topics.filter(t => selectedIds.has(t.id));
     if (!selected.length) return;
 
@@ -302,6 +329,7 @@ export function StudioPage() {
       });
       const json = await res.json();
       if (!json.ok) { setError(json.error); setScriptStep('pick'); return; }
+      trackCost(json.cost || 0);
       const newScripts = json.data.scripts || [];
       setScripts(newScripts);
       setExpandedScript(0);
@@ -321,6 +349,7 @@ export function StudioPage() {
       });
       const json = await res.json();
       if (!json.ok) { setError(json.error); return; }
+      trackCost(json.cost || 0);
       setBullets(json.bullets || []); setFlashDate(json.date || '');
       if (withScript) { setFlashScript(json.flash_script); setShowFlashScript(true); }
     } catch (e: any) { setError(e.message); }
@@ -365,7 +394,10 @@ export function StudioPage() {
             </button>
           ))}
           <div className="flex-1" />
-          {error && <p className="text-[9px] text-red-500 self-center pr-4">{error}</p>}
+          {error && <p className="text-[9px] text-red-500 self-center pr-4 truncate max-w-xs">{error}</p>}
+          <div className={`self-center pr-4 text-[9px] font-mono font-bold ${dailySpend >= 1.80 ? 'text-orange-500' : 'text-gray-300'}`}>
+            {formatCost(dailySpend)}<span className="font-normal text-gray-300">/day</span>
+          </div>
         </div>
 
         {/* Scripts tab — 3-step workflow */}
@@ -639,7 +671,33 @@ export function StudioPage() {
       </div>
 
       {/* ── CHAT ─────────────────────────────────────────────────── */}
-      <ChatPanel context={chatContext} />
+      <ChatPanel context={chatContext} onCost={trackCost} />
+
+      {/* ── SPEND ALERT MODAL ────────────────────────────────────── */}
+      {spendAlert && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 mx-4 max-w-sm w-full border border-orange-200">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-2xl">⚠️</span>
+              <div>
+                <p className="text-sm font-black text-gray-900">Daily limit reached</p>
+                <p className="text-[10px] text-gray-500 mt-0.5">{spendAlert.message}</p>
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button onClick={() => setSpendAlert(null)}
+                className="flex-1 py-2 rounded-xl border border-gray-200 text-[11px] font-bold text-gray-600 hover:bg-gray-50">
+                Cancel
+              </button>
+              <button onClick={spendAlert.onConfirm}
+                className="flex-1 py-2 rounded-xl text-[11px] font-black text-white"
+                style={{ background: 'linear-gradient(135deg,#f97316,#dc2626)' }}>
+                Continue anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

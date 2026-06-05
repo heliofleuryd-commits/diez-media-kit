@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs';
 import path from 'path';
 import { CREATOR_BIAS } from '@/lib/football/creatorBias';
+import { calcCost } from '@/lib/football/costTracker';
 
 const client = new Anthropic();
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
@@ -87,7 +88,8 @@ When rewriting scripts, output the full clean script. No explanatory preamble ne
     });
 
     const content = response.content[0].type === 'text' ? response.content[0].text : '';
-    return NextResponse.json({ ok: true, message: content });
+    const cost = calcCost('claude-sonnet-4-6', response.usage.input_tokens, response.usage.output_tokens);
+    return NextResponse.json({ ok: true, message: content, cost });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
   }

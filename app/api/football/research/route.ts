@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import Anthropic from '@anthropic-ai/sdk';
 import { CREATOR_BIAS } from '@/lib/football/creatorBias';
+import { calcCost } from '@/lib/football/costTracker';
 
 const client = new Anthropic();
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
@@ -330,7 +331,8 @@ OUTPUT valid JSON only, no fences:
         }
       }
 
-      return NextResponse.json({ ok: true, mode: 'topics', data: parsed, trends });
+      const cost = calcCost(M_FAST, response.usage.input_tokens, response.usage.output_tokens);
+      return NextResponse.json({ ok: true, mode: 'topics', data: parsed, trends, cost });
     }
 
     // ── STEP 2: generate scripts — one API call per topic, in parallel ───────
@@ -387,23 +389,23 @@ OUTPUT valid JSON only, no fences:
               messages: [{ role: 'user', content: prompt }],
             });
             const raw = res.content[0].type === 'text' ? res.content[0].text : '';
-            try { return JSON.parse(raw); }
+            const scriptCost = calcCost(M_SCRIPT, res.usage.input_tokens, res.usage.output_tokens);
+            let parsed: any;
+            try { parsed = JSON.parse(raw); }
             catch {
               const m = raw.match(/\{[\s\S]+\}/);
-              return m ? JSON.parse(m[0]) : { topic_id: topic.id, title: topic.title, error: 'Parse failed' };
+              parsed = m ? JSON.parse(m[0]) : { topic_id: topic.id, title: topic.title, error: 'Parse failed' };
             }
+            return { ...parsed, _cost: scriptCost };
           } catch (e: any) {
-            return { topic_id: topic.id, title: topic.title, error: e.message };
+            return { topic_id: topic.id, title: topic.title, error: e.message, _cost: 0 };
           }
         })
       );
 
-      return NextResponse.json({
-        ok: true,
-        mode: 'scripts',
-        data: { scripts: scriptResults },
-        trends,
-      });
+      const cost = scriptResults.reduce((sum: number, s: any) => sum + (s._cost || 0), 0);
+      scriptResults.forEach((s: any) => delete s._cost);
+      return NextResponse.json({ ok: true, mode: 'scripts', data: { scripts: scriptResults }, trends, cost });
     }
 
     return NextResponse.json({ ok: false, error: 'Invalid mode' }, { status: 400 });

@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs';
 import path from 'path';
 import { CREATOR_BIAS } from '@/lib/football/creatorBias';
+import { calcCost } from '@/lib/football/costTracker';
 
 const client = new Anthropic();
 const YT_KEY = process.env.YOUTUBE_API_KEY || '';
@@ -224,5 +225,8 @@ Add as "flash_script" string in your JSON output.` : '';
     }
   }
 
-  return NextResponse.json({ ok: true, bullets, flash_script, date: today, rawCount: newsItems.length + ytItems.length });
+  const cost = calcCost(M_FAST, bulletRes.usage.input_tokens, bulletRes.usage.output_tokens)
+    + (scriptRes ? calcCost(M_SCRIPT, scriptRes.usage.input_tokens, scriptRes.usage.output_tokens) : 0);
+
+  return NextResponse.json({ ok: true, bullets, flash_script, date: today, rawCount: newsItems.length + ytItems.length, cost });
 }
