@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import Anthropic from '@anthropic-ai/sdk';
+import { CREATOR_BIAS } from '@/lib/football/creatorBias';
 
 const client = new Anthropic();
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
@@ -65,21 +66,48 @@ async function fetchYouTubeTrending() {
   };
 }
 
-// ── Google Trends: daily trending US ─────────────────────────────────────────
+// ── Google Trends: football-specific + general trending ──────────────────────
 async function fetchGoogleTrends() {
+  const results: { title: string; traffic: string; type: string }[] = [];
+
+  // 1. World Cup / football specific news volume from Google News as a proxy for trending searches
+  const footballQueries = ['World Cup 2026', 'FIFA 2026', 'Lamine Yamal', 'Spain football', 'Messi 2026'];
+  for (const q of footballQueries) {
+    try {
+      const res = await fetch(
+        `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en&as_drrb=q&as_qdr=d`,
+        { next: { revalidate: 0 } }
+      );
+      const xml = await res.text();
+      const count = (xml.match(/<item>/g) || []).length;
+      if (count > 0) results.push({ title: q, traffic: `${count} stories today`, type: 'football' });
+    } catch { /* skip */ }
+  }
+
+  // 2. General US trending — filter for sport/football relevance
   try {
     const res = await fetch('https://trends.google.com/trending/rss?geo=US', {
       headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
       next: { revalidate: 0 },
     });
     const xml = await res.text();
-    const titles = [...xml.matchAll(/<title>([^<]{3,})<\/title>/g)]
-      .map(m => m[1].trim())
-      .filter(t => !t.includes('Trending') && !t.includes('Google'));
-    const traffic = [...xml.matchAll(/<ht:approx_traffic>([^<]+)<\/ht:approx_traffic>/g)]
-      .map(m => m[1]);
-    return titles.slice(0, 20).map((title, i) => ({ title, traffic: traffic[i] || '' }));
-  } catch { return []; }
+    const titles = [...xml.matchAll(/<title>([^<]{3,})<\/title>/g)].map(m => m[1].trim()).filter(t => !t.includes('Trending') && !t.includes('Google'));
+    const traffic = [...xml.matchAll(/<ht:approx_traffic>([^<]+)<\/ht:approx_traffic>/g)].map(m => m[1]);
+    const footballKeywords = /football|soccer|world cup|fifa|goal|match|player|messi|ronaldo|yamal|spain|barcel|argentin|england|france|brazil|germany|portugal/i;
+    titles.slice(0, 20).forEach((title, i) => {
+      if (footballKeywords.test(title)) {
+        results.push({ title, traffic: traffic[i] || '', type: 'trending' });
+      }
+    });
+    // Also include top 5 general trends as context
+    titles.slice(0, 5).forEach((title, i) => {
+      if (!results.find(r => r.title === title)) {
+        results.push({ title, traffic: traffic[i] || '', type: 'general' });
+      }
+    });
+  } catch { /* skip */ }
+
+  return results;
 }
 
 // ── Google News: World Cup stories ───────────────────────────────────────────
@@ -208,6 +236,7 @@ STYLE (non-negotiable):
 - Every script needs a hot take or contrarian angle
 - Prioritise topics with cross-platform signal: trending on BOTH YouTube search AND Google Trends
 - Scripts must be clean spoken words only — no [CAM], no [BROLL], no direction notes, no brackets of any kind. Just the words the creator says out loud.
+${CREATOR_BIAS}
 
 OUTPUT: valid JSON only, no fences:
 {

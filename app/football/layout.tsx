@@ -4,7 +4,7 @@ export const metadata = { title: 'Football — diez.gg', robots: 'noindex,nofoll
 
 export default function FootballLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#0d0f14', zIndex: 10, display: 'flex', overflow: 'hidden' }}>
+    <div style={{ position: 'fixed', inset: 0, background: '#f9fafb', zIndex: 10, display: 'flex', overflow: 'hidden' }}>
       <FootballNav />
       <div style={{ flex: 1, overflow: 'hidden', background: '#f9fafb' }}>
         {children}
