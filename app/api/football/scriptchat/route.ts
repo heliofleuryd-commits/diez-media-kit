@@ -8,15 +8,83 @@ import { calcCost } from '@/lib/football/costTracker';
 const client = new Anthropic();
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
 
-function loadSkills(): string {
+function loadSkills(styles: string[] = []): string {
   if (!fs.existsSync(SKILLS_DIR)) return '';
   return fs.readdirSync(SKILLS_DIR)
     .filter(f => f.endsWith('.md'))
+    .filter(f => {
+      if (!f.startsWith('channel-')) return true;
+      if (styles.length === 0) return true;
+      return styles.some(s => f.includes(s));
+    })
     .map(f => {
       const content = fs.readFileSync(path.join(SKILLS_DIR, f), 'utf-8');
-      return `### ${f}\n${content.slice(0, f.startsWith('channel-') ? 500 : 1400)}`;
+      return `### ${f}\n${content.slice(0, f.startsWith('channel-') ? 1200 : 1400)}`;
     })
     .join('\n---\n');
+}
+
+const TOQUEYMEDIO_HOOK_FORMULA = `
+TOQUEYMEDIO HOOK FORMULA — use when emotional style is active:
+The hook is 2–3 sentences. Delivered slowly. It sets a scene first, then twists it.
+
+TEMPLATE A — "Imagine" Immersion (most used):
+  "Imagine [vivid scene at the moment of maximum tension, hope, or dread].
+   [One sentence that makes it more impossible, more desperate, or more beautiful — the twist that deepens stakes].
+   [A short fragment — a name, a question, or one devastating fact — that pivots to the story]."
+
+TEMPLATE B — Paradox / Contradiction:
+  "[What everyone believes to be true about this player or team].
+   [Its devastating inversion — the hidden truth, the opposite reality].
+   [One consequence that reframes everything]."
+
+TEMPLATE C — Dramatic Irony / Foreshadowing:
+  "[Date and place, stated gravely like a verdict].
+   [The protagonists don't know what's about to happen].
+   [What IS about to happen — the thing that makes this tragic, glorious, or impossible]."
+
+FORBIDDEN in emotional hooks: "Did you know…", stats-first, stand-alone questions, hype openers ("This is INSANE").
+END every emotional script with an aphoristic closer — one standalone sentence, a universal truth about football or life.
+`;
+
+function buildStudioSystemPrompt(styles: string[]): string {
+  const hasEmotional = styles.some(s => ['toqueymedio', 'elefutbol'].includes(s));
+  const refs = styles.length > 0 ? styles.map(s => `@${s}`).join(', ') : '@pechefootball, @fiagoball, @5.at.the.back';
+
+  const tone = hasEmotional && styles.some(s => !['toqueymedio','elefutbol'].includes(s))
+    ? 'Blend analytical insight with emotional, cinematic storytelling — confident takes delivered with poetic weight and aphoristic closers.'
+    : hasEmotional
+    ? 'Emotional, cinematic, poetic storytelling. Present-tense narration, religious/cosmic imagery, ceremonial full names at climaxes, aphoristic final line. Deep feeling over hot takes.'
+    : 'Analytical, confident, strong POV — hot takes, contrarian angles, bold claims. Never neutral.';
+
+  return `You are an elite TikTok football script writer and content strategist for a creator covering the 2026 FIFA World Cup.
+
+You have studied 120 top-performing football videos from 16 creators and know exactly what makes football content go viral.
+
+STYLE — write in the voice of: ${refs}
+${tone}
+
+CAPABILITIES:
+- Write complete, ready-to-record TikTok scripts on any football topic
+- Research angles, find the hot take, identify the narrative hook
+- Rewrite, improve, or expand anything the creator sends
+- Suggest formats, hooks, captions, hashtags
+- Give direct, opinionated creative direction
+
+FORMAT (non-negotiable):
+- 45–75 seconds read aloud at natural pace
+- Clean spoken words only — no [CAM], no [BROLL], no direction notes whatsoever
+- Build to a payoff — every script needs a reveal or a strong take
+${hasEmotional ? TOQUEYMEDIO_HOOK_FORMULA : `HOOK: Strong hook in first 3 seconds — bold claim, stat reveal, contrarian angle, or rhetorical provocation. Never "Did you know…"`}
+${CREATOR_BIAS}
+
+WHEN WRITING A SCRIPT:
+After the script, always add:
+**Hook:** (the opening line alone)
+**Caption:** (under 150 chars)
+**Hashtags:** (6–8 relevant tags)
+
+Be direct. Don't ask clarifying questions unless essential — make a creative decision and write the script.`;
 }
 
 // Quick research: fetch YouTube suggestions + headlines for a topic
@@ -55,7 +123,7 @@ async function quickResearch(topic: string): Promise<string> {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { messages, useThinking = false } = body;
+    const { messages, useThinking = false, styles = ['pechefootball', 'fiagoball', '5.at.the.back'] } = body;
 
     if (!messages?.length) {
       return NextResponse.json({ ok: false, error: 'No messages' }, { status: 400 });
@@ -74,38 +142,12 @@ export async function POST(req: Request) {
     const systemBlocks: any[] = [
       {
         type: 'text',
-        text: `You are an elite TikTok football script writer and content strategist for a creator covering the 2026 FIFA World Cup.
-
-You have studied 120 top-performing football videos from 16 creators and know exactly what makes football content go viral.
-
-CAPABILITIES:
-- Write complete, ready-to-record TikTok scripts on any football topic
-- Research angles, find the hot take, identify the narrative hook
-- Rewrite, improve, or expand anything the creator sends
-- Suggest formats, hooks, captions, hashtags
-- Give direct, opinionated creative direction
-
-SCRIPT STYLE (always apply unless asked otherwise):
-- Reference style: @pechefootball, @fiagoball, @5.at.the.back
-- 45–75 seconds read aloud at natural pace
-- Strong hook in first 3 seconds — must stop the scroll
-- Confident POV — never neutral, always an angle
-- Clean spoken words only — no [CAM], no [BROLL], no direction notes whatsoever
-- Build to a payoff — every script needs a reveal or a strong take
-${CREATOR_BIAS}
-
-WHEN WRITING A SCRIPT:
-After the script, always add:
-**Hook:** (the opening line alone)
-**Caption:** (under 150 chars)
-**Hashtags:** (6–8 relevant tags)
-
-Be direct. Don't ask clarifying questions unless essential — make a creative decision and write the script.`,
+        text: buildStudioSystemPrompt(styles),
         cache_control: { type: 'ephemeral' },
       },
       {
         type: 'text',
-        text: `## YOUR SKILL LIBRARY (120 viral football videos analysed)\n\n${loadSkills()}`,
+        text: `## YOUR SKILL LIBRARY (120 viral football videos analysed)\n\n${loadSkills(styles)}`,
         cache_control: { type: 'ephemeral' },
       },
     ];

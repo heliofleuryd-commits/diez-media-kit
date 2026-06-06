@@ -54,6 +54,20 @@ function Markdown({ text }: { text: string }) {
   );
 }
 
+const STYLE_GROUPS = {
+  analytical: [
+    { id: 'pechefootball', label: 'peche' },
+    { id: 'fiagoball',     label: 'fiago' },
+    { id: '5.at.the.back', label: '5atb'  },
+    { id: 'joeham.1',      label: 'joeham' },
+    { id: 'matchday.fc',   label: 'matchday' },
+  ],
+  emotional: [
+    { id: 'toqueymedio', label: 'toqueymedio' },
+    { id: 'elefutbol',   label: 'elefutbol' },
+  ],
+};
+
 export function ScriptChat({ onCost }: { onCost: (c: number) => void }) {
   const [messages, setMessages] = useState<Message[]>([{
     id: 'welcome', role: 'assistant',
@@ -64,9 +78,18 @@ export function ScriptChat({ onCost }: { onCost: (c: number) => void }) {
   const [loading, setLoading] = useState(false);
   const [useThinking, setUseThinking] = useState(false);
   const [expandedThinking, setExpandedThinking] = useState<Set<string>>(new Set());
+  const [selectedStyles, setSelectedStyles] = useState<Set<string>>(new Set(['pechefootball', 'fiagoball', '5.at.the.back']));
   const endRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const toggleStyle = (id: string) => {
+    setSelectedStyles(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
 
@@ -137,7 +160,7 @@ export function ScriptChat({ onCost }: { onCost: (c: number) => void }) {
       const res = await fetch('/api/football/scriptchat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages, useThinking }),
+        body: JSON.stringify({ messages: apiMessages, useThinking, styles: [...selectedStyles] }),
       });
       const data = await res.json();
       if (data.cost) onCost(data.cost);
@@ -156,8 +179,55 @@ export function ScriptChat({ onCost }: { onCost: (c: number) => void }) {
     setExpandedThinking(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
   };
 
+  const hasEmotional = [...selectedStyles].some(s => STYLE_GROUPS.emotional.map(e => e.id).includes(s));
+
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex h-full bg-gray-50">
+
+    {/* ── Right: style selector panel ── */}
+    <div className="w-44 shrink-0 border-r border-gray-200 bg-white flex flex-col gap-4 p-3 overflow-y-auto order-last border-l border-r-0">
+      <div>
+        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2">Voice</p>
+
+        <p className="text-[8px] font-semibold text-violet-500 uppercase tracking-wider mb-1.5">Analytical</p>
+        <div className="flex flex-col gap-1">
+          {STYLE_GROUPS.analytical.map(s => (
+            <button key={s.id} onClick={() => toggleStyle(s.id)}
+              className={`text-left px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                selectedStyles.has(s.id)
+                  ? 'bg-violet-100 text-violet-700 border border-violet-300'
+                  : 'bg-gray-50 text-gray-400 border border-gray-200 hover:border-violet-200 hover:text-violet-500'
+              }`}>
+              @{s.label}
+            </button>
+          ))}
+        </div>
+
+        <p className="text-[8px] font-semibold text-amber-500 uppercase tracking-wider mb-1.5 mt-3">Emotional</p>
+        <div className="flex flex-col gap-1">
+          {STYLE_GROUPS.emotional.map(s => (
+            <button key={s.id} onClick={() => toggleStyle(s.id)}
+              className={`text-left px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                selectedStyles.has(s.id)
+                  ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                  : 'bg-gray-50 text-gray-400 border border-gray-200 hover:border-amber-200 hover:text-amber-500'
+              }`}>
+              @{s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {hasEmotional && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5">
+          <p className="text-[8px] font-bold text-amber-700 mb-1">Emotional mode</p>
+          <p className="text-[8px] text-amber-600 leading-relaxed">Hooks use the "Imagine…" or Paradox template. Cinematic pacing. Aphoristic closer.</p>
+        </div>
+      )}
+    </div>
+
+    {/* ── Left: chat ── */}
+    <div className="flex flex-col flex-1 min-w-0">
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0">
@@ -296,6 +366,7 @@ export function ScriptChat({ onCost }: { onCost: (c: number) => void }) {
           accept="image/*,application/pdf,text/plain,text/markdown,.md,.txt,.csv"
           onChange={e => handleFiles(e.target.files)} />
       </div>
-    </div>
+    </div>{/* end chat column */}
+    </div>{/* end outer flex */}
   );
 }

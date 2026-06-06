@@ -14,6 +14,20 @@ PRIORITY_CHANNELS = {
 DEFAULT_TOP_N = 10
 PRIORITY_TOP_N = 15
 
+# Channels that need more videos and NO YTD date filter
+# (key = handle, value = number of videos to pull)
+DEEP_CHANNELS: dict[str, int] = {
+    "toqueymedio": 50,
+    "elefutbol": 50,
+}
+
+# Channels with primarily non-English content — triggers the emotional/storytelling
+# profile prompt instead of the standard analytical one
+EMOTIONAL_CHANNELS = {
+    "toqueymedio",
+    "elefutbol",
+}
+
 # Injected into every Opus prompt to bias toward the target style
 STYLE_BRIEF = """
 TARGET CREATOR STYLE (weight this heavily in all outputs):

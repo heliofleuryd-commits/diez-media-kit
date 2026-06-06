@@ -202,6 +202,43 @@ function loadSkills(styles: string[] = []): string {
     .join('\n---\n\n');
 }
 
+// Toqueymedio hook formula derived from analysis of his top 50 videos.
+// Injected into system prompt whenever emotional style is selected.
+const TOQUEYMEDIO_HOOK_FORMULA = `
+TOQUEYMEDIO HOOK FORMULA — mandatory when writing in this style:
+The hook is 2–3 sentences, delivered slowly. It never jumps to information — it creates an emotional ante first.
+
+Pick ONE of these three templates based on the story type:
+
+TEMPLATE A — "Imagine" Immersion (his most used hook):
+  Line 1: "Imagine [vivid scene placing the viewer at the exact moment of maximum tension, hope, or dread]."
+  Line 2: "[One sentence that makes the situation more impossible, more desperate, or more beautiful — the twist that deepens the stakes]."
+  Line 3: "[A short fragment — a name, a question, or a single devastating fact — that pivots into the story]."
+  → Use for: underdogs, impossible comebacks, sacred moments, World Cup finals.
+  Example shape: "Imagine being one minute away from winning the World Cup. Imagine giving everything — your body, your country, your soul — for 119 minutes. And then the penalty."
+
+TEMPLATE B — Paradox / Contradiction:
+  Line 1: "[A statement of what everyone believes to be true about this player or team]."
+  Line 2: "[Its devastating inversion — the hidden truth, the opposite reality]."
+  Line 3: "[One consequence or question that reframes the entire story]."
+  → Use for: fallen heroes, misremembered history, overlooked greatness.
+  Example shape: "Everyone called them the best team in the world. Nobody remembers them. Because in football, second place is just the first loser."
+
+TEMPLATE C — Dramatic Irony / Foreshadowing:
+  Line 1: "[Date and place, stated gravely — like a verdict being read]."
+  Line 2: "[The protagonists don't know what's about to happen]."
+  Line 3: "[State what IS about to happen — the thing that makes this tragic, glorious, or impossible]."
+  → Use for: historic matches, endings nobody saw coming, last moments of an era.
+  Example shape: "June 7th, 1970. Azteca Stadium. Pelé and his teammates are warming up. They don't know that in ninety minutes, they will play the most beautiful football the world has ever seen."
+
+FORBIDDEN in toqueymedio hooks:
+✗ "Did you know..." or trivia openers
+✗ Starting with a stat or number
+✗ Stand-alone rhetorical question with no scene
+✗ Hype/energy openers ("This is INSANE", "Nobody is talking about this")
+✗ Analytical setups ("Today I want to talk about...")
+`;
+
 function buildSystemPrompt(styles: string[]): string {
   const hasEmotional = styles.includes('toqueymedio');
   const analytical = styles.filter(s => s !== 'toqueymedio');
@@ -216,6 +253,13 @@ function buildSystemPrompt(styles: string[]): string {
     ? 'Emotional, cinematic, poetic storytelling in the @toqueymedio style. Present-tense narration, religious/cosmic imagery, ceremonial full names at climaxes, aphoristic final line. Deep feeling over hot takes.'
     : 'Analytical, confident, strong POV — hot takes, contrarian angles, bold claims. Never neutral.';
 
+  const hookInstructions = hasEmotional
+    ? TOQUEYMEDIO_HOOK_FORMULA
+    : `HOOK (non-negotiable):
+- Strong analytical hook in first 3 seconds — must stop the scroll
+- Bold claim, stat reveal, contrarian angle, or rhetorical provocation
+- Never start with "Did you know" or a generic question`;
+
   return `You are a viral TikTok football content strategist for a creator making 2026 FIFA World Cup videos.
 
 STYLE — write in the voice of: ${refs}
@@ -223,9 +267,9 @@ ${tone}
 
 FORMAT (non-negotiable):
 - 45–65 seconds read aloud at natural pace
-- Strong hook in first 3 seconds — must stop the scroll
 - Clean spoken words only — no [CAM], no [BROLL], no direction notes whatsoever
 - Every script builds to a clear payoff
+${hookInstructions}
 ${CREATOR_BIAS}`;
 }
 
@@ -296,14 +340,24 @@ export async function POST(req: Request) {
     const trendsText = buildTrendsText(ytSearch, ytContent, googleTrends, news, tiktok);
     const trends = { ytSearch, ytContent, googleTrends, news, tiktok };
 
+    const hasEmotional = styles.includes('toqueymedio');
+
     // ── STEP 1: generate 10 topic ideas ──────────────────────────────────────
     if (mode === 'topics') {
+      const hookIdeaInstruction = hasEmotional
+        ? `"hook_idea": "A 2–3 sentence toqueymedio-style hook using Template A (Imagine...), B (Paradox), or C (Dramatic Irony). Must be slow, cinematic, emotional — NOT analytical. Spoken words only."`
+        : `"hook_idea": "The bold opening line that stops the scroll (1 sentence, spoken words — hot take or provocation)"`;
+
+      const topicsStyleNote = hasEmotional
+        ? `Style note: prioritise emotional, cinematic stories — fallen heroes, impossible miracles, coronation of greatness. Think @toqueymedio: narrative arcs, not hot takes.`
+        : `Mix formats: hot takes, contrarian angles, stat reveals, reaction hooks, narratives, predictions.`;
+
       const response = await client.messages.create({
         model: M_FAST,
         max_tokens: 3000,
         system: [
-          { type: 'text', text: SYSTEM_STRATEGIST, cache_control: { type: 'ephemeral' } },
-          { type: 'text', text: `## SKILL FILES\n\n${loadSkills()}`, cache_control: { type: 'ephemeral' } },
+          { type: 'text', text: buildSystemPrompt(styles), cache_control: { type: 'ephemeral' } },
+          { type: 'text', text: `## SKILL FILES\n\n${loadSkills(styles)}`, cache_control: { type: 'ephemeral' } },
         ],
         messages: [{
           role: 'user',
@@ -311,7 +365,7 @@ export async function POST(req: Request) {
 
 These are NOT full scripts — they are strategic topic ideas the creator will choose from.
 Think hard: what are the 10 best angles today that will get the most views?
-Mix formats: hot takes, contrarian angles, stat reveals, reaction hooks, narratives, predictions.
+${topicsStyleNote}
 ${CREATOR_BIAS}
 
 TODAY'S SIGNALS:
@@ -325,7 +379,7 @@ OUTPUT valid JSON only, no fences:
       "id": 1,
       "title": "Short punchy title (max 8 words)",
       "angle": "The specific narrative angle or hot take (1 sentence)",
-      "hook_idea": "The opening line that would stop the scroll (1 sentence, spoken words)",
+      ${hookIdeaInstruction},
       "platform_signal": "Where this is trending and why now",
       "virality_score": 94,
       "virality_reason": "Why this will perform — specific and honest",
@@ -384,6 +438,13 @@ OUTPUT valid JSON only, no fences:
       // One call per topic — eliminates truncation, same wall-clock time
       const scriptResults = await Promise.all(
         selectedTopics.map(async (topic: any) => {
+          const hookRequirement = hasEmotional
+            ? `HOOK REQUIREMENT: Use the TOQUEYMEDIO hook formula from your system prompt.
+Start with Template A ("Imagine..."), B (Paradox), or C (Dramatic Irony) — whichever fits this story.
+The hook must be 2–3 sentences. Slow. Cinematic. It sets a scene and then twists it.
+The hook_idea below is a starting point — make it the best version of that template.`
+            : `HOOK REQUIREMENT: Use the hook idea as a starting point but make it the strongest possible version.`;
+
           const prompt = `Write one complete TikTok script for this topic.
 
 TOPIC: "${topic.title}"
@@ -398,16 +459,17 @@ ${trendsText.slice(0, 1500)}
 
 REQUIREMENTS:
 - 45–65 seconds read aloud naturally
-- Use the hook idea as a starting point but make it the best possible version
+- ${hookRequirement}
 - Strong payoff that earns the full watch
 - Clean spoken words only — absolutely no brackets, no [CAM], no [BROLL], no direction notes
+${hasEmotional ? '- End with an aphoristic closer — one standalone sentence that is a universal truth about football or life' : ''}
 
 OUTPUT valid JSON only, no fences:
 {
   "topic_id": ${topic.id},
   "title": "${topic.title}",
   "virality_score": ${topic.virality_score},
-  "hook": "exact opening line",
+  "hook": "exact opening 2–3 sentences of the hook",
   "script": "full clean script, spoken words only",
   "caption": "TikTok caption under 150 chars",
   "hashtags": ["#tag1", "#tag2", "#tag3"],
