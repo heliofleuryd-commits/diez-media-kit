@@ -170,6 +170,26 @@ function SignalsSidebar({ signals }: { signals: any }) {
 // ── Main Studio Page ──────────────────────────────────────────────────────────
 export function StudioPage() {
   const [tab, setTab] = useState<'scripts' | 'news' | 'studio'>('scripts');
+
+  // ── Style selector ───────────────────────────────────────────────────────────
+  const STYLE_GROUPS = {
+    analytical: [
+      { id: 'pechefootball', label: 'peche' },
+      { id: 'fiagoball',     label: 'fiago' },
+      { id: '5.at.the.back', label: '5atb'  },
+      { id: 'joeham.1',      label: 'joeham' },
+      { id: 'matchday.fc',   label: 'matchday' },
+    ],
+    emotional: [
+      { id: 'toqueymedio', label: 'toqueymedio' },
+    ],
+  };
+  const [selectedStyles, setSelectedStyles] = useState<Set<string>>(
+    new Set(['pechefootball', 'fiagoball', '5.at.the.back'])
+  );
+  const toggleStyle = (id: string) =>
+    setSelectedStyles(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
   const [signals, setSignals] = useState<any>(null);
   const [signalsAge, setSignalsAge] = useState<string>('');
   const [refreshingSignals, setRefreshingSignals] = useState(false);
@@ -322,7 +342,7 @@ export function StudioPage() {
     try {
       const res = await fetch('/api/football/research', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'scripts', topics: selected }),
+        body: JSON.stringify({ mode: 'scripts', topics: selected, styles: [...selectedStyles] }),
       });
       const json = await res.json();
       if (!json.ok) { setError(json.error); setScriptStep('pick'); return; }
@@ -477,7 +497,7 @@ export function StudioPage() {
                           className="text-[9px] text-gray-400 hover:text-gray-600 font-semibold px-2 py-1">
                           ↺ Fresh research
                         </button>
-                        <button onClick={generateScripts} disabled={selectedIds.size === 0}
+                        <button onClick={generateScripts} disabled={selectedIds.size === 0 || selectedStyles.size === 0}
                           className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-[11px] font-black disabled:opacity-40 shadow-sm"
                           style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
                           ✨ Generate {selectedIds.size > 0 ? selectedIds.size : ''} Script{selectedIds.size !== 1 ? 's' : ''}
@@ -504,6 +524,49 @@ export function StudioPage() {
                     )}
                   </div>
                 </div>
+
+                {/* Style selector — visible once research is loaded */}
+                {scriptStep !== 'idle' && scriptStep !== 'researching' && (
+                  <div className="px-5 py-2 border-b border-gray-100 bg-white flex items-center gap-2.5 shrink-0 flex-wrap">
+                    <p className="text-[7px] font-black uppercase tracking-widest text-gray-300 shrink-0">Style</p>
+
+                    {/* Analytical group */}
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <span className="text-[7px] font-bold uppercase tracking-wider text-gray-300 mr-0.5">Analytical</span>
+                      {STYLE_GROUPS.analytical.map(s => (
+                        <button key={s.id} onClick={() => toggleStyle(s.id)}
+                          className={`px-2 py-0.5 rounded-full text-[8px] font-bold transition-all border ${
+                            selectedStyles.has(s.id)
+                              ? 'bg-violet-600 text-white border-violet-600'
+                              : 'bg-white text-gray-400 border-gray-200 hover:border-violet-300 hover:text-violet-500'
+                          }`}>
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <span className="text-gray-200 text-[10px]">|</span>
+
+                    {/* Emotional group */}
+                    <div className="flex items-center gap-1">
+                      <span className="text-[7px] font-bold uppercase tracking-wider text-gray-300 mr-0.5">Emotional</span>
+                      {STYLE_GROUPS.emotional.map(s => (
+                        <button key={s.id} onClick={() => toggleStyle(s.id)}
+                          className={`px-2.5 py-0.5 rounded-full text-[8px] font-bold transition-all border ${
+                            selectedStyles.has(s.id)
+                              ? 'bg-amber-500 text-white border-amber-500'
+                              : 'bg-white text-gray-400 border-gray-200 hover:border-amber-300 hover:text-amber-500'
+                          }`}>
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {selectedStyles.size === 0 && (
+                      <span className="text-[8px] text-red-400 font-semibold">Pick at least one style</span>
+                    )}
+                  </div>
+                )}
 
                 {/* Step 1: idle */}
                 {scriptStep === 'idle' && (

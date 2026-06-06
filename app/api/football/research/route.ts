@@ -184,19 +184,50 @@ async function fetchTikTok() {
   };
 }
 
-// ── Skill loader ──────────────────────────────────────────────────────────────
-function loadSkills(): string {
+// ── Skill loader — filters to selected channel styles ────────────────────────
+function loadSkills(styles: string[] = []): string {
   if (!fs.existsSync(SKILLS_DIR)) return 'No skills extracted yet.';
   return fs.readdirSync(SKILLS_DIR)
     .filter(f => f.endsWith('.md'))
+    .filter(f => {
+      if (!f.startsWith('channel-')) return true; // always include format/hook/viral files
+      if (styles.length === 0) return true;
+      return styles.some(s => f.includes(s));
+    })
     .map(f => {
       const content = fs.readFileSync(path.join(SKILLS_DIR, f), 'utf-8');
-      // Channel profiles: abbreviated (less useful for daily scripts)
-      // Format/hook/viral files: kept fuller (directly used in writing)
-      const limit = f.startsWith('channel-') ? 400 : 1200;
+      // Give selected channel profiles more space; format/hook files stay full
+      const limit = f.startsWith('channel-') ? 1200 : 1200;
       return `### ${f}\n${content.slice(0, limit)}`;
     })
     .join('\n---\n\n');
+}
+
+function buildSystemPrompt(styles: string[]): string {
+  const hasEmotional = styles.includes('toqueymedio');
+  const analytical = styles.filter(s => s !== 'toqueymedio');
+
+  const refs = styles.length > 0
+    ? styles.map(s => `@${s}`).join(', ')
+    : '@pechefootball, @fiagoball, @5.at.the.back';
+
+  const tone = hasEmotional && analytical.length > 0
+    ? 'Blend analytical insight with emotional, cinematic storytelling — confident takes delivered with poetic weight and aphoristic closers.'
+    : hasEmotional
+    ? 'Emotional, cinematic, poetic storytelling in the @toqueymedio style. Present-tense narration, religious/cosmic imagery, ceremonial full names at climaxes, aphoristic final line. Deep feeling over hot takes.'
+    : 'Analytical, confident, strong POV — hot takes, contrarian angles, bold claims. Never neutral.';
+
+  return `You are a viral TikTok football content strategist for a creator making 2026 FIFA World Cup videos.
+
+STYLE — write in the voice of: ${refs}
+${tone}
+
+FORMAT (non-negotiable):
+- 45–65 seconds read aloud at natural pace
+- Strong hook in first 3 seconds — must stop the scroll
+- Clean spoken words only — no [CAM], no [BROLL], no direction notes whatsoever
+- Every script builds to a clear payoff
+${CREATOR_BIAS}`;
 }
 
 // ── GET — return all trends ───────────────────────────────────────────────────
@@ -342,10 +373,13 @@ OUTPUT valid JSON only, no fences:
         return NextResponse.json({ ok: false, error: 'No topics selected' }, { status: 400 });
       }
 
-      const skillsBlock = `## SKILL FILES\n\n${loadSkills()}`;
+      const styles: string[] = body.styles?.length > 0
+        ? body.styles
+        : ['pechefootball', 'fiagoball', '5.at.the.back'];
+
       const systemBlocks: any[] = [
-        { type: 'text', text: SYSTEM_STRATEGIST, cache_control: { type: 'ephemeral' } },
-        { type: 'text', text: skillsBlock, cache_control: { type: 'ephemeral' } },
+        { type: 'text', text: buildSystemPrompt(styles), cache_control: { type: 'ephemeral' } },
+        { type: 'text', text: `## SKILL FILES\n\n${loadSkills(styles)}`, cache_control: { type: 'ephemeral' } },
       ];
 
       // One call per topic — eliminates truncation, same wall-clock time
