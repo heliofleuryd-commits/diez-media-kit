@@ -92,6 +92,35 @@ Early in the narration, the creator signals that the protagonists don't yet know
 
 ---
 
+## 4b. THE FACTUAL NARRATIVE BACKBONE — The Most Critical Element
+
+This is what every AI model gets wrong about toqueymedio, and what you MUST get right: **the emotional style is the delivery, but the content is always a specific, accurate, factual account of a real game or tournament run.**
+
+The longest section of every script (0:20–1:10) is a play-by-play of what actually happened — specific minutes, specific player names, specific goals, specific controversial moments. The emotion runs through the facts like a current through a wire. Remove the facts, and you have empty poetry. Remove the emotion, and you have a Wikipedia article. Toqueymedio combines both at every moment.
+
+**Mandatory elements in the game narrative section:**
+
+- **Minute markers as drumbeats**: "Minuto 17." "Minuto 62." "Minuto 90+3." These are not optional. They ratchet tension and make the viewer feel time passing inside the match.
+- **Specific player names at every key moment**: Not "the striker" — "Luis García." Not "the goalkeeper" — "Jerzy Dudek." Not "a defender" — "John Terry." The full name at the moment it matters.
+- **Exact score progression narrated**: The viewer tracks every goal as it happens. "1-0. Then 2-0. Then, impossibly, 2-1."
+- **Specific plays described cinematically**: Not "they scored" but "the ball drops to the edge of the area, he controls it on his chest, and before it even touches the ground his volley is already past the goalkeeper."
+- **The specific controversy named and described**: The exact handball (Suárez, minute 120, Ghana, quarter-final). The exact red card (Zidane, minute 110, headbutt on Materazzi's chest). The exact offside (disallowed goal, minute 67, by millimetres). These are the pivots the whole story turns on.
+- **Penalty sequences with individual detail**: Not "they won on penalties." Who stepped up. What happened to their body language. Who scored. Who missed. "Pirlo steps up and chips it Panenka-style. The goalkeeper dives right. The ball floats down the centre. Nobody can believe what they just saw."
+- **The human detail inside the fact**: After stating the fact, one sentence of emotional consequence. "Minuto 93. Agüero shoots. 3-2. And in that moment, eighteen years of Manchester City anguish end."
+
+**What the game narrative section is NOT:**
+- Not vague emotional description without facts ("it was a devastating defeat")
+- Not just the outcome without the journey ("they lost on penalties")
+- Not a summary ("the match was dramatic") — it's a cinema-quality re-living of the specific moments
+
+**Example of correct vs incorrect game narrative:**
+
+WRONG: "The game was brutal. The pressure was immense. And in the end, the better team won."
+
+RIGHT: "Minuto 8 — Uruguay scores. The stadium goes silent. For the next 82 minutes, Ghana attacks like their lives depend on it. Minuto 45+2 — Gyan equalises. Then Minuto 55 — Muntari restores the lead for Uruguay. Minuto 82 — Gyan again, 2-2. Then comes Minuto 120. Suárez on the goal-line. The ball is going in. He raises his hand. He stops it. He is sent off. Asamoah Gyan steps up. He hits the crossbar. The dream dies not from lack of quality, but from one hand, one impossible, inexcusable, brilliant hand."
+
+---
+
 ## 5. Primary Audience Hook
 
 The emotional journey follows a precise sequence. The hook paradox creates **intrigue** — the viewer needs to know how the contradiction resolves. The second-person immersion shifts them into **dread or hope** — they are no longer watching, they are inside the story. The present-tense match narration with minute-stamps creates **physiological tension** — their heart rate genuinely rises. Then comes **awe** at the impossible moment, delivered with cosmic elevation and a slowing of pace. The climax delivers **grief or triumph** — actual tears, actual chills. And the aphoristic closer provides **catharsis and meaning** — a portable life lesson that makes the whole experience feel like it was *about* something larger than football.
@@ -147,28 +176,63 @@ Where analytical creators (@pechefootball, @fiagoball, @joeham.1) give you *info
 
 ## 8. How to Write in This Style — Step-by-Step Guide
 
-**Step 1: Choose the emotional arc before choosing the topic.** Ask: is this a Fallen Hero, an Impossible Miracle, a Coronation, a Sacred Sacrifice, or a War? The arc determines everything — the hook template, the pacing, the closer.
+**Step 1: Know the facts cold before writing a single word.**
+Research the actual game. Know: the exact date, the exact score, the key minutes, who scored, who was sent off, who missed the penalty, what the controversial moment was, what the exact sequence of events was. You cannot fake specificity — and specificity is everything.
 
-**Step 2: Write the closer first.** The aphoristic final sentence is the destination. Once you know where you are going emotionally, the whole script can be constructed to arrive there. The closer should be true, universal, and slightly paradoxical.
+**Step 2: Choose the emotional arc.**
+Is this a Fallen Hero, Impossible Miracle, Coronation of Greatness, Sacred Sacrifice, or War? The arc determines the hook template and the closer.
 
-**Step 3: Choose your hook template.**
+**Step 3: Write the closer first.**
+The aphoristic final sentence is the destination. It should be a universal truth about football or life, slightly paradoxical, quotable in isolation. Once you know where you are going, the whole script is constructed to arrive there.
+
+**Step 4: Write the hook (2–3 sentences, slow, cinematic).**
 - For underdogs and miracles: Template A ("Imagine…")
-- For fallen heroes or misremembered stories: Template B (Paradox)
-- For historic matches where the ending is known: Template C (Dramatic Irony)
+- For fallen heroes: Template B (Paradox)
+- For known endings with dramatic irony: Template C (Date/place as verdict)
+Each sentence lands before the next begins. No facts yet — pure philosophical/emotional promise.
 
-Write the hook as 2–3 sentences. Slow. Each sentence lands before the next begins.
+**Step 5: Establish the sacred ground (1–2 sentences).**
+Date. Place. Stakes. Stated gravely, like a verdict. "July 9th, 2006. Berlin. The World Cup final between France and Italy." This is where facts enter for the first time.
 
-**Step 4: Establish the sacred ground.** Give date, place, and stakes in 1–2 sentences after the hook. State these gravely, like a judge reading a verdict. "July 9th, 2006. Berlin. The World Cup final."
+**Step 6: Write the game narrative in present tense with minute-stamps (the longest section — ~50% of the script).**
+This is where most writers fail. The game narrative must contain:
+- Minute markers: "Minute 7." "Minute 55." "Minute 90+3."
+- Specific player names at every key moment — the actual person, not their position
+- Exact score progression as it happens
+- At least one specific play described cinematically (not "they scored" — "the cross comes in, the header meets it, and the net is trembling before the goalkeeper can move")
+- The specific controversy if there is one (the exact handball, the exact red card, described with precision)
+- Penalty details if relevant: who stepped up, what happened, the body language, the outcome
 
-**Step 5: Narrate in present tense.** Switch to present tense for the match narration. Use minute-stamps as drumbeats to build tension. "Minute 17 — the first goal." "Minute 61 — the equaliser." "Minute 110 — and then it happens."
+Emotional language runs THROUGH the facts. After each key fact, one emotional sentence. Then back to facts. Then emotion. This alternation is the heartbeat of the style.
 
-**Step 6: Slow down at the climax.** When the decisive moment arrives, cut your sentence length in half. One word. Two words. A fragment. Let the image breathe. Deploy the ceremonial full name here.
+**Step 7: Slow the climax to a near-stop.**
+When the decisive moment arrives, sentence length halves. One word. A fragment. Let it breathe. Deploy the ceremonial full name. Add religious/cosmic imagery. This is the moment the viewer's throat tightens.
 
-**Step 7: Name both faces.** Before the closer, briefly acknowledge both the winner and the loser. One sentence each. This is not balance — it is emotional maximalism.
+**Step 8: Name both faces.**
+One sentence for the winner's euphoria. One sentence for the loser's desolation. Hold both simultaneously.
 
-**Step 8: Deliver the closer.** One standalone sentence. A universal truth. No qualifier, no hedge. Let it land in silence.
+**Step 9: Deliver the closer.**
+One standalone sentence. Universal truth. No qualifier. Silence follows.
 
-**Example opening structures (templates, not verbatim):**
-- "Imagine being [protagonist] at [place and moment]. Imagine [the thing that makes it impossible]. And then imagine [the twist that makes it real]."
-- "[What everyone believed]. [Its devastating opposite]. [The consequence that changed everything]."
-- "[Date and place, stated as verdict]. [They don't know what's coming]. [What is coming]."
+**Example full structural skeleton:**
+```
+[HOOK] Imagine being [player] in [place]. [The impossible stakes]. [The fragment that opens the story].
+
+[SACRED GROUND] [Date]. [Place]. [The match, stated simply].
+
+[GAME NARRATIVE]
+Minute [X]. [Player] does [specific thing]. [Emotional consequence in one sentence].
+Minute [X]. [Score changes / controversy / key play]. [One emotional line].
+[Continue through the key moments of the match, each anchored to a specific minute and player]
+
+[THE TURN] "And then..." [The pivotal moment — one fragment].
+
+[CLIMAX — SLOW DOWN]
+[One word sentence]. [Player's full ceremonial name]. [What they did, described cinematically with cosmic imagery].
+
+[TWO FACES]
+[Winner's feeling in one sentence]. [Loser's feeling in one sentence].
+
+[CLOSER]
+[Universal truth. One sentence. Let it stand alone.]
+```

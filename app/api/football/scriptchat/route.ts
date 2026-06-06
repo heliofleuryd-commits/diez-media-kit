@@ -24,27 +24,55 @@ function loadSkills(styles: string[] = []): string {
     .join('\n---\n');
 }
 
-const TOQUEYMEDIO_HOOK_FORMULA = `
-TOQUEYMEDIO HOOK FORMULA — use when emotional style is active:
-The hook is 2–3 sentences. Delivered slowly. It sets a scene first, then twists it.
+const TOQUEYMEDIO_SCRIPT_STRUCTURE = `
+═══════════════════════════════════════════
+TOQUEYMEDIO EMOTIONAL STORYTELLING SYSTEM
+═══════════════════════════════════════════
+
+FUNDAMENTAL RULE: Emotion is the DELIVERY. The CONTENT is always a specific, factual, accurate play-by-play of a real game or moment. Facts + emotion woven together = the formula. Facts alone = Wikipedia. Emotion alone = empty poetry.
+
+━━━ BEAT 1: THE HOOK (0:00–0:08) — Pure emotional ante. No facts yet. ━━━
 
 TEMPLATE A — "Imagine" Immersion (most used):
-  "Imagine [vivid scene at the moment of maximum tension, hope, or dread].
-   [One sentence that makes it more impossible, more desperate, or more beautiful — the twist that deepens stakes].
-   [A short fragment — a name, a question, or one devastating fact — that pivots to the story]."
+  "Imagine [vivid scene: viewer at the exact moment of maximum tension/hope/dread].
+   [Sentence that makes it more impossible or beautiful — deepens the stakes].
+   [A fragment — a name, a question, one devastating fact — that opens the story]."
+  → Underdogs, comebacks, World Cup finals.
 
 TEMPLATE B — Paradox / Contradiction:
-  "[What everyone believes to be true about this player or team].
-   [Its devastating inversion — the hidden truth, the opposite reality].
-   [One consequence that reframes everything]."
+  "[What everyone believes]. [Its devastating inversion]. [The consequence that reframes everything]."
+  → Fallen heroes, misremembered history.
 
-TEMPLATE C — Dramatic Irony / Foreshadowing:
-  "[Date and place, stated gravely like a verdict].
-   [The protagonists don't know what's about to happen].
-   [What IS about to happen — the thing that makes this tragic, glorious, or impossible]."
+TEMPLATE C — Dramatic Irony:
+  "[Date and place, stated gravely]. [They don't know what's coming]. [What is coming]."
+  → Historic matches, known endings with dread.
 
-FORBIDDEN in emotional hooks: "Did you know…", stats-first, stand-alone questions, hype openers ("This is INSANE").
-END every emotional script with an aphoristic closer — one standalone sentence, a universal truth about football or life.
+FORBIDDEN hooks: "Did you know…" / stats-first / stand-alone question / hype openers / analytical setups.
+
+━━━ BEAT 2: THE SACRED GROUND (0:08–0:20) ━━━
+Date. Place. Stakes — one sentence. Stated gravely, like a verdict.
+
+━━━ BEAT 3: THE GAME NARRATIVE (0:20–1:10) — LONGEST & MOST CRITICAL SECTION ━━━
+
+MANDATORY — the script will fail without these:
+✓ MINUTE MARKERS: "Minute 7." "Minute 55." "Minute 90+3." — non-negotiable drumbeats.
+✓ SPECIFIC PLAYER NAMES at every key moment. Never "the striker" — use their actual name.
+✓ EXACT SCORE PROGRESSION: every goal tracked as it happens.
+✓ SPECIFIC PLAYS described cinematically — not "they scored" but the exact movement, the exact moment.
+✓ THE SPECIFIC CONTROVERSY if there is one: exact handball, red card, disallowed goal, described with precision.
+✓ PENALTY SEQUENCES with individual detail: who stepped up, what happened, their body language.
+✓ EMOTIONAL SENTENCE after each fact: state the fact, then one emotional consequence, then back to facts.
+
+WRONG: "The game was dramatic and emotional."
+RIGHT: "Minute 45 — Uruguay score. Silence. For 82 more minutes, Ghana attacks like their lives depend on it. Minute 82 — Gyan equalises. Then comes Minute 120. Suárez on the goal-line. The ball is going in. He raises his hand. He stops it. He is sent off. Asamoah Gyan steps up. He hits the crossbar. And an entire continent's dream shatters."
+
+━━━ BEAT 4: THE TURN — "And then…" — one fragment. The pivot. ━━━
+
+━━━ BEAT 5: THE CLIMAX — SLOW DOWN — ceremonial full name — cosmic imagery ━━━
+
+━━━ BEAT 6: TWO FACES — winner's euphoria / loser's desolation — one sentence each ━━━
+
+━━━ BEAT 7: APHORISTIC CLOSER — one universal truth — standalone — silence follows ━━━
 `;
 
 function buildStudioSystemPrompt(styles: string[]): string {
@@ -75,7 +103,7 @@ FORMAT (non-negotiable):
 - 45–75 seconds read aloud at natural pace
 - Clean spoken words only — no [CAM], no [BROLL], no direction notes whatsoever
 - Build to a payoff — every script needs a reveal or a strong take
-${hasEmotional ? TOQUEYMEDIO_HOOK_FORMULA : `HOOK: Strong hook in first 3 seconds — bold claim, stat reveal, contrarian angle, or rhetorical provocation. Never "Did you know…"`}
+${hasEmotional ? TOQUEYMEDIO_SCRIPT_STRUCTURE : `HOOK: Strong hook in first 3 seconds — bold claim, stat reveal, contrarian angle, or rhetorical provocation. Never "Did you know…"`}
 ${CREATOR_BIAS}
 
 WHEN WRITING A SCRIPT:

@@ -184,49 +184,7 @@ export function ScriptChat({ onCost }: { onCost: (c: number) => void }) {
   return (
     <div className="flex h-full bg-gray-50">
 
-    {/* ── Right: style selector panel ── */}
-    <div className="w-44 shrink-0 border-r border-gray-200 bg-white flex flex-col gap-4 p-3 overflow-y-auto order-last border-l border-r-0">
-      <div>
-        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2">Voice</p>
-
-        <p className="text-[8px] font-semibold text-violet-500 uppercase tracking-wider mb-1.5">Analytical</p>
-        <div className="flex flex-col gap-1">
-          {STYLE_GROUPS.analytical.map(s => (
-            <button key={s.id} onClick={() => toggleStyle(s.id)}
-              className={`text-left px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
-                selectedStyles.has(s.id)
-                  ? 'bg-violet-100 text-violet-700 border border-violet-300'
-                  : 'bg-gray-50 text-gray-400 border border-gray-200 hover:border-violet-200 hover:text-violet-500'
-              }`}>
-              @{s.label}
-            </button>
-          ))}
-        </div>
-
-        <p className="text-[8px] font-semibold text-amber-500 uppercase tracking-wider mb-1.5 mt-3">Emotional</p>
-        <div className="flex flex-col gap-1">
-          {STYLE_GROUPS.emotional.map(s => (
-            <button key={s.id} onClick={() => toggleStyle(s.id)}
-              className={`text-left px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
-                selectedStyles.has(s.id)
-                  ? 'bg-amber-100 text-amber-700 border border-amber-300'
-                  : 'bg-gray-50 text-gray-400 border border-gray-200 hover:border-amber-200 hover:text-amber-500'
-              }`}>
-              @{s.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {hasEmotional && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5">
-          <p className="text-[8px] font-bold text-amber-700 mb-1">Emotional mode</p>
-          <p className="text-[8px] text-amber-600 leading-relaxed">Hooks use the "Imagine…" or Paradox template. Cinematic pacing. Aphoristic closer.</p>
-        </div>
-      )}
-    </div>
-
-    {/* ── Left: chat ── */}
+    {/* ── Chat column (left, flex-1) ── */}
     <div className="flex flex-col flex-1 min-w-0">
 
       {/* Messages */}
@@ -367,6 +325,60 @@ export function ScriptChat({ onCost }: { onCost: (c: number) => void }) {
           onChange={e => handleFiles(e.target.files)} />
       </div>
     </div>{/* end chat column */}
+
+    {/* ── Style panel (right sidebar) ── */}
+    <div className="w-44 shrink-0 border-l border-gray-200 bg-white flex flex-col gap-4 p-3 overflow-y-auto">
+      <div>
+        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-3">Voice</p>
+
+        <p className="text-[8px] font-semibold text-violet-500 uppercase tracking-wider mb-1.5">Analytical</p>
+        <div className="flex flex-col gap-1">
+          {STYLE_GROUPS.analytical.map(s => (
+            <button key={s.id} onClick={() => toggleStyle(s.id)}
+              className={`text-left px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                selectedStyles.has(s.id)
+                  ? 'bg-violet-100 text-violet-700 border border-violet-300'
+                  : 'bg-gray-50 text-gray-400 border border-gray-200 hover:border-violet-200 hover:text-violet-500'
+              }`}>
+              @{s.label}
+            </button>
+          ))}
+        </div>
+
+        <p className="text-[8px] font-semibold text-amber-500 uppercase tracking-wider mb-1.5 mt-4">Emotional</p>
+        <div className="flex flex-col gap-1">
+          {STYLE_GROUPS.emotional.map(s => (
+            <button key={s.id} onClick={() => toggleStyle(s.id)}
+              className={`text-left px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                selectedStyles.has(s.id)
+                  ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                  : 'bg-gray-50 text-gray-400 border border-gray-200 hover:border-amber-200 hover:text-amber-500'
+              }`}>
+              @{s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {hasEmotional && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5">
+          <p className="text-[8px] font-bold text-amber-700 mb-1">Emotional mode</p>
+          <p className="text-[8px] text-amber-600 leading-relaxed">
+            Cinematic hook → specific game facts → emotion woven throughout → aphoristic closer.
+          </p>
+        </div>
+      )}
+
+      {!hasEmotional && (
+        <div className="bg-violet-50 border border-violet-200 rounded-xl p-2.5">
+          <p className="text-[8px] font-bold text-violet-700 mb-1">Analytical mode</p>
+          <p className="text-[8px] text-violet-600 leading-relaxed">
+            Bold hook → hot take → evidence → strong CTA.
+          </p>
+        </div>
+      )}
+    </div>{/* end style panel */}
+
     </div>{/* end outer flex */}
   );
 }

@@ -202,41 +202,77 @@ function loadSkills(styles: string[] = []): string {
     .join('\n---\n\n');
 }
 
-// Toqueymedio hook formula derived from analysis of his top 50 videos.
+// Full toqueymedio script structure derived from deep analysis of his top 50 videos.
 // Injected into system prompt whenever emotional style is selected.
-const TOQUEYMEDIO_HOOK_FORMULA = `
-TOQUEYMEDIO HOOK FORMULA — mandatory when writing in this style:
-The hook is 2–3 sentences, delivered slowly. It never jumps to information — it creates an emotional ante first.
+const TOQUEYMEDIO_SCRIPT_STRUCTURE = `
+═══════════════════════════════════════════
+TOQUEYMEDIO EMOTIONAL STORYTELLING SYSTEM
+═══════════════════════════════════════════
 
-Pick ONE of these three templates based on the story type:
+FUNDAMENTAL RULE: The emotional style is the DELIVERY. The CONTENT is always a specific, accurate, factual play-by-play of a real game or moment. You cannot fake specificity. Facts + emotion woven together = the formula. Facts alone = Wikipedia. Emotion alone = empty poetry.
 
-TEMPLATE A — "Imagine" Immersion (his most used hook):
-  Line 1: "Imagine [vivid scene placing the viewer at the exact moment of maximum tension, hope, or dread]."
-  Line 2: "[One sentence that makes the situation more impossible, more desperate, or more beautiful — the twist that deepens the stakes]."
-  Line 3: "[A short fragment — a name, a question, or a single devastating fact — that pivots into the story]."
-  → Use for: underdogs, impossible comebacks, sacred moments, World Cup finals.
-  Example shape: "Imagine being one minute away from winning the World Cup. Imagine giving everything — your body, your country, your soul — for 119 minutes. And then the penalty."
+━━━ BEAT 1: THE HOOK (0:00–0:08) — Pure emotional ante. No facts yet. ━━━
+
+Choose ONE template:
+
+TEMPLATE A — "Imagine" Immersion (most used):
+  "Imagine [vivid scene: the viewer at the exact moment of maximum tension/hope/dread].
+   [One sentence that makes it more impossible or more beautiful — deepens the stakes].
+   [A short fragment — a name, a question, one devastating fact — that opens the story]."
+  → Use for: underdogs, comebacks, World Cup finals, sacred moments.
+  Shape: "Imagine being one minute away from winning the World Cup. Imagine giving your body, your country, your soul for 119 minutes. And then the penalty."
 
 TEMPLATE B — Paradox / Contradiction:
-  Line 1: "[A statement of what everyone believes to be true about this player or team]."
-  Line 2: "[Its devastating inversion — the hidden truth, the opposite reality]."
-  Line 3: "[One consequence or question that reframes the entire story]."
+  "[What everyone believes about this team or player].
+   [Its devastating inversion — the hidden truth, the opposite reality].
+   [The consequence that reframes everything]."
   → Use for: fallen heroes, misremembered history, overlooked greatness.
-  Example shape: "Everyone called them the best team in the world. Nobody remembers them. Because in football, second place is just the first loser."
+  Shape: "Everyone said they were the best team in the world. Nobody remembers them. Because in football, second place is just the first loser."
 
-TEMPLATE C — Dramatic Irony / Foreshadowing:
-  Line 1: "[Date and place, stated gravely — like a verdict being read]."
-  Line 2: "[The protagonists don't know what's about to happen]."
-  Line 3: "[State what IS about to happen — the thing that makes this tragic, glorious, or impossible]."
+TEMPLATE C — Dramatic Irony:
+  "[Date and place, stated gravely — like a verdict].
+   [The protagonists don't know what's about to happen].
+   [What IS about to happen]."
   → Use for: historic matches, endings nobody saw coming, last moments of an era.
-  Example shape: "June 7th, 1970. Azteca Stadium. Pelé and his teammates are warming up. They don't know that in ninety minutes, they will play the most beautiful football the world has ever seen."
 
-FORBIDDEN in toqueymedio hooks:
-✗ "Did you know..." or trivia openers
-✗ Starting with a stat or number
-✗ Stand-alone rhetorical question with no scene
-✗ Hype/energy openers ("This is INSANE", "Nobody is talking about this")
-✗ Analytical setups ("Today I want to talk about...")
+FORBIDDEN hooks: "Did you know…" / stats-first / stand-alone rhetorical question / hype openers ("This is INSANE") / analytical setups.
+
+━━━ BEAT 2: THE SACRED GROUND (0:08–0:20) — Facts enter here. ━━━
+
+Date. Place. The stakes, in one sentence. State like a verdict being read.
+"July 9th, 2006. Berlin. The World Cup final between France and Italy."
+
+━━━ BEAT 3: THE GAME NARRATIVE (0:20–1:10) — LONGEST SECTION. The factual backbone. ━━━
+
+This is where most writers fail. MANDATORY elements:
+
+✓ MINUTE MARKERS as drumbeats: "Minute 7." "Minute 55." "Minute 90+3." Non-negotiable — they ratchet tension and make the viewer feel time passing inside the match.
+✓ SPECIFIC PLAYER NAMES at every key moment — the actual person, not their position. "Luis García" not "the striker". "Jerzy Dudek" not "the goalkeeper".
+✓ EXACT SCORE PROGRESSION: The viewer tracks every goal as it happens. "1-0. Then 2-0. Then, impossibly, 2-1."
+✓ SPECIFIC PLAYS described cinematically: Not "they scored" — "the cross comes in, the header meets it, and the net is trembling before the goalkeeper can react."
+✓ THE SPECIFIC CONTROVERSY: The exact handball (Suárez, Minute 120, Ghana). The exact red card (Zidane, Minute 110, headbutt on Materazzi's chest). The exact disallowed goal. These are the pivots the story turns on.
+✓ PENALTY SEQUENCES with individual detail: Who stepped up. Their body language. What happened. "Pirlo chips it Panenka-style. The goalkeeper dives right. The ball floats down the centre. Nobody believes what they just saw."
+✓ EMOTIONAL SENTENCES woven through the facts: After each key fact — one emotional consequence. Then back to facts. This alternation is the heartbeat.
+
+WRONG: "The game was dramatic and the pressure was immense."
+RIGHT: "Minute 45. Uruguay score. The stadium goes silent. For the next 82 minutes, Ghana attacks like their lives depend on it. Minute 82 — Gyan equalises. Then comes Minute 120. Suárez on the goal-line. The ball is going in. He raises his hand. He stops it. He is sent off. Asamoah Gyan steps up to the spot. He hits the crossbar. And in that single moment, an entire continent's dream shatters."
+
+━━━ BEAT 4: THE TURN (~1:00) ━━━
+"And then…" — one fragment. The pivot. Introduced with a short sentence or single word.
+
+━━━ BEAT 5: THE CLIMAX (1:10–1:30) — SLOW DOWN ━━━
+Sentence length halves. One word. A fragment. Let it breathe.
+Deploy the CEREMONIAL FULL NAME: the player referred to casually now receives their full birth name.
+Add religious/cosmic imagery. The moment breathes. The viewer's throat tightens.
+
+━━━ BEAT 6: THE TWO FACES ━━━
+One sentence: the winner's euphoria.
+One sentence: the loser's desolation.
+Hold both simultaneously.
+
+━━━ BEAT 7: THE APHORISTIC CLOSER (final 5–10s) ━━━
+One standalone sentence. A universal truth about football or life. Slightly paradoxical. Quotable in isolation.
+No qualifier. No hedge. Let it stand alone in silence.
 `;
 
 function buildSystemPrompt(styles: string[]): string {
@@ -254,7 +290,7 @@ function buildSystemPrompt(styles: string[]): string {
     : 'Analytical, confident, strong POV — hot takes, contrarian angles, bold claims. Never neutral.';
 
   const hookInstructions = hasEmotional
-    ? TOQUEYMEDIO_HOOK_FORMULA
+    ? TOQUEYMEDIO_SCRIPT_STRUCTURE
     : `HOOK (non-negotiable):
 - Strong analytical hook in first 3 seconds — must stop the scroll
 - Bold claim, stat reveal, contrarian angle, or rhetorical provocation
@@ -462,7 +498,8 @@ REQUIREMENTS:
 - ${hookRequirement}
 - Strong payoff that earns the full watch
 - Clean spoken words only — absolutely no brackets, no [CAM], no [BROLL], no direction notes
-${hasEmotional ? '- End with an aphoristic closer — one standalone sentence that is a universal truth about football or life' : ''}
+${hasEmotional ? `- FACTUAL BACKBONE (mandatory): The game narrative section MUST include specific minute markers ("Minute 7.", "Minute 82."), specific player names at every key moment, exact score progression, and at least one specific play described cinematically. The emotion runs THROUGH the facts — not instead of them.
+- End with an aphoristic closer — one standalone sentence, a universal truth, let it stand in silence` : ''}
 
 OUTPUT valid JSON only, no fences:
 {
