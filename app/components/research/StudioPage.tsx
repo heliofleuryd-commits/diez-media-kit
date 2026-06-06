@@ -240,7 +240,7 @@ export function StudioPage() {
   const copy = (text: string, key: string) => { navigator.clipboard.writeText(text); setCopied(key); setTimeout(() => setCopied(null), 1500); };
 
   const CACHE_KEY = 'diez_signals_cache';
-  const CACHE_TTL = 8 * 60 * 60 * 1000;
+  const CACHE_TTL = 48 * 60 * 60 * 1000; // 48h — conserves TokAPI World Cup quota
   const todayKey = () => new Date().toISOString().slice(0, 10);
 
   const formatAge = (ts: number) => {

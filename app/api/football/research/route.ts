@@ -9,6 +9,10 @@ const client = new Anthropic();
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
 const YT_KEY = process.env.YOUTUBE_API_KEY || '';
 
+// Server-side TikTok cache — prevents repeated RapidAPI calls within the same serverless instance
+let _tiktokCache: { data: Awaited<ReturnType<typeof _fetchTikTokRaw>>; ts: number } | null = null;
+const TIKTOK_SERVER_TTL = 60 * 60 * 1000; // 1 hour
+
 // Model tiers
 const M_FAST   = 'claude-haiku-4-5-20251001';  // topics + news bullets ($0.80/$4 per MTok)
 const M_SCRIPT = 'claude-opus-4-8';             // scripts only — quality non-negotiable
@@ -135,14 +139,16 @@ async function fetchGoogleNews() {
 }
 
 // ── TikTok: Tokapi via RapidAPI ───────────────────────────────────────────────
-async function fetchTikTok() {
+// Only 3 hashtags (was 7) to conserve World Cup quota.
+// Server-side 1-hour cache prevents repeated calls within the same serverless instance.
+async function _fetchTikTokRaw() {
   const rapidKey = process.env.RAPIDAPI_KEY;
   if (!rapidKey) return { hashtags: [], videos: [], note: 'No RAPIDAPI_KEY set' };
 
   const HOST = 'tokapi-mobile-version.p.rapidapi.com';
   const headers = { 'x-rapidapi-key': rapidKey, 'x-rapidapi-host': HOST };
 
-  const tags = ['WorldCup2026', 'FIFA2026', 'LamineYamal', 'football', 'Messi', 'WorldCup', 'Spain2026'];
+  const tags = ['WorldCup2026', 'FIFA2026', 'football'];
   const hashtags: { tag: string; views: string }[] = [];
 
   await Promise.all(tags.map(async (tag) => {
@@ -161,27 +167,20 @@ async function fetchTikTok() {
     } catch { /* skip */ }
   }));
 
-  // Search for trending WC videos
-  let videos: { desc: string; plays: number }[] = [];
-  try {
-    const res = await fetch(
-      `https://${HOST}/v1/search/keyword?keyword=world+cup+2026&count=10&offset=0`,
-      { headers, next: { revalidate: 0 } } as any
-    );
-    if (res.ok) {
-      const json = await res.json();
-      videos = (json.item_list || json.data || []).slice(0, 8).map((v: any) => ({
-        desc: (v.desc || '').slice(0, 90),
-        plays: v.statistics?.play_count || 0,
-      })).filter((v: any) => v.desc);
-    }
-  } catch { /* skip */ }
-
   return {
     hashtags,
-    videos,
+    videos: [] as { desc: string; plays: number }[],
     note: hashtags.length === 0 ? 'Rate limited — refreshes shortly' : null,
   };
+}
+
+async function fetchTikTok() {
+  if (_tiktokCache && Date.now() - _tiktokCache.ts < TIKTOK_SERVER_TTL) {
+    return _tiktokCache.data;
+  }
+  const data = await _fetchTikTokRaw();
+  _tiktokCache = { data, ts: Date.now() };
+  return data;
 }
 
 // ── Skill loader — filters to selected channel styles ────────────────────────
@@ -286,14 +285,14 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const mode = body.mode || 'topics';
 
-    // Always fetch fresh signals
-    const [ytSearch, ytContent, googleTrends, news, tiktok] = await Promise.all([
+    // Fetch trends — TikTok skipped in POST to preserve RapidAPI quota (GET has server-cached TikTok)
+    const [ytSearch, ytContent, googleTrends, news] = await Promise.all([
       fetchYouTubeSearchTrends(),
       fetchYouTubeTrending(),
       fetchGoogleTrends(),
       fetchGoogleNews(),
-      fetchTikTok(),
     ]);
+    const tiktok = { hashtags: [], videos: [], note: 'Skipped in POST to preserve quota' };
     const trendsText = buildTrendsText(ytSearch, ytContent, googleTrends, news, tiktok);
     const trends = { ytSearch, ytContent, googleTrends, news, tiktok };
 
