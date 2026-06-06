@@ -182,6 +182,7 @@ export function StudioPage() {
     ],
     emotional: [
       { id: 'toqueymedio', label: 'toqueymedio' },
+      { id: 'elefutbol',   label: 'elefutbol' },
     ],
   };
   const [selectedStyles, setSelectedStyles] = useState<Set<string>>(
@@ -419,8 +420,45 @@ export function StudioPage() {
 
       {/* ── STUDIO ───────────────────────────────────────────────── */}
       {tab === 'studio' && (
-        <div className="flex-1 overflow-hidden">
-          <ScriptChat onCost={trackCost} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+
+          {/* Style selector bar */}
+          <div className="shrink-0 border-b border-gray-200 bg-white px-4 py-2.5 flex items-center gap-3 flex-wrap">
+            <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest mr-1">Voice</span>
+
+            <span className="text-[8px] font-semibold text-violet-400 uppercase tracking-wider">Analytical</span>
+            {STYLE_GROUPS.analytical.map(s => (
+              <button key={s.id} onClick={() => toggleStyle(s.id)}
+                className={`px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all ${
+                  selectedStyles.has(s.id)
+                    ? 'bg-violet-100 text-violet-700 border border-violet-300'
+                    : 'bg-gray-50 text-gray-400 border border-gray-200 hover:border-violet-200 hover:text-violet-500'
+                }`}>
+                @{s.label}
+              </button>
+            ))}
+
+            <span className="text-gray-200 mx-1">|</span>
+            <span className="text-[8px] font-semibold text-amber-400 uppercase tracking-wider">Emotional</span>
+            {STYLE_GROUPS.emotional.map(s => (
+              <button key={s.id} onClick={() => toggleStyle(s.id)}
+                className={`px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all ${
+                  selectedStyles.has(s.id)
+                    ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                    : 'bg-gray-50 text-gray-400 border border-gray-200 hover:border-amber-200 hover:text-amber-500'
+                }`}>
+                @{s.label}
+              </button>
+            ))}
+
+            {[...selectedStyles].some(s => STYLE_GROUPS.emotional.map(e => e.id).includes(s)) && (
+              <span className="ml-auto text-[8px] text-amber-600 font-semibold bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">
+                Emotional mode — cinematic hook · game facts · aphoristic closer
+              </span>
+            )}
+          </div>
+
+          <ScriptChat onCost={trackCost} styles={[...selectedStyles]} />
         </div>
       )}
 
