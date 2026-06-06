@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getDailySpend, addSpend, formatCost } from '@/lib/football/costTracker';
+import { ScriptChat } from './ScriptChat';
 
 interface Script {
   rank: number; title: string; topic: string; search_signal: string;
@@ -168,7 +169,7 @@ function SignalsSidebar({ signals }: { signals: any }) {
 
 // ── Main Studio Page ──────────────────────────────────────────────────────────
 export function StudioPage() {
-  const [tab, setTab] = useState<'scripts' | 'news'>('scripts');
+  const [tab, setTab] = useState<'scripts' | 'news' | 'studio'>('scripts');
   const [signals, setSignals] = useState<any>(null);
   const [signalsAge, setSignalsAge] = useState<string>('');
   const [refreshingSignals, setRefreshingSignals] = useState(false);
@@ -202,7 +203,7 @@ export function StudioPage() {
     if (!cost) return;
     const total = addSpend(cost);
     setDailySpend(total);
-    if (total > 2.00) setSpendAlert(null); // already confirmed, just track
+    if (total > 2.00) setSpendAlert(null);
   }, []);
 
   const guardSpend = useCallback((estimatedCost: number, onConfirm: () => void) => {
@@ -219,8 +220,8 @@ export function StudioPage() {
   const copy = (text: string, key: string) => { navigator.clipboard.writeText(text); setCopied(key); setTimeout(() => setCopied(null), 1500); };
 
   const CACHE_KEY = 'diez_signals_cache';
-  const CACHE_TTL = 8 * 60 * 60 * 1000; // 8 hours
-  const todayKey = () => new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const CACHE_TTL = 8 * 60 * 60 * 1000;
+  const todayKey = () => new Date().toISOString().slice(0, 10);
 
   const formatAge = (ts: number) => {
     const mins = Math.floor((Date.now() - ts) / 60000);
@@ -259,12 +260,10 @@ export function StudioPage() {
 
   useEffect(() => { loadSignals(); }, []);
 
-  // Step 1: research → get 10 topics (cached per day)
   const researchTopics = (force = false) => guardSpend(0.02, () => _researchTopics(force));
   const _researchTopics = async (force = false) => {
     setScriptStep('researching'); setError(null); setSelectedIds(new Set()); setScripts([]);
 
-    // Check daily cache first
     const cacheKey = `diez_topics_${todayKey()}`;
     try {
       const cached = localStorage.getItem(cacheKey);
@@ -294,7 +293,6 @@ export function StudioPage() {
       ].filter(Boolean).join('\n');
 
       setTopics(newTopics); setTrendsSummary(summary); setSignals(t); setTrendsText(tt);
-      // Save to daily cache
       try { localStorage.setItem(cacheKey, JSON.stringify({ topics: newTopics, summary, trendsText: tt })); } catch { /* ignore */ }
       setScriptStep('pick');
     } catch (e: any) { setError(e.message); setScriptStep('idle'); }
@@ -304,13 +302,11 @@ export function StudioPage() {
     setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   };
 
-  // Step 3: generate scripts (cached per day + selected topic combo)
   const generateScripts = () => guardSpend(selectedIds.size * 0.12, _generateScripts);
   const _generateScripts = async () => {
     const selected = topics.filter(t => selectedIds.has(t.id));
     if (!selected.length) return;
 
-    // Cache key: date + sorted topic IDs
     const scriptCacheKey = `diez_scripts_${todayKey()}_${[...selectedIds].sort().join('_')}`;
     try {
       const cached = localStorage.getItem(scriptCacheKey);
@@ -335,7 +331,6 @@ export function StudioPage() {
       setScripts(newScripts);
       setExpandedScript(0);
       setScriptStep('done');
-      // Save to daily cache
       try { localStorage.setItem(scriptCacheKey, JSON.stringify(newScripts)); } catch { /* ignore */ }
     } catch (e: any) { setError(e.message); setScriptStep('pick'); }
   };
@@ -379,362 +374,378 @@ export function StudioPage() {
   const chatContext = { trendsText, scripts, bullets, flashScript };
 
   return (
-    <div className="flex h-full bg-gray-50 text-gray-900 overflow-hidden">
+    <div className="flex flex-col h-full bg-gray-50 text-gray-900 overflow-hidden">
 
-      {/* ── SIGNALS sidebar ───────────────────────────────────────── */}
-      <aside className="shrink-0 flex flex-col border-r border-gray-200 bg-white overflow-hidden" style={{ width: 210 }}>
-        <div className="px-3 py-2.5 border-b border-gray-100 shrink-0 flex items-center justify-between">
-          <div>
-            <p className="text-[9px] font-black tracking-widest uppercase text-gray-400">Live Signals</p>
-            {signalsAge && <p className="text-[7px] text-gray-300 mt-0.5">{signalsAge}</p>}
-          </div>
-          <button
-            onClick={() => loadSignals(true)}
-            disabled={refreshingSignals}
-            title="Refresh signals"
-            className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-all disabled:opacity-40"
-          >
-            <span className={`text-[11px] ${refreshingSignals ? 'animate-spin inline-block' : ''}`}>↺</span>
-          </button>
+      {/* ── TAB BAR (always visible) ──────────────────────────────── */}
+      <div className="flex border-b border-gray-200 bg-white shrink-0">
+        <button onClick={() => setTab('scripts')}
+          className={`px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${tab==='scripts' ? 'border-b-2 border-violet-600 text-violet-700' : 'text-gray-400 hover:text-gray-600'}`}>
+          ✨ Scripts
+        </button>
+        <button onClick={() => setTab('news')}
+          className={`px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${tab==='news' ? 'border-b-2 border-violet-600 text-violet-700' : 'text-gray-400 hover:text-gray-600'}`}>
+          ⚡ Flash News
+        </button>
+        <button onClick={() => setTab('studio')}
+          className={`px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${tab==='studio' ? 'border-b-2 border-violet-600 text-violet-700' : 'text-gray-400 hover:text-gray-600'}`}>
+          ✦ Studio
+        </button>
+        <div className="flex-1" />
+        {error && tab !== 'studio' && <p className="text-[9px] text-red-500 self-center pr-4 truncate max-w-xs">{error}</p>}
+        <div className={`self-center pr-4 text-[9px] font-mono font-bold ${dailySpend >= 1.80 ? 'text-orange-500' : 'text-gray-300'}`}>
+          {formatCost(dailySpend)}<span className="font-normal text-gray-300">/day</span>
         </div>
-        <div className="flex-1 overflow-y-auto bg-white">
-          <SignalsSidebar signals={signals} />
+      </div>
+
+      {/* ── STUDIO ───────────────────────────────────────────────── */}
+      {tab === 'studio' && (
+        <div className="flex-1 overflow-hidden">
+          <ScriptChat onCost={trackCost} />
         </div>
-      </aside>
+      )}
 
-      {/* ── MAIN ─────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      {/* ── SCRIPTS + NEWS (3-panel layout) ──────────────────────── */}
+      {tab !== 'studio' && (
+        <div className="flex flex-1 overflow-hidden">
 
-        {/* Tab bar */}
-        <div className="flex border-b border-gray-200 bg-white shrink-0">
-          {(['scripts', 'news'] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${tab===t ? 'border-b-2 border-violet-600 text-violet-700' : 'text-gray-400 hover:text-gray-600'}`}>
-              {t === 'scripts' ? '✨ Scripts' : '⚡ Flash News'}
-            </button>
-          ))}
-          <div className="flex-1" />
-          {error && <p className="text-[9px] text-red-500 self-center pr-4 truncate max-w-xs">{error}</p>}
-          <div className={`self-center pr-4 text-[9px] font-mono font-bold ${dailySpend >= 1.80 ? 'text-orange-500' : 'text-gray-300'}`}>
-            {formatCost(dailySpend)}<span className="font-normal text-gray-300">/day</span>
-          </div>
-        </div>
-
-        {/* Scripts tab — 3-step workflow */}
-        {tab === 'scripts' && (
-          <div className="flex-1 flex flex-col overflow-hidden">
-
-            {/* Step indicator bar */}
-            <div className="px-5 py-2.5 border-b border-gray-200 bg-white flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
-                {[['1','Research','idle researching'],['2','Pick Topics','pick'],['3','Scripts','generating done']].map(([num, label, states], i) => {
-                  const active = states.split(' ').some(s => s === scriptStep);
-                  const done = (i===0 && ['pick','generating','done'].includes(scriptStep)) || (i===1 && ['generating','done'].includes(scriptStep)) || (i===2 && scriptStep==='done');
-                  return (
-                    <div key={num} className="flex items-center gap-1.5">
-                      {i > 0 && <span className="text-gray-300 text-[10px]">›</span>}
-                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black transition-all ${done ? 'bg-violet-100 text-violet-700' : active ? 'bg-violet-600 text-white' : 'text-gray-300'}`}>
-                        <span>{done ? '✓' : num}</span>
-                        <span>{label}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-                {trendsSummary && <p className="text-[9px] text-gray-400 ml-2 max-w-xs truncate hidden xl:block">{trendsSummary}</p>}
-              </div>
-              <div className="flex items-center gap-2">
-                {scriptStep === 'idle' && (
-                  <button onClick={researchTopics}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-[11px] font-black shadow-sm"
-                    style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
-                    🔍 Research Today's Topics
-                  </button>
-                )}
-                {scriptStep === 'researching' && (
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-[11px] text-gray-500 font-semibold">
-                    <span className="animate-spin inline-block w-3 h-3 border-2 border-violet-500 border-t-transparent rounded-full" />
-                    Researching signals…
-                  </div>
-                )}
-                {scriptStep === 'pick' && (
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => {
-                        try { localStorage.removeItem(`diez_topics_${todayKey()}`); } catch { /* ignore */ }
-                        setScriptStep('idle'); setTopics([]); setSelectedIds(new Set());
-                      }}
-                      className="text-[9px] text-gray-400 hover:text-gray-600 font-semibold px-2 py-1">
-                      ↺ Fresh research
-                    </button>
-                    <button onClick={generateScripts} disabled={selectedIds.size === 0}
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-[11px] font-black disabled:opacity-40 shadow-sm"
-                      style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
-                      ✨ Generate {selectedIds.size > 0 ? selectedIds.size : ''} Script{selectedIds.size !== 1 ? 's' : ''}
-                    </button>
-                  </div>
-                )}
-                {scriptStep === 'generating' && (
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-[11px] text-gray-500 font-semibold">
-                    <span className="animate-spin inline-block w-3 h-3 border-2 border-violet-500 border-t-transparent rounded-full" />
-                    Writing scripts…
-                  </div>
-                )}
-                {scriptStep === 'done' && (
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setScriptStep('pick')}
-                      className="text-[9px] text-violet-500 hover:text-violet-700 font-semibold px-2 py-1">
-                      ← Back to topics
-                    </button>
-                    <button onClick={researchTopics}
-                      className="text-[9px] text-gray-400 hover:text-gray-600 font-semibold px-2 py-1">
-                      ↺ Fresh research
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Step 1: idle */}
-            {scriptStep === 'idle' && (
-              <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">
-                <div className="text-5xl">🔍</div>
-                <div>
-                  <p className="text-gray-700 text-sm font-black">Start with deep research</p>
-                  <p className="text-gray-400 text-xs mt-1.5 max-w-sm leading-relaxed">
-                    Opus scans YouTube search trends, Google Trends, TikTok, and news — then gives you 10 ranked topic ideas. You pick which ones to script.
-                  </p>
-                </div>
-                <button onClick={researchTopics}
-                  className="flex items-center gap-2 px-6 py-3 rounded-2xl text-white text-sm font-black shadow-md mt-2"
-                  style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
-                  🔍 Research Today's Topics
-                </button>
-              </div>
-            )}
-
-            {/* Step 2: pick topics */}
-            {scriptStep === 'pick' && (
-              <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
-                    10 topics ranked by virality — click to select, then hit Generate
-                  </p>
-                  <div className="flex gap-2">
-                    <button onClick={() => setSelectedIds(new Set(topics.map(t=>t.id)))} className="text-[8px] text-violet-500 font-semibold">Select all</button>
-                    <button onClick={() => setSelectedIds(new Set())} className="text-[8px] text-gray-400 font-semibold">Clear</button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  {topics.map((t, i) => {
-                    const sel = selectedIds.has(t.id);
-                    return (
-                      <button key={t.id} onClick={() => toggleTopic(t.id)}
-                        className={`w-full text-left rounded-2xl border p-4 transition-all ${sel ? 'border-violet-400 bg-violet-50 shadow-md shadow-violet-100' : 'border-gray-200 bg-white hover:border-violet-200 shadow-sm'}`}>
-                        <div className="flex items-start gap-3">
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5 transition-all ${sel ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                            {sel ? '✓' : i+1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className={`text-[12px] font-black leading-tight ${sel ? 'text-violet-900' : 'text-gray-900'}`}>{t.title}</p>
-                              <span className={`text-[10px] font-black shrink-0 ${t.virality_score >= 90 ? 'text-green-600' : t.virality_score >= 75 ? 'text-violet-600' : 'text-gray-400'}`}>{t.virality_score}/100</span>
-                            </div>
-                            <p className="text-[10px] text-gray-600 mt-1 leading-snug">{t.angle}</p>
-                            <div className="flex items-center gap-2 mt-2 flex-wrap">
-                              <span className="text-[8px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-semibold">{t.format}</span>
-                              <span className="text-[8px] text-gray-400">{t.platform_signal}</span>
-                            </div>
-                            {t.Spain_Yamal_angle && (
-                              <p className="text-[9px] text-red-500 mt-1.5">🇪🇸 {t.Spain_Yamal_angle}</p>
-                            )}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Step 2.5: generating */}
-            {scriptStep === 'generating' && (
-              <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">
-                <span className="animate-spin inline-block w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full" />
-                <div>
-                  <p className="text-gray-700 text-sm font-black">Writing {selectedIds.size} script{selectedIds.size!==1?'s':''}…</p>
-                  <p className="text-gray-400 text-xs mt-1">Using all 21 skill files + today's signals. This takes ~30 seconds.</p>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: scripts */}
-            {scriptStep === 'done' && (
-              <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
-                {scripts.map((s: any, i) => {
-                  const open = expandedScript === i;
-                  return (
-                    <div key={i} className={`rounded-2xl border transition-all bg-white ${open ? 'border-violet-300 shadow-md shadow-violet-100' : 'border-gray-200 hover:border-gray-300 shadow-sm'}`}>
-                      <button className="w-full flex items-center gap-3 px-4 py-3.5 text-left" onClick={() => setExpandedScript(open ? null : i)}>
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${i===0?'bg-violet-600 text-white':i===1?'bg-indigo-500 text-white':i===2?'bg-blue-500 text-white':'bg-gray-200 text-gray-600'}`}>#{i+1}</div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[12px] font-black text-gray-900 truncate">{s.title}</p>
-                          <p className="text-[9px] text-gray-400 mt-0.5 truncate">"{s.hook}"</p>
-                        </div>
-                        <div className="text-right shrink-0 mr-1">
-                          <p className="text-[11px] font-black text-violet-600">{s.virality_score}/100</p>
-                        </div>
-                        <span className="text-gray-300">{open?'▲':'▼'}</span>
-                      </button>
-                      {open && (
-                        <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
-                          <div>
-                            <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">Hook</p>
-                            <p className="text-[14px] font-black text-gray-900 leading-snug">"{s.hook}"</p>
-                          </div>
-                          <div>
-                            <div className="flex items-center justify-between mb-1.5">
-                              <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Script</p>
-                              <button onClick={() => copy(s.script,`s${i}`)} className="text-[8px] text-violet-500 font-semibold">{copied===`s${i}`?'✓ Copied':'Copy'}</button>
-                            </div>
-                            <div className="bg-gray-50 rounded-xl p-4 text-[12px] text-gray-800 leading-relaxed whitespace-pre-wrap border border-gray-200">{s.script}</div>
-                          </div>
-                          {s.on_screen_text?.length > 0 && (
-                            <div>
-                              <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">On-Screen Text</p>
-                              {s.on_screen_text.map((t: string, j: number) => <p key={j} className="text-[10px] text-gray-500">▸ {t}</p>)}
-                            </div>
-                          )}
-                          <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Caption + Hashtags</p>
-                              <button onClick={() => copy(`${s.caption}\n\n${s.hashtags?.join(' ')}`,`cap${i}`)} className="text-[8px] text-violet-500 font-semibold">{copied===`cap${i}`?'✓ Copied':'Copy'}</button>
-                            </div>
-                            <p className="text-[10px] text-gray-600">{s.caption}</p>
-                            <div className="flex flex-wrap gap-1 mt-1.5">
-                              {s.hashtags?.map((h: string, j: number) => <span key={j} className="px-2 py-0.5 rounded-full bg-gray-100 text-[8px] text-gray-500 border border-gray-200">{h}</span>)}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* News tab */}
-        {tab === 'news' && (
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-200 bg-white flex items-center justify-between shrink-0">
+          {/* ── SIGNALS sidebar ─────────────────────────────────── */}
+          <aside className="shrink-0 flex flex-col border-r border-gray-200 bg-white overflow-hidden" style={{ width: 210 }}>
+            <div className="px-3 py-2.5 border-b border-gray-100 shrink-0 flex items-center justify-between">
               <div>
-                <p className="text-[10px] text-gray-400">
-                  {flashDate ? `World Cup Flash News — ${flashDate}` : 'Every score, injury and talking point from the last 24 hours'}
-                </p>
-                {bullets.length > 0 && (
-                  <p className="text-[9px] text-gray-300 mt-0.5">Select stories → Generate script</p>
-                )}
+                <p className="text-[9px] font-black tracking-widest uppercase text-gray-400">Live Signals</p>
+                {signalsAge && <p className="text-[7px] text-gray-300 mt-0.5">{signalsAge}</p>}
               </div>
-              <button onClick={getNews} disabled={loadingNews}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-[11px] font-black disabled:opacity-50 shadow-sm"
-                style={{ background: loadingNews ? '#9ca3af' : 'linear-gradient(135deg,#dc2626,#b91c1c)' }}>
-                {loadingNews ? <><span className="animate-spin inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full" />Scanning…</> : <>⚡ Get Flash News</>}
+              <button
+                onClick={() => loadSignals(true)}
+                disabled={refreshingSignals}
+                title="Refresh signals"
+                className="w-6 h-6 rounded-lg flex items-center justify-center text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-all disabled:opacity-40"
+              >
+                <span className={`text-[11px] ${refreshingSignals ? 'animate-spin inline-block' : ''}`}>↺</span>
               </button>
             </div>
+            <div className="flex-1 overflow-y-auto bg-white">
+              <SignalsSidebar signals={signals} />
+            </div>
+          </aside>
 
-            {bullets.length === 0 && !loadingNews ? (
-              <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
-                <div className="text-4xl">📰</div>
-                <p className="text-gray-400 text-xs max-w-xs leading-relaxed">20 bullets ranked by importance — scores, injuries, controversies, group standings. Select the ones you want, then generate a Flash News script.</p>
-              </div>
-            ) : (
-              <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-                <div className="max-w-2xl">
+          {/* ── MAIN ──────────────────────────────────────────────── */}
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-                  {/* Selection controls */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400">{bullets.length} stories</p>
-                      {selectedBullets.size > 0 && (
-                        <span className="text-[8px] font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200">
-                          {selectedBullets.size} selected
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => setSelectedBullets(new Set(bullets.map((_,i)=>i)))} className="text-[8px] text-violet-500 font-semibold">Select all</button>
-                      <span className="text-gray-200">·</span>
-                      <button onClick={() => setSelectedBullets(new Set())} className="text-[8px] text-gray-400 font-semibold">Clear</button>
-                      <span className="text-gray-200">·</span>
-                      <button onClick={() => copy(bullets.map((b,i)=>`${i+1}. ${b}`).join('\n'),'all')} className="text-[8px] text-gray-400 font-semibold">{copied==='all'?'✓ Copied':'Copy all'}</button>
-                    </div>
-                  </div>
+            {/* Scripts tab — 3-step workflow */}
+            {tab === 'scripts' && (
+              <div className="flex-1 flex flex-col overflow-hidden">
 
-                  {/* Bullets — clickable */}
-                  <div className="space-y-1.5 mb-4">
-                    {bullets.map((b, i) => {
-                      const sel = selectedBullets.has(i);
+                {/* Step indicator bar */}
+                <div className="px-5 py-2.5 border-b border-gray-200 bg-white flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-3">
+                    {[['1','Research','idle researching'],['2','Pick Topics','pick'],['3','Scripts','generating done']].map(([num, label, states], i) => {
+                      const active = states.split(' ').some(s => s === scriptStep);
+                      const done = (i===0 && ['pick','generating','done'].includes(scriptStep)) || (i===1 && ['generating','done'].includes(scriptStep)) || (i===2 && scriptStep==='done');
                       return (
-                        <button key={i} onClick={() => setSelectedBullets(prev => { const n = new Set(prev); sel ? n.delete(i) : n.add(i); return n; })}
-                          className={`w-full flex gap-2.5 items-start p-3 rounded-xl border text-left transition-all ${sel ? 'bg-violet-50 border-violet-300 shadow-sm' : 'bg-white border-gray-100 hover:border-gray-300'}`}>
-                          <span className={`shrink-0 w-5 h-5 rounded-full text-[8px] font-black flex items-center justify-center mt-0.5 transition-all ${sel ? 'bg-violet-600 text-white' : 'bg-red-100 text-red-600'}`}>
-                            {sel ? '✓' : i+1}
-                          </span>
-                          <p className={`text-[11px] leading-relaxed flex-1 ${sel ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>{b}</p>
-                        </button>
+                        <div key={num} className="flex items-center gap-1.5">
+                          {i > 0 && <span className="text-gray-300 text-[10px]">›</span>}
+                          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black transition-all ${done ? 'bg-violet-100 text-violet-700' : active ? 'bg-violet-600 text-white' : 'text-gray-300'}`}>
+                            <span>{done ? '✓' : num}</span>
+                            <span>{label}</span>
+                          </div>
+                        </div>
                       );
                     })}
+                    {trendsSummary && <p className="text-[9px] text-gray-400 ml-2 max-w-xs truncate hidden xl:block">{trendsSummary}</p>}
                   </div>
-
-                  {/* Generate script from selected */}
-                  <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm">
-                    <div className="px-4 py-3.5 flex items-center justify-between border-b border-gray-100">
-                      <div className="flex items-center gap-3">
-                        <span>🎙</span>
-                        <div>
-                          <p className="text-[11px] font-black text-gray-900">
-                            {flashScript ? `World Cup Flash News — ${flashDate}` : 'World Cup Flash News Script'}
-                          </p>
-                          <p className="text-[9px] text-gray-400 mt-0.5">
-                            {selectedBullets.size === 0
-                              ? 'Select stories above then generate'
-                              : `${selectedBullets.size} stories selected · straight to camera · facts only`}
-                          </p>
-                        </div>
+                  <div className="flex items-center gap-2">
+                    {scriptStep === 'idle' && (
+                      <button onClick={researchTopics}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-[11px] font-black shadow-sm"
+                        style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
+                        🔍 Research Today's Topics
+                      </button>
+                    )}
+                    {scriptStep === 'researching' && (
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-[11px] text-gray-500 font-semibold">
+                        <span className="animate-spin inline-block w-3 h-3 border-2 border-violet-500 border-t-transparent rounded-full" />
+                        Researching signals…
                       </div>
+                    )}
+                    {scriptStep === 'pick' && (
                       <div className="flex items-center gap-2">
-                        {generatingFlash && <span className="animate-spin inline-block w-3 h-3 border-2 border-violet-500 border-t-transparent rounded-full" />}
-                        {!generatingFlash && selectedBullets.size > 0 && (
-                          <button onClick={() => flashScript ? setShowFlashScript(s=>!s) : generateFlashFromSelected()}
-                            className="text-[10px] px-3 py-1.5 rounded-xl text-white font-black shadow-sm"
-                            style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
-                            {flashScript ? (showFlashScript ? 'Hide' : 'Show') : `Generate for ${selectedBullets.size}`}
-                          </button>
-                        )}
-                        {!generatingFlash && flashScript && selectedBullets.size > 0 && (
-                          <button onClick={generateFlashFromSelected} className="text-[9px] text-gray-400 hover:text-gray-600 font-semibold">↺ Redo</button>
-                        )}
+                        <button onClick={() => {
+                            try { localStorage.removeItem(`diez_topics_${todayKey()}`); } catch { /* ignore */ }
+                            setScriptStep('idle'); setTopics([]); setSelectedIds(new Set());
+                          }}
+                          className="text-[9px] text-gray-400 hover:text-gray-600 font-semibold px-2 py-1">
+                          ↺ Fresh research
+                        </button>
+                        <button onClick={generateScripts} disabled={selectedIds.size === 0}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-[11px] font-black disabled:opacity-40 shadow-sm"
+                          style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
+                          ✨ Generate {selectedIds.size > 0 ? selectedIds.size : ''} Script{selectedIds.size !== 1 ? 's' : ''}
+                        </button>
                       </div>
-                    </div>
-                    {showFlashScript && flashScript && (
-                      <div className="p-4">
-                        <div className="flex justify-between items-center mb-3">
-                          <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400">Read straight to camera</p>
-                          <button onClick={() => copy(flashScript,'fs')} className="text-[9px] text-violet-500 font-semibold">{copied==='fs'?'✓ Copied':'Copy'}</button>
-                        </div>
-                        <p className="text-[13px] text-gray-800 leading-[1.9] whitespace-pre-wrap font-medium">{flashScript}</p>
+                    )}
+                    {scriptStep === 'generating' && (
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-[11px] text-gray-500 font-semibold">
+                        <span className="animate-spin inline-block w-3 h-3 border-2 border-violet-500 border-t-transparent rounded-full" />
+                        Writing scripts…
+                      </div>
+                    )}
+                    {scriptStep === 'done' && (
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setScriptStep('pick')}
+                          className="text-[9px] text-violet-500 hover:text-violet-700 font-semibold px-2 py-1">
+                          ← Back to topics
+                        </button>
+                        <button onClick={researchTopics}
+                          className="text-[9px] text-gray-400 hover:text-gray-600 font-semibold px-2 py-1">
+                          ↺ Fresh research
+                        </button>
                       </div>
                     )}
                   </div>
                 </div>
+
+                {/* Step 1: idle */}
+                {scriptStep === 'idle' && (
+                  <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">
+                    <div className="text-5xl">🔍</div>
+                    <div>
+                      <p className="text-gray-700 text-sm font-black">Start with deep research</p>
+                      <p className="text-gray-400 text-xs mt-1.5 max-w-sm leading-relaxed">
+                        Opus scans YouTube search trends, Google Trends, TikTok, and news — then gives you 10 ranked topic ideas. You pick which ones to script.
+                      </p>
+                    </div>
+                    <button onClick={researchTopics}
+                      className="flex items-center gap-2 px-6 py-3 rounded-2xl text-white text-sm font-black shadow-md mt-2"
+                      style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
+                      🔍 Research Today's Topics
+                    </button>
+                  </div>
+                )}
+
+                {/* Step 2: pick topics */}
+                {scriptStep === 'pick' && (
+                  <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                        10 topics ranked by virality — click to select, then hit Generate
+                      </p>
+                      <div className="flex gap-2">
+                        <button onClick={() => setSelectedIds(new Set(topics.map(t=>t.id)))} className="text-[8px] text-violet-500 font-semibold">Select all</button>
+                        <button onClick={() => setSelectedIds(new Set())} className="text-[8px] text-gray-400 font-semibold">Clear</button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {topics.map((t, i) => {
+                        const sel = selectedIds.has(t.id);
+                        return (
+                          <button key={t.id} onClick={() => toggleTopic(t.id)}
+                            className={`w-full text-left rounded-2xl border p-4 transition-all ${sel ? 'border-violet-400 bg-violet-50 shadow-md shadow-violet-100' : 'border-gray-200 bg-white hover:border-violet-200 shadow-sm'}`}>
+                            <div className="flex items-start gap-3">
+                              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5 transition-all ${sel ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                                {sel ? '✓' : i+1}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2">
+                                  <p className={`text-[12px] font-black leading-tight ${sel ? 'text-violet-900' : 'text-gray-900'}`}>{t.title}</p>
+                                  <span className={`text-[10px] font-black shrink-0 ${t.virality_score >= 90 ? 'text-green-600' : t.virality_score >= 75 ? 'text-violet-600' : 'text-gray-400'}`}>{t.virality_score}/100</span>
+                                </div>
+                                <p className="text-[10px] text-gray-600 mt-1 leading-snug">{t.angle}</p>
+                                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                  <span className="text-[8px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-semibold">{t.format}</span>
+                                  <span className="text-[8px] text-gray-400">{t.platform_signal}</span>
+                                </div>
+                                {t.Spain_Yamal_angle && (
+                                  <p className="text-[9px] text-red-500 mt-1.5">🇪🇸 {t.Spain_Yamal_angle}</p>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2.5: generating */}
+                {scriptStep === 'generating' && (
+                  <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">
+                    <span className="animate-spin inline-block w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full" />
+                    <div>
+                      <p className="text-gray-700 text-sm font-black">Writing {selectedIds.size} script{selectedIds.size!==1?'s':''}…</p>
+                      <p className="text-gray-400 text-xs mt-1">Using all 21 skill files + today's signals. This takes ~30 seconds.</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: scripts */}
+                {scriptStep === 'done' && (
+                  <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
+                    {scripts.map((s: any, i) => {
+                      const open = expandedScript === i;
+                      return (
+                        <div key={i} className={`rounded-2xl border transition-all bg-white ${open ? 'border-violet-300 shadow-md shadow-violet-100' : 'border-gray-200 hover:border-gray-300 shadow-sm'}`}>
+                          <button className="w-full flex items-center gap-3 px-4 py-3.5 text-left" onClick={() => setExpandedScript(open ? null : i)}>
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${i===0?'bg-violet-600 text-white':i===1?'bg-indigo-500 text-white':i===2?'bg-blue-500 text-white':'bg-gray-200 text-gray-600'}`}>#{i+1}</div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[12px] font-black text-gray-900 truncate">{s.title}</p>
+                              <p className="text-[9px] text-gray-400 mt-0.5 truncate">"{s.hook}"</p>
+                            </div>
+                            <div className="text-right shrink-0 mr-1">
+                              <p className="text-[11px] font-black text-violet-600">{s.virality_score}/100</p>
+                            </div>
+                            <span className="text-gray-300">{open?'▲':'▼'}</span>
+                          </button>
+                          {open && (
+                            <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
+                              <div>
+                                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">Hook</p>
+                                <p className="text-[14px] font-black text-gray-900 leading-snug">"{s.hook}"</p>
+                              </div>
+                              <div>
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Script</p>
+                                  <button onClick={() => copy(s.script,`s${i}`)} className="text-[8px] text-violet-500 font-semibold">{copied===`s${i}`?'✓ Copied':'Copy'}</button>
+                                </div>
+                                <div className="bg-gray-50 rounded-xl p-4 text-[12px] text-gray-800 leading-relaxed whitespace-pre-wrap border border-gray-200">{s.script}</div>
+                              </div>
+                              {s.on_screen_text?.length > 0 && (
+                                <div>
+                                  <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">On-Screen Text</p>
+                                  {s.on_screen_text.map((t: string, j: number) => <p key={j} className="text-[10px] text-gray-500">▸ {t}</p>)}
+                                </div>
+                              )}
+                              <div>
+                                <div className="flex items-center justify-between mb-1">
+                                  <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Caption + Hashtags</p>
+                                  <button onClick={() => copy(`${s.caption}\n\n${s.hashtags?.join(' ')}`,`cap${i}`)} className="text-[8px] text-violet-500 font-semibold">{copied===`cap${i}`?'✓ Copied':'Copy'}</button>
+                                </div>
+                                <p className="text-[10px] text-gray-600">{s.caption}</p>
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {s.hashtags?.map((h: string, j: number) => <span key={j} className="px-2 py-0.5 rounded-full bg-gray-100 text-[8px] text-gray-500 border border-gray-200">{h}</span>)}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* News tab */}
+            {tab === 'news' && (
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="px-5 py-3 border-b border-gray-200 bg-white flex items-center justify-between shrink-0">
+                  <div>
+                    <p className="text-[10px] text-gray-400">
+                      {flashDate ? `World Cup Flash News — ${flashDate}` : 'Every score, injury and talking point from the last 24 hours'}
+                    </p>
+                    {bullets.length > 0 && (
+                      <p className="text-[9px] text-gray-300 mt-0.5">Select stories → Generate script</p>
+                    )}
+                  </div>
+                  <button onClick={getNews} disabled={loadingNews}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-[11px] font-black disabled:opacity-50 shadow-sm"
+                    style={{ background: loadingNews ? '#9ca3af' : 'linear-gradient(135deg,#dc2626,#b91c1c)' }}>
+                    {loadingNews ? <><span className="animate-spin inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full" />Scanning…</> : <>⚡ Get Flash News</>}
+                  </button>
+                </div>
+
+                {bullets.length === 0 && !loadingNews ? (
+                  <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
+                    <div className="text-4xl">📰</div>
+                    <p className="text-gray-400 text-xs max-w-xs leading-relaxed">20 bullets ranked by importance — scores, injuries, controversies, group standings. Select the ones you want, then generate a Flash News script.</p>
+                  </div>
+                ) : (
+                  <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                    <div className="max-w-2xl">
+
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400">{bullets.length} stories</p>
+                          {selectedBullets.size > 0 && (
+                            <span className="text-[8px] font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200">
+                              {selectedBullets.size} selected
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setSelectedBullets(new Set(bullets.map((_,i)=>i)))} className="text-[8px] text-violet-500 font-semibold">Select all</button>
+                          <span className="text-gray-200">·</span>
+                          <button onClick={() => setSelectedBullets(new Set())} className="text-[8px] text-gray-400 font-semibold">Clear</button>
+                          <span className="text-gray-200">·</span>
+                          <button onClick={() => copy(bullets.map((b,i)=>`${i+1}. ${b}`).join('\n'),'all')} className="text-[8px] text-gray-400 font-semibold">{copied==='all'?'✓ Copied':'Copy all'}</button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5 mb-4">
+                        {bullets.map((b, i) => {
+                          const sel = selectedBullets.has(i);
+                          return (
+                            <button key={i} onClick={() => setSelectedBullets(prev => { const n = new Set(prev); sel ? n.delete(i) : n.add(i); return n; })}
+                              className={`w-full flex gap-2.5 items-start p-3 rounded-xl border text-left transition-all ${sel ? 'bg-violet-50 border-violet-300 shadow-sm' : 'bg-white border-gray-100 hover:border-gray-300'}`}>
+                              <span className={`shrink-0 w-5 h-5 rounded-full text-[8px] font-black flex items-center justify-center mt-0.5 transition-all ${sel ? 'bg-violet-600 text-white' : 'bg-red-100 text-red-600'}`}>
+                                {sel ? '✓' : i+1}
+                              </span>
+                              <p className={`text-[11px] leading-relaxed flex-1 ${sel ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>{b}</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+                        <div className="px-4 py-3.5 flex items-center justify-between border-b border-gray-100">
+                          <div className="flex items-center gap-3">
+                            <span>🎙</span>
+                            <div>
+                              <p className="text-[11px] font-black text-gray-900">
+                                {flashScript ? `World Cup Flash News — ${flashDate}` : 'World Cup Flash News Script'}
+                              </p>
+                              <p className="text-[9px] text-gray-400 mt-0.5">
+                                {selectedBullets.size === 0
+                                  ? 'Select stories above then generate'
+                                  : `${selectedBullets.size} stories selected · straight to camera · facts only`}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {generatingFlash && <span className="animate-spin inline-block w-3 h-3 border-2 border-violet-500 border-t-transparent rounded-full" />}
+                            {!generatingFlash && selectedBullets.size > 0 && (
+                              <button onClick={() => flashScript ? setShowFlashScript(s=>!s) : generateFlashFromSelected()}
+                                className="text-[10px] px-3 py-1.5 rounded-xl text-white font-black shadow-sm"
+                                style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
+                                {flashScript ? (showFlashScript ? 'Hide' : 'Show') : `Generate for ${selectedBullets.size}`}
+                              </button>
+                            )}
+                            {!generatingFlash && flashScript && selectedBullets.size > 0 && (
+                              <button onClick={generateFlashFromSelected} className="text-[9px] text-gray-400 hover:text-gray-600 font-semibold">↺ Redo</button>
+                            )}
+                          </div>
+                        </div>
+                        {showFlashScript && flashScript && (
+                          <div className="p-4">
+                            <div className="flex justify-between items-center mb-3">
+                              <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400">Read straight to camera</p>
+                              <button onClick={() => copy(flashScript,'fs')} className="text-[9px] text-violet-500 font-semibold">{copied==='fs'?'✓ Copied':'Copy'}</button>
+                            </div>
+                            <p className="text-[13px] text-gray-800 leading-[1.9] whitespace-pre-wrap font-medium">{flashScript}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-      </div>
 
-      {/* ── CHAT ─────────────────────────────────────────────────── */}
-      <ChatPanel context={chatContext} onCost={trackCost} />
+          {/* ── CHAT ──────────────────────────────────────────────── */}
+          <ChatPanel context={chatContext} onCost={trackCost} />
+        </div>
+      )}
 
       {/* ── SPEND ALERT MODAL ────────────────────────────────────── */}
       {spendAlert && (
