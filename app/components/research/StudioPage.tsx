@@ -153,6 +153,21 @@ function SignalsSidebar({ signals }: { signals: any }) {
         )}
       </div>
       <div>
+        <p className="text-[8px] font-bold uppercase tracking-widest text-sky-500 mb-2">⚪ X (Twitter) · Football Trends</p>
+        {signals.xTrends?.trends?.length > 0 ? (
+          <div className="space-y-1">
+            {signals.xTrends.trends.slice(0,10).map((t: any, i: number) => (
+              <div key={i} className="flex items-baseline justify-between gap-1">
+                <p className="text-[9px] text-gray-700 leading-snug flex-1">{t.name}</p>
+                <p className="text-[7px] text-gray-300 shrink-0">{t.countries.join(', ')}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[9px] text-gray-300 italic">{signals.xTrends?.note || 'Loading…'}</p>
+        )}
+      </div>
+      <div>
         <p className="text-[8px] font-bold uppercase tracking-widest text-blue-500 mb-2">🔵 WC News</p>
         <div className="space-y-1.5">
           {signals.news?.slice(0,7).map((n: NewsItem, i: number) => (
