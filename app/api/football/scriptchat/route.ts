@@ -100,7 +100,7 @@ CAPABILITIES:
 - Give direct, opinionated creative direction
 
 FORMAT (non-negotiable):
-- ${hasEmotional ? '105–135 seconds read aloud at natural pace (2–2.5 min target — emotional stories need length to build properly through all 7 beats)' : '45–75 seconds read aloud at natural pace'}
+- ${hasEmotional ? '105–135 seconds read aloud at natural pace (2–2.5 min target — emotional stories need length to build properly through all 7 beats)' : '60–75 seconds read aloud at natural pace (never under 60)'}
 - Clean spoken words only — no [CAM], no [BROLL], no direction notes whatsoever
 - Build to a payoff — every script needs a reveal or a strong take
 ${hasEmotional ? TOQUEYMEDIO_SCRIPT_STRUCTURE : `HOOK: Strong hook in first 3 seconds — bold claim, stat reveal, contrarian angle, or rhetorical provocation. Never "Did you know…"`}

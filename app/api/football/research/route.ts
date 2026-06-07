@@ -302,7 +302,7 @@ STYLE — write in the voice of: ${refs}
 ${tone}
 
 FORMAT (non-negotiable):
-- ${hasEmotional ? '120 seconds read aloud at natural pace (2–2.5 min target — emotional stories need room to breathe)' : '45–65 seconds read aloud at natural pace'}
+- ${hasEmotional ? '120 seconds read aloud at natural pace (2–2.5 min target — emotional stories need room to breathe)' : '60–75 seconds read aloud at natural pace (never under 60)'}
 - Clean spoken words only — no [CAM], no [BROLL], no direction notes whatsoever
 - Every script builds to a clear payoff
 ${hookInstructions}
@@ -494,7 +494,7 @@ TODAY'S CONTEXT (use for accuracy):
 ${trendsText.slice(0, 1500)}
 
 REQUIREMENTS:
-- ${hasEmotional ? '105–135 seconds read aloud naturally (target: 2–2.5 minutes — emotional storytelling needs this length to build, breathe, and land)' : '45–65 seconds read aloud naturally'}
+- ${hasEmotional ? '105–135 seconds read aloud naturally (target: 2–2.5 minutes — emotional storytelling needs this length to build, breathe, and land)' : 'at least 60 seconds — aim for 60–75 seconds read aloud naturally, never shorter than 60'}
 - ${hookRequirement}
 - Strong payoff that earns the full watch
 - Clean spoken words only — absolutely no brackets, no [CAM], no [BROLL], no direction notes
