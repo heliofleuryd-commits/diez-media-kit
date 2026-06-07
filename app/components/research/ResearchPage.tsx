@@ -14,6 +14,7 @@ interface YTVideo { title: string; channel: string; views?: string; videoId?: st
 interface TrendItem { title: string; traffic: string; }
 interface NewsItem { title: string; source: string; }
 interface TTItem { desc: string; plays: number; }
+interface XTrendItem { name: string; countries: string[]; }
 
 interface Trends {
   ytSearch: YTSearchItem[];
@@ -21,6 +22,7 @@ interface Trends {
   googleTrends: TrendItem[];
   news: NewsItem[];
   tiktok: { items: TTItem[]; note: string | null };
+  xTrends: { trends: XTrendItem[]; note: string | null };
 }
 
 export function ResearchPage() {
@@ -133,6 +135,23 @@ export function ResearchPage() {
                 </div>
               ) : (
                 <p className="text-[9px] text-white/25 italic">{trends.tiktok?.note || 'Fetching…'}</p>
+              )}
+            </div>
+
+            {/* X (Twitter) */}
+            <div>
+              <p className="text-[8px] font-bold uppercase tracking-widest text-sky-400/70 mb-2">⚪ X (Twitter) · Football Trends</p>
+              {trends.xTrends?.trends?.length > 0 ? (
+                <div className="space-y-1.5">
+                  {trends.xTrends.trends.slice(0, 10).map((t, i) => (
+                    <div key={i} className="flex items-baseline justify-between gap-2">
+                      <p className="text-[10px] text-white/65 leading-snug flex-1">{t.name}</p>
+                      <p className="text-[8px] text-white/25 shrink-0">{t.countries.join(', ')}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[9px] text-white/25 italic">{trends.xTrends?.note || 'Fetching…'}</p>
               )}
             </div>
 

@@ -183,6 +183,54 @@ async function fetchTikTok() {
   return data;
 }
 
+// ── X (Twitter): football trends via trends24.in scrape (free, no API key) ───
+// Pulls live trending topics from a handful of football-mad countries and
+// keeps only the ones that look football-related — gives "what people are
+// talking about right now on X" without needing any paid X/Twitter API.
+let _xTrendsCache: { data: Awaited<ReturnType<typeof _fetchXTrendsRaw>>; ts: number } | null = null;
+const X_TRENDS_TTL = 60 * 60 * 1000; // 1 hour
+
+const TRENDS24_COUNTRIES = ['united-states', 'mexico', 'brazil', 'argentina', 'spain', 'united-kingdom', 'france'];
+
+const FOOTBALL_TREND_KEYWORDS = /football|soccer|f[uú]tbol|world ?cup|mundial|fifa|copa|champions|uefa|concacaf|conmebol|messi|mbapp[ée]|ronaldo|neymar|haaland|vin[ií]cius|yamal|real madrid|barcelona|bar[çc]a|liverpool|manchester|\bpsg\b|bayern|juventus|chelsea|arsenal|selecc?[ãa]o|seleccion|selección|argentina|brasil|brazil|m[ée]xico|uruguay|colombia|portugal|espa[ñn]a|\bspain\b|inglaterra|\bengland\b|francia|\bfrance\b|alemania|germany|\bgol\b|\bgoal\b|penal|penalty|\bvar\b|tarjeta roja|red card/i;
+
+async function _fetchXTrendsRaw() {
+  const headers = { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' };
+  const found = new Map<string, string[]>();
+
+  await Promise.all(TRENDS24_COUNTRIES.map(async (country) => {
+    try {
+      const res = await fetch(`https://trends24.in/${country}/`, { headers, next: { revalidate: 0 } } as any);
+      if (!res.ok) return;
+      const html = await res.text();
+      const names = [...html.matchAll(/class=trend-link>([^<]+)<\/a>/g)].map(m => m[1].trim());
+      names.forEach(name => {
+        if (FOOTBALL_TREND_KEYWORDS.test(name)) {
+          const list = found.get(name) || [];
+          if (!list.includes(country)) list.push(country);
+          found.set(name, list);
+        }
+      });
+    } catch { /* skip */ }
+  }));
+
+  const trends = [...found.entries()]
+    .map(([name, countries]) => ({ name, countries }))
+    .sort((a, b) => b.countries.length - a.countries.length)
+    .slice(0, 15);
+
+  return { trends, note: trends.length === 0 ? 'No football-specific X trends detected right now' : null };
+}
+
+async function fetchXTrends() {
+  if (_xTrendsCache && Date.now() - _xTrendsCache.ts < X_TRENDS_TTL) {
+    return _xTrendsCache.data;
+  }
+  const data = await _fetchXTrendsRaw();
+  _xTrendsCache = { data, ts: Date.now() };
+  return data;
+}
+
 // ── Skill loader — filters to selected channel styles ────────────────────────
 function loadSkills(styles: string[] = []): string {
   if (!fs.existsSync(SKILLS_DIR)) return 'No skills extracted yet.';
@@ -312,20 +360,21 @@ ${CREATOR_BIAS}`;
 // ── GET — return all trends ───────────────────────────────────────────────────
 export async function GET() {
   try {
-    const [ytSearch, ytContent, googleTrends, news, tiktok] = await Promise.all([
+    const [ytSearch, ytContent, googleTrends, news, tiktok, xTrends] = await Promise.all([
       fetchYouTubeSearchTrends(),
       fetchYouTubeTrending(),
       fetchGoogleTrends(),
       fetchGoogleNews(),
       fetchTikTok(),
+      fetchXTrends(),
     ]);
-    return NextResponse.json({ ok: true, ytSearch, ytContent, googleTrends, news, tiktok });
+    return NextResponse.json({ ok: true, ytSearch, ytContent, googleTrends, news, tiktok, xTrends });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
   }
 }
 
-function buildTrendsText(ytSearch: any, ytContent: any, googleTrends: any, news: any, tiktok: any) {
+function buildTrendsText(ytSearch: any, ytContent: any, googleTrends: any, news: any, tiktok: any, xTrends: any) {
   return [
     '## YouTube: What people are SEARCHING right now',
     ytSearch.map((s: any) => `"${s.query}" → also searching: ${s.suggestions.join(', ')}`).join('\n'),
@@ -345,6 +394,11 @@ function buildTrendsText(ytSearch: any, ytContent: any, googleTrends: any, news:
     '## TikTok: Trending Hashtags',
     tiktok.hashtags?.length > 0 ? tiktok.hashtags.map((h: any) => `- ${h.tag} ${h.views}`).join('\n') : 'Unavailable',
     tiktok.videos?.length > 0 ? '\n## TikTok: Top World Cup Videos\n' + tiktok.videos.map((v: any) => `- ${v.desc}`).join('\n') : '',
+    '',
+    '## X (Twitter): What people are talking about — football trends right now',
+    xTrends?.trends?.length > 0
+      ? xTrends.trends.map((t: any) => `- "${t.name}" — trending in ${t.countries.join(', ')}`).join('\n')
+      : 'No football-specific X trends detected right now',
   ].join('\n');
 }
 
@@ -364,17 +418,21 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
     const mode = body.mode || 'topics';
+    const styles: string[] = body.styles?.length > 0
+      ? body.styles
+      : ['pechefootball', 'fiagoball', '5.at.the.back'];
 
     // Fetch trends — TikTok skipped in POST to preserve RapidAPI quota (GET has server-cached TikTok)
-    const [ytSearch, ytContent, googleTrends, news] = await Promise.all([
+    const [ytSearch, ytContent, googleTrends, news, xTrends] = await Promise.all([
       fetchYouTubeSearchTrends(),
       fetchYouTubeTrending(),
       fetchGoogleTrends(),
       fetchGoogleNews(),
+      fetchXTrends(),
     ]);
     const tiktok = { hashtags: [], videos: [], note: 'Skipped in POST to preserve quota' };
-    const trendsText = buildTrendsText(ytSearch, ytContent, googleTrends, news, tiktok);
-    const trends = { ytSearch, ytContent, googleTrends, news, tiktok };
+    const trendsText = buildTrendsText(ytSearch, ytContent, googleTrends, news, tiktok, xTrends);
+    const trends = { ytSearch, ytContent, googleTrends, news, tiktok, xTrends };
 
     const hasEmotional = styles.includes('toqueymedio');
 
@@ -461,10 +519,6 @@ OUTPUT valid JSON only, no fences:
       if (selectedTopics.length === 0) {
         return NextResponse.json({ ok: false, error: 'No topics selected' }, { status: 400 });
       }
-
-      const styles: string[] = body.styles?.length > 0
-        ? body.styles
-        : ['pechefootball', 'fiagoball', '5.at.the.back'];
 
       const systemBlocks: any[] = [
         { type: 'text', text: buildSystemPrompt(styles), cache_control: { type: 'ephemeral' } },
