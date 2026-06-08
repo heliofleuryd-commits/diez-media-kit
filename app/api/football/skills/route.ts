@@ -1,36 +1,56 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { isAuthenticated } from '@/lib/auth';
 
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
 
-const SKILLS = [
-  {
-    id: 'toqueymedio',
-    file: 'channel-toqueymedio-profile.md',
-    name: '@toqueymedio — Emotional Storytelling',
-    description: 'The complete narrative DNA of toqueymedio\'s viral style: voice, hooks ("Imagine…", paradox, dramatic irony), the 7-beat factual storytelling structure, rhetorical devices, and a step-by-step writing guide — distilled from analysing 50 of their highest-performing videos.',
-  },
-  {
-    id: 'elefutbol',
-    file: 'channel-elefutbol-profile.md',
-    name: '@elefutbol — Cinematic Football Narratives',
-    description: 'A deep structural breakdown of elefutbol\'s emotional storytelling voice, metaphors, and narrative techniques — distilled from analysing 50 of their highest-performing videos.',
-  },
-];
+const CHANNEL_RE = /^channel-(.+)-profile\.md$/;
+
+function titleCase(slug: string) {
+  return slug.split(/[-_]/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+function describe(filename: string): { name: string; description: string; category: string } {
+  const channelMatch = filename.match(CHANNEL_RE);
+  if (channelMatch) {
+    const handle = channelMatch[1];
+    return {
+      name: `@${handle}`,
+      description: `Deep narrative voice profile for @${handle} — hooks, persona, rhetorical devices, and writing structure distilled from their highest-performing videos.`,
+      category: 'Creator Voice Profiles',
+    };
+  }
+  const base = filename.replace(/\.md$/, '');
+  return {
+    name: titleCase(base),
+    description: `Format/pattern skill: "${titleCase(base)}" — a reusable structural template distilled across multiple creators' top videos.`,
+    category: 'Format & Pattern Skills',
+  };
+}
 
 export async function GET() {
-  const skills = SKILLS.map(s => {
-    const filePath = path.join(SKILLS_DIR, s.file);
-    const exists = fs.existsSync(filePath);
-    let size = 0;
-    let updatedAt: string | null = null;
-    if (exists) {
-      const stat = fs.statSync(filePath);
-      size = stat.size;
-      updatedAt = stat.mtime.toISOString();
-    }
-    return { id: s.id, name: s.name, description: s.description, available: exists, size, updatedAt };
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const files = fs.existsSync(SKILLS_DIR)
+    ? fs.readdirSync(SKILLS_DIR).filter(f => f.endsWith('.md')).sort()
+    : [];
+
+  const skills = files.map(file => {
+    const filePath = path.join(SKILLS_DIR, file);
+    const stat = fs.statSync(filePath);
+    const { name, description, category } = describe(file);
+    return {
+      id: file.replace(/\.md$/, ''),
+      name,
+      description,
+      category,
+      size: stat.size,
+      updatedAt: stat.mtime.toISOString(),
+    };
   });
+
   return NextResponse.json({ ok: true, skills });
 }
