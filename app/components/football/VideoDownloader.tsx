@@ -5,6 +5,91 @@ import { useState, useRef } from 'react';
 const HELPER_URL = 'http://localhost:8765';
 
 type Status = 'idle' | 'checking' | 'offline' | 'ready' | 'running' | 'done' | 'error';
+type OS = 'mac' | 'windows';
+
+const STEP_BOX = 'mt-1.5 text-[11px] font-mono bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 overflow-x-auto';
+
+function SetupGuide() {
+  const [os, setOs] = useState<OS>('mac');
+
+  return (
+    <details className="group rounded-xl border border-gray-200 bg-gray-50 mb-5 open:bg-white">
+      <summary className="cursor-pointer select-none px-3.5 py-2.5 text-[11.5px] font-bold text-gray-700 flex items-center justify-between">
+        <span>📋 How to set this up on your computer (one-time, ~5 min)</span>
+        <span className="text-gray-400 text-[10px] group-open:hidden">click to expand</span>
+        <span className="text-gray-400 text-[10px] hidden group-open:inline">click to collapse</span>
+      </summary>
+
+      <div className="px-3.5 pb-3.5 pt-1">
+        <p className="text-[11px] text-gray-500 leading-relaxed mb-3">
+          Downloading needs <code className="font-mono text-gray-700">yt-dlp</code> + <code className="font-mono text-gray-700">ffmpeg</code> running on
+          <em> your</em> computer — that's what avoids upload limits and timeouts on long videos. This page talks to a small
+          helper program on <code className="font-mono text-gray-700">localhost:8765</code>. Set it up once per computer (Mac and PC both supported),
+          then just keep the terminal window open whenever you want to download.
+        </p>
+
+        <div className="flex gap-1.5 mb-3">
+          <button onClick={() => setOs('mac')}
+            className={`px-3 py-1.5 rounded-lg text-[10.5px] font-bold transition-all ${os === 'mac' ? 'bg-violet-100 text-violet-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>
+            🍎 Mac
+          </button>
+          <button onClick={() => setOs('windows')}
+            className={`px-3 py-1.5 rounded-lg text-[10.5px] font-bold transition-all ${os === 'windows' ? 'bg-violet-100 text-violet-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>
+            🪟 Windows
+          </button>
+        </div>
+
+        {os === 'mac' ? (
+          <ol className="space-y-3 text-[11px] text-gray-600 leading-relaxed list-decimal list-inside">
+            <li>
+              <span className="font-semibold text-gray-800">Install Homebrew</span> (skip if you already have it — open Terminal and run):
+              <pre className={STEP_BOX}>{'/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'}</pre>
+            </li>
+            <li>
+              <span className="font-semibold text-gray-800">Install Node, yt-dlp and ffmpeg</span> (one command installs all three):
+              <pre className={STEP_BOX}>brew install node yt-dlp ffmpeg</pre>
+            </li>
+            <li>
+              <span className="font-semibold text-gray-800">Download the helper script</span> — right-click and save, or run:
+              <pre className={STEP_BOX}>{'curl -O '}<a href="/video-downloader-server.mjs" download className="underline text-violet-600 hover:text-violet-700">https://diez.gg/video-downloader-server.mjs</a></pre>
+            </li>
+            <li>
+              <span className="font-semibold text-gray-800">Run it</span> from the folder where you saved it (e.g. your Downloads folder):
+              <pre className={STEP_BOX}>cd ~/Downloads && node video-downloader-server.mjs</pre>
+              Keep that Terminal window open — that's the “local helper” this page talks to. Downloaded videos land in your <span className="font-semibold">Downloads</span> folder.
+            </li>
+          </ol>
+        ) : (
+          <ol className="space-y-3 text-[11px] text-gray-600 leading-relaxed list-decimal list-inside">
+            <li>
+              <span className="font-semibold text-gray-800">Install Node.js</span> — download and run the installer from{' '}
+              <span className="font-mono text-gray-700">nodejs.org</span> (choose the LTS version), or via winget in PowerShell:
+              <pre className={STEP_BOX}>winget install OpenJS.NodeJS.LTS</pre>
+            </li>
+            <li>
+              <span className="font-semibold text-gray-800">Install yt-dlp and ffmpeg</span> (PowerShell):
+              <pre className={STEP_BOX}>{'winget install yt-dlp.yt-dlp\nwinget install Gyan.FFmpeg'}</pre>
+            </li>
+            <li>
+              <span className="font-semibold text-gray-800">Download the helper script</span> — right-click{' '}
+              <a href="/video-downloader-server.mjs" download className="underline text-violet-600 hover:text-violet-700">this link</a> and “Save link as…” into your Downloads folder.
+            </li>
+            <li>
+              <span className="font-semibold text-gray-800">Run it</span> — open PowerShell, then:
+              <pre className={STEP_BOX}>{'cd $HOME\\Downloads; node video-downloader-server.mjs'}</pre>
+              Keep that PowerShell window open — that's the “local helper” this page talks to. Downloaded videos land in your <span className="font-semibold">Downloads</span> folder.
+            </li>
+          </ol>
+        )}
+
+        <p className="text-[10.5px] text-gray-400 mt-3">
+          You only need to do this once per computer. Next time, just reopen the terminal/PowerShell window, run the same{' '}
+          <code className="font-mono">node video-downloader-server.mjs</code> command, and come back to this page.
+        </p>
+      </div>
+    </details>
+  );
+}
 
 export function VideoDownloader() {
   const [url, setUrl] = useState('');
@@ -83,13 +168,7 @@ export function VideoDownloader() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 mb-5">
-          <p className="text-[11px] text-amber-800 leading-relaxed">
-            <span className="font-bold">One-time setup:</span> this runs through a small local helper on your Mac (no upload limits or timeouts). Open Terminal and run:
-          </p>
-          <pre className="mt-1.5 text-[11px] font-mono bg-white border border-amber-200 rounded-lg px-2.5 py-1.5 text-gray-700 overflow-x-auto">node scripts/video-downloader-server.mjs</pre>
-          <p className="text-[10.5px] text-amber-700 mt-1.5">Keep that terminal tab open while you use this page. (Needs <code className="font-mono">yt-dlp</code> + <code className="font-mono">ffmpeg</code> — already installed for the content pipeline.)</p>
-        </div>
+        <SetupGuide />
 
         <div className="flex items-center gap-2 mb-1.5">
           <input
@@ -111,7 +190,7 @@ export function VideoDownloader() {
 
         {status === 'offline' && (
           <p className="text-[11px] text-red-600 font-semibold mb-3">
-            ⚠ Can&apos;t reach the local helper at localhost:8765 — make sure the terminal command above is running.
+            ⚠ Can&apos;t reach the local helper at localhost:8765 — make sure the helper is running on this computer (see the setup guide above).
           </p>
         )}
 
