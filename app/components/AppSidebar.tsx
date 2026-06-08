@@ -15,13 +15,17 @@ const NAV = [
         label: 'Brand Outreach', href: '/admin/outreach',
         icon: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round"/></svg>,
       },
+      {
+        label: 'Video Downloader', href: '/football/downloader',
+        icon: <span className="text-[12px]">📥</span>,
+      },
     ],
   },
   {
     section: 'Football',
     items: [
-      { label: 'Tactics Board',   href: '/football/tactics',  icon: <span className="text-[12px]">⚽</span> },
       { label: 'Content Studio',  href: '/football/research', icon: <span className="text-[12px]">🎬</span> },
+      { label: 'Tactics Board',   href: '/football/tactics',  icon: <span className="text-[12px]">⚽</span> },
       { label: 'Skill Library',   href: '/football/skills',   icon: <span className="text-[12px]">📂</span> },
     ],
   },
@@ -30,7 +34,6 @@ const NAV = [
 export function AppSidebar() {
   const pathname = usePathname();
   const router  = useRouter();
-  const isDark  = pathname.startsWith('/admin');
 
   async function logout() {
     await fetch('/api/admin/logout', { method: 'POST' });
@@ -40,16 +43,7 @@ export function AppSidebar() {
   const isActive = (href: string) =>
     href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
 
-  const s = isDark ? {
-    aside:   'bg-[#111113] border-[#27272A]',
-    logo:    'text-[#00E5FF]',
-    sub:     'text-[#52525B]',
-    border:  'border-[#27272A]',
-    section: 'text-[#3F3F46]',
-    active:  'bg-[#00E5FF]/10 text-[#00E5FF]',
-    inactive:'text-[#71717A] hover:text-white hover:bg-[#27272A]/60',
-    foot:    'text-[#52525B] hover:text-white hover:bg-[#27272A]/60',
-  } : {
+  const s = {
     aside:   'bg-white border-gray-200',
     logo:    'text-gray-900',
     sub:     'text-gray-400',

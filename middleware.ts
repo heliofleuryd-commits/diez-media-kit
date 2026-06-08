@@ -19,7 +19,11 @@ export async function middleware(request: NextRequest) {
   if (!isAdminHost) return NextResponse.next();
 
   // Map subdomain paths → /admin/* internal paths
-  const adminPath = pathname === '/' ? '/admin' : `/admin${pathname}`;
+  // (in local dev, pathname already carries the /admin prefix since there's no subdomain)
+  const adminPath =
+    pathname.startsWith('/admin') ? pathname
+    : pathname === '/' ? '/admin'
+    : `/admin${pathname}`;
 
   // Allow login page and API through without auth check
   const isLoginPage = adminPath === '/admin/login';
