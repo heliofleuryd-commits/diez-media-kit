@@ -6,7 +6,7 @@ How to structure analytical football content for TikTok and short-form. This gui
 
 ## Video Length — What Actually Works
 
-Analytical content has a different length sweet spot from emotional storytelling. The viewer is there to learn something, not to feel something. Their patience is conditional on forward momentum.
+Analytical content lives or dies on forward momentum. The viewer is there to learn something specific — their patience is conditional on being given new information at a consistent pace.
 
 | Length | Use case | Risk |
 |---|---|---|
@@ -63,7 +63,7 @@ Land the conclusion. State your original claim again, but now it's earned — th
 ### Beat 6 — The CTA / Open Question (final 5–10%)
 Two options depending on your goal:
 - **Engagement:** End with an open question that invites disagreement. "Which means the real question is: can [player] do it in a big tournament?" This drives comments.
-- **Follow:** End with a soft category prompt. "For more breakdowns like this, follow." Never aggressive; never mid-narrative.
+- **Follow:** End with a soft category prompt. "For more breakdowns like this, follow." Never aggressive; never mid-script.
 
 **Do not:** end with both a question and a follow prompt. Pick one.
 
@@ -139,18 +139,18 @@ Two options depending on your goal:
 ---
 
 ### The Deep Dive / Career Analysis
-**Central question:** What is this player's / manager's / club's real story?
+**Central question:** What does the data actually show about this player's / manager's / club's career?
 
 ```
-[0–5s]  The hook — one fact that reframes everything the viewer thought they knew
-[5–20s] The setup — who they are and what the conventional narrative says
-[20–50s] Act 1 — the peak or defining period, in detail
-[50–80s] Act 2 — the complication or decline, what changed and why
-[80–100s] Act 3 — the legacy reframe — what history actually shows
-[100s+] "So when people say [conventional view], the numbers say something different"
+[0–5s]  The hook — one stat or fact that reframes everything the viewer thought they knew
+[5–20s] The setup — who they are and what the conventional view says
+[20–50s] Phase 1 — the peak or defining period, with specific evidence
+[50–80s] Phase 2 — the complication or decline, what changed and why
+[80–100s] Phase 3 — the legacy reframe — what the numbers actually show
+[100s+] "So when people say [conventional view], the data says something different"
 ```
 
-**What kills it:** Chronological biography. Don't tell the story in order — tell it in order of impact. Start with the most interesting part, then work backwards to explain how they got there.
+**What kills it:** Chronological biography. Don't go in order — go in order of impact. Start with the most interesting fact, then work backwards to explain how they got there.
 
 ---
 
