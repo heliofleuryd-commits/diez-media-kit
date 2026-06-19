@@ -112,27 +112,41 @@ export function StoryResearch() {
     }
   }, []);
 
-  // Auto-load: try GET (cached) first, then POST if empty
+  async function safeJson(res: Response) {
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch { return { ok: false, error: `Server returned invalid response (${res.status})` }; }
+  }
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const cached = await fetch('/api/football/stories').then(r => r.json());
+        setLoading(true);
+        const cachedRes = await fetch('/api/football/stories');
+        const cachedData = await safeJson(cachedRes);
         if (cancelled) return;
-        if (cached.ok && cached.stories?.length > 0) {
-          applyData(cached);
+        if (cachedData.ok && cachedData.stories?.length > 0) {
+          applyData(cachedData);
+          setLoading(false);
           return;
         }
-        // No cache — auto-generate
-        setLoading(true);
-        const fresh = await fetch('/api/football/stories', {
+        const freshRes = await fetch('/api/football/stories', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
-        }).then(r => r.json());
+        });
+        const fresh = await safeJson(freshRes);
         if (cancelled) return;
-        if (fresh.ok) applyData(fresh);
-      } catch { /* page will show empty state */ }
-      finally { if (!cancelled) setLoading(false); }
+        if (fresh.ok && fresh.stories?.length > 0) {
+          applyData(fresh);
+        } else if (fresh.error) {
+          setError(fresh.error);
+        }
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load stories');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
     return () => { cancelled = true; };
   }, [applyData]);
@@ -146,8 +160,9 @@ export function StoryResearch() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh: true }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!data.ok) throw new Error(data.error || 'Failed to fetch stories');
+      if (!data.stories?.length) throw new Error('No stories returned — try again');
       applyData(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
