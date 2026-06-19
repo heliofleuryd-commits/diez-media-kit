@@ -1,0 +1,301 @@
+{
+  "personal": [
+    {
+      "player": "Andrés Iniesta",
+      "country": "ESP",
+      "tags": ["depression", "injury", "friend-death", "world-cup-winner"],
+      "headline": "He scored the greatest goal in Spain's history — and dedicated it to a ghost",
+      "backstory": "Iniesta's close friend Dani Jarque died of a cardiac arrest in 2009. Iniesta fell into depression and battled injuries. He scored the 2010 World Cup winning goal and revealed a shirt reading 'Dani Jarque, siempre con nosotros.'",
+      "trigger": "Spain plays in the World Cup, Iniesta is mentioned, mental health in football"
+    },
+    {
+      "player": "Raúl Jiménez",
+      "country": "MEX",
+      "tags": ["skull-fracture", "comeback", "world-cup"],
+      "headline": "He fractured his skull and six years later rose from the dead to score in a World Cup opener",
+      "backstory": "In November 2020, Jiménez suffered a fractured skull in a collision with David Luiz. Emergency surgery saved his life. He wore a protective headguard for years, went nearly two years without scoring for Mexico, and then scored in the 2026 World Cup opener against South Africa.",
+      "trigger": "Mexico plays, Jiménez scores or starts, head injury discussions"
+    },
+    {
+      "player": "Luis Díaz",
+      "country": "COL",
+      "tags": ["kidnapping", "poverty", "family", "resilience"],
+      "headline": "They took his father into the jungle — and he kept playing for the man they tried to take",
+      "backstory": "In October 2023, guerrilla fighters kidnapped Díaz's father in Barrancas, Colombia. For 12 days his father was held in the mountains. Díaz played with 'Libertad para papá' under his shirt. His father was freed after a national campaign.",
+      "trigger": "Colombia plays, Díaz scores, discussions about violence in South America"
+    },
+    {
+      "player": "Alphonso Davies",
+      "country": "CAN",
+      "tags": ["refugee", "war", "poverty", "immigration"],
+      "headline": "Born in a refugee camp, now playing in a World Cup for a country that gave him everything",
+      "backstory": "Davies was born in a refugee camp in Buduburam, Ghana, after his parents fled the Second Liberian Civil War. His family emigrated to Canada when he was five. He became the youngest player to play for the Canadian national team and now stars for Bayern Munich.",
+      "trigger": "Canada plays, refugee stories, immigration narratives"
+    },
+    {
+      "player": "Christian Eriksen",
+      "country": "DEN",
+      "tags": ["cardiac-arrest", "death", "comeback", "miracle"],
+      "headline": "His heart stopped on a football pitch in front of the world — and he came back",
+      "backstory": "During Euro 2020, Eriksen collapsed on the pitch against Finland after a cardiac arrest. He was clinically dead for several minutes before being resuscitated. He had a defibrillator implanted, was released by Inter Milan, and fought his way back to play for Manchester United and Denmark.",
+      "trigger": "Denmark plays, Eriksen plays, cardiac/medical incidents in sport"
+    },
+    {
+      "player": "Luka Modrić",
+      "country": "CRO",
+      "tags": ["war", "refugee", "grandfather-killed", "resilience"],
+      "headline": "His grandfather was killed in the Croatian War. The boy who grew up a refugee became the world's best midfielder",
+      "backstory": "During the Croatian War of Independence, Modrić's grandfather was killed by Serbian forces and the family home was burned. Young Luka grew up as a refugee, playing football in hotel parking lots. He was rejected for being too small, went on to win the Ballon d'Or and lead Croatia to the 2018 World Cup final.",
+      "trigger": "Croatia plays, Modrić plays, war/refugee narratives"
+    },
+    {
+      "player": "Lionel Messi",
+      "country": "ARG",
+      "tags": ["growth-hormone", "childhood", "immigration", "lonely"],
+      "headline": "A boy so small his bones wouldn't grow — who moved across the world alone at 13 to chase an impossible dream",
+      "backstory": "Messi was diagnosed with growth hormone deficiency at age 10. His family couldn't afford the $1,500/month treatment. Barcelona offered to pay if he moved to Spain. At 13, he left Rosario alone. He cried himself to sleep for months, was bullied for his accent, and nearly quit before becoming the greatest player of all time.",
+      "trigger": "Argentina plays, Messi milestone, GOAT debates"
+    },
+    {
+      "player": "Sadio Mané",
+      "country": "SEN",
+      "tags": ["poverty", "village", "generosity", "barefoot"],
+      "headline": "He walked barefoot to training as a child — then built a hospital for the village that had nothing",
+      "backstory": "Mané grew up in Bambali, a village with no running water or hospital. He walked barefoot to train, was mocked for his poverty. After making it in Europe, he funded a hospital, a school, and a mosque for his village. He reportedly has one of the lowest personal spending rates of any Premier League star.",
+      "trigger": "Senegal plays, Mané plays, poverty/generosity stories"
+    },
+    {
+      "player": "Vinicius Jr",
+      "country": "BRA",
+      "tags": ["favela", "racism", "resilience", "poverty"],
+      "headline": "From the favela to the Bernabéu — and they still tried to break him with racist abuse",
+      "backstory": "Vinicius grew up in São Gonçalo, one of Rio's most dangerous favelas. He was signed by Flamengo's academy as a child and moved to Real Madrid at 18. Despite becoming one of the world's best players, he has faced persistent racist abuse in La Liga, including monkey chants and a hanging effigy.",
+      "trigger": "Brazil plays, Vinicius scores, racism in football"
+    },
+    {
+      "player": "Emiliano Martínez",
+      "country": "ARG",
+      "tags": ["rejection", "persistence", "loans", "late-bloomer"],
+      "headline": "He slept on a sofa at Arsenal for a decade, loaned out six times — then saved Argentina in a World Cup final",
+      "backstory": "Martínez joined Arsenal at 17, barely played, was loaned to six different clubs over a decade. He slept on teammates' sofas, considered quitting football. At 28 he finally became a starter, moved to Aston Villa, and became Argentina's hero — saving penalties in the 2022 World Cup final shootout against France.",
+      "trigger": "Argentina plays, Martínez plays, penalty shootouts"
+    },
+    {
+      "player": "Bukayo Saka",
+      "country": "ENG",
+      "tags": ["racism", "missed-penalty", "comeback", "youth"],
+      "headline": "A 19-year-old missed a penalty in a European final — the country turned on him with racist abuse — and he came back stronger",
+      "backstory": "Saka was the youngest player on the pitch when he missed the decisive penalty in the Euro 2020 final against Italy. He received a torrent of racist abuse online. Rather than breaking him, it forged him — he became Arsenal's best player and one of England's most important.",
+      "trigger": "England plays, Saka plays, penalty shootouts, racism in football"
+    },
+    {
+      "player": "Son Heung-min",
+      "country": "KOR",
+      "tags": ["father", "brutal-training", "sacrifice", "pressure"],
+      "headline": "His father trained him like a soldier from age four — and the pressure nearly destroyed the boy who became Asia's greatest",
+      "backstory": "Son's father, a former footballer, put his sons through brutal 4-hour daily training sessions from age 4. Son has spoken about crying through sessions and the immense psychological pressure. His brother quit football due to the intensity. Son went on to become the top Asian scorer in Premier League history.",
+      "trigger": "South Korea plays, Son plays, parenting in sport, Asian football"
+    },
+    {
+      "player": "Achraf Hakimi",
+      "country": "MAR",
+      "tags": ["immigration", "identity", "colonial", "chose-country"],
+      "headline": "Born in Madrid to Moroccan immigrant parents — he chose his blood over his birthplace",
+      "backstory": "Hakimi was born and raised in Madrid, trained at Real Madrid's academy. He could have played for Spain but chose Morocco, his parents' homeland. He became the heartbeat of Morocco's historic 2022 World Cup run to the semi-finals — the first African team ever to reach that stage.",
+      "trigger": "Morocco plays, Hakimi plays, identity/dual-nationality stories"
+    },
+    {
+      "player": "Robert Lewandowski",
+      "country": "POL",
+      "tags": ["father-death", "cancer", "promise", "dedication"],
+      "headline": "His father died of cancer before seeing his son become the best striker in the world",
+      "backstory": "Lewandowski's father Krzysztof, a former judo champion, was his biggest supporter and coach. He died of cancer when Robert was a teenager, never seeing his son's rise to become one of football's greatest strikers. Lewandowski has spoken about how every goal is dedicated to his father.",
+      "trigger": "Poland plays, Lewandowski scores, father tributes, cancer stories"
+    },
+    {
+      "player": "Memphis Depay",
+      "country": "NED",
+      "tags": ["abandoned", "father", "poverty", "identity"],
+      "headline": "His father abandoned him as a child — he dropped the family name and built himself from nothing",
+      "backstory": "Depay's Ghanaian father left the family when Memphis was four. He grew up in poverty in Moordrecht with his Dutch mother. He dropped 'Depay' from his shirt, wearing only 'Memphis' — refusing to carry the name of the man who left. He has spoken publicly about the scars of abandonment.",
+      "trigger": "Netherlands plays, Depay plays, family/identity stories"
+    },
+    {
+      "player": "Tim Weah",
+      "country": "USA",
+      "tags": ["legacy", "president-father", "ballon-dor", "expectations"],
+      "headline": "His father won the Ballon d'Or and became president of Liberia — now the son carries a nation's dream into a World Cup",
+      "backstory": "Tim Weah is the son of George Weah, the only African Ballon d'Or winner and current President of Liberia. Tim grew up between New York and Liberia, carrying the weight of his father's legendary status. He chose to represent the USA and scored in his World Cup debut in 2022 against Wales.",
+      "trigger": "USA plays, Weah plays, father-son legacies"
+    },
+    {
+      "player": "Paolo Rossi",
+      "country": "ITA",
+      "tags": ["ban", "match-fixing", "redemption", "world-cup-winner"],
+      "headline": "Banned for match-fixing, written off by the world — then he scored a hat-trick against Brazil to win a World Cup",
+      "backstory": "Rossi was banned for two years for alleged involvement in a match-fixing scandal. He returned just weeks before the 1982 World Cup, out of form and written off. He then scored a hat-trick against Brazil in one of the greatest matches ever played, won the Golden Boot, and carried Italy to the World Cup title.",
+      "trigger": "Italy plays, match-fixing discussions, comeback/redemption narratives"
+    },
+    {
+      "player": "Andrés Escobar",
+      "country": "COL",
+      "tags": ["murder", "own-goal", "tragedy", "world-cup"],
+      "headline": "He scored an own goal in the World Cup — and ten days later, they shot him dead",
+      "backstory": "Colombian defender Andrés Escobar scored an own goal against the USA in the 1994 World Cup, contributing to Colombia's elimination. Ten days after returning home, he was shot dead outside a nightclub in Medellín. His killer reportedly shouted 'Gol!' with each bullet.",
+      "trigger": "Colombia plays, own goals in the World Cup, violence in football"
+    },
+    {
+      "player": "Victor Moses",
+      "country": "NGA",
+      "tags": ["orphan", "religious-violence", "refugee"],
+      "headline": "Religious riots killed his parents when he was eleven — he fled Nigeria alone and became a Premier League champion",
+      "backstory": "Moses lost both parents in religious violence in Kaduna, Nigeria, when he was 11. He was smuggled to London by a family friend, placed in foster care, and could barely speak English. He was scouted by Crystal Palace's academy and went on to win the Premier League and Champions League with Chelsea.",
+      "trigger": "Nigeria plays, religious violence in sport, orphan/refugee stories"
+    },
+    {
+      "player": "N'Golo Kanté",
+      "country": "FRA",
+      "tags": ["poverty", "humility", "trash-collector", "rags-to-riches"],
+      "headline": "He collected trash in the streets of Paris — now he's the most humble world champion in football",
+      "backstory": "Kanté grew up in Rueil-Malmaison, the son of Malian immigrants. As a child he collected scrap metal and glass to earn money. He was rejected by every major French academy for being too small. He rose through lower-league football to become a World Cup winner known for his extraordinary humility — reportedly driving a second-hand Mini Cooper despite earning millions.",
+      "trigger": "France plays, Kanté plays, humility stories, rags-to-riches"
+    }
+  ],
+  "country": [
+    {
+      "teams": "Senegal vs France",
+      "year": 2002,
+      "tournament": "World Cup",
+      "tags": ["colonial-revenge", "upset", "debut"],
+      "headline": "The colony that beat its master — Senegal's impossible debut against the reigning world champions",
+      "backstory": "Senegal, playing their first ever World Cup match, beat defending champions France 1-0 in the 2002 opener. Papa Bouba Diop scored the winner. The result carried deep colonial subtext — Senegal had been a French colony until 1960. France went home without scoring a single goal in the tournament.",
+      "trigger": "Senegal plays France, African teams vs European former colonizers"
+    },
+    {
+      "teams": "Uruguay vs Brazil",
+      "year": 1950,
+      "tournament": "World Cup",
+      "tags": ["maracanazo", "upset", "silence", "national-trauma"],
+      "headline": "Two hundred thousand people fell silent at once — the day Uruguay broke Brazil's heart in their own stadium",
+      "backstory": "Brazil needed only a draw in the 1950 World Cup final group match against Uruguay at the Maracanã. Nearly 200,000 fans packed the stadium expecting a coronation. Uruguay won 2-1. The silence that followed is considered the most devastating moment in Brazilian football history. Several fans reportedly died of shock.",
+      "trigger": "Uruguay plays Brazil, Maracanã matches, greatest upsets"
+    },
+    {
+      "teams": "Cameroon vs Argentina",
+      "year": 1990,
+      "tournament": "World Cup",
+      "tags": ["upset", "african-football", "debut", "maradona"],
+      "headline": "Maradona's world champions were humiliated by a team nobody had heard of — in the opening match",
+      "backstory": "Cameroon, massive underdogs, beat defending champions Argentina 1-0 in the 1990 World Cup opener despite having two players sent off. François Omam-Biyik scored the winner. Cameroon went on to reach the quarter-finals, electrifying the tournament and changing African football forever.",
+      "trigger": "Cameroon plays, African teams vs South American giants, opening match upsets"
+    },
+    {
+      "teams": "Costa Rica group stage",
+      "year": 2014,
+      "tournament": "World Cup",
+      "tags": ["group-of-death", "underdog", "miracle"],
+      "headline": "The tiny nation that topped the Group of Death — beating Uruguay, Italy, and drawing with England",
+      "backstory": "Costa Rica were drawn into the 'Group of Death' with Uruguay, Italy, and England. They were expected to lose all three. Instead they beat Uruguay 3-1, beat Italy 1-0, drew with England, and won the group. They reached the quarter-finals before losing on penalties to the Netherlands.",
+      "trigger": "Costa Rica plays, small nations in the World Cup, group of death narratives"
+    },
+    {
+      "teams": "Morocco World Cup run",
+      "year": 2022,
+      "tournament": "World Cup",
+      "tags": ["african-history", "semi-final", "colonial", "underdog"],
+      "headline": "The first African team to ever reach a World Cup semi-final — beating Belgium, Spain, and Portugal along the way",
+      "backstory": "Morocco became the first African and Arab nation to reach a World Cup semi-final in 2022. They beat Belgium, Spain (on penalties), and Portugal on the way. Players celebrated with their mothers on the pitch. The run united the entire Arab world and African continent behind one team.",
+      "trigger": "Morocco plays, African teams in knockout stages, mothers-on-pitch celebrations"
+    },
+    {
+      "teams": "Saudi Arabia vs Argentina",
+      "year": 2022,
+      "tournament": "World Cup",
+      "tags": ["upset", "messi", "impossible"],
+      "headline": "Messi's Argentina hadn't lost in 36 games — until a team ranked 51st in the world ripped up the script",
+      "backstory": "Argentina were on a 36-game unbeaten run and heavy favourites. Saudi Arabia, massive underdogs, came back from 1-0 down to win 2-1 with two goals in five second-half minutes. The Saudi government declared a national holiday. It remains one of the greatest upsets in World Cup history.",
+      "trigger": "Saudi Arabia plays, Argentina plays, massive upsets"
+    },
+    {
+      "teams": "Japan vs Germany",
+      "year": 2022,
+      "tournament": "World Cup",
+      "tags": ["comeback", "upset", "discipline"],
+      "headline": "Germany led 1-0 at half-time — Japan's bench looked calm, because they already knew the plan",
+      "backstory": "Japan trailed Germany 1-0 at half-time in the 2022 World Cup. Manager Hajime Moriyasu changed the system completely, bringing on attackers. Japan scored twice in the second half to win 2-1, then repeated the feat against Spain. They topped a group containing two former World Cup winners.",
+      "trigger": "Japan plays Germany or Spain, Asian teams causing upsets"
+    },
+    {
+      "teams": "Iceland vs England",
+      "year": 2016,
+      "tournament": "Euro",
+      "tags": ["smallest-nation", "upset", "volcano", "viking-clap"],
+      "headline": "A nation of 330,000 people knocked England out of Euro 2016 — and the Viking thunder clap was born",
+      "backstory": "Iceland, the smallest nation ever to qualify for a major tournament, beat England 2-1 in the Euro 2016 round of 16. Their squad included a dentist, a filmmaker, and a manager who was also a part-time dentist. The Viking thunder clap celebration became iconic. England's embarrassment led to managerial changes.",
+      "trigger": "Iceland plays, small nations in tournaments, England embarrassments"
+    },
+    {
+      "teams": "Greece Euro 2004",
+      "year": 2004,
+      "tournament": "Euro",
+      "tags": ["ultimate-underdog", "impossible", "nobody-believed"],
+      "headline": "150-to-1 outsiders won the entire European Championship — the most impossible story in football history",
+      "backstory": "Greece were 150-to-1 outsiders for Euro 2004. They beat hosts Portugal in the opening match AND the final, plus France and Czech Republic along the way. They played defensive, organised football under Otto Rehhagel. No team before or since has won a major tournament against such overwhelming odds.",
+      "trigger": "Greece plays, underdog tournament winners, greatest upsets in history"
+    },
+    {
+      "teams": "Denmark Euro 1992",
+      "year": 1992,
+      "tournament": "Euro",
+      "tags": ["didnt-qualify", "last-minute", "impossible", "war"],
+      "headline": "They didn't even qualify — got called up from holiday 10 days before the tournament — and won the whole thing",
+      "backstory": "Denmark didn't qualify for Euro 1992 but were called up as a last-minute replacement when Yugoslavia was expelled due to the Balkan War. Players were recalled from beach holidays. With no preparation, they beat Netherlands in the semi-final and Germany in the final to become European champions.",
+      "trigger": "Denmark plays, last-minute inclusions, impossible tournament wins"
+    },
+    {
+      "teams": "Argentina vs England",
+      "year": 1986,
+      "tournament": "World Cup",
+      "tags": ["hand-of-god", "goal-of-century", "falklands", "revenge", "maradona"],
+      "headline": "Four years after the Falklands War, Maradona took revenge on England with one hand and one left foot",
+      "backstory": "Argentina and England met in the 1986 World Cup quarter-final, four years after the Falklands War. Maradona scored twice: the infamous 'Hand of God' and then the 'Goal of the Century' — dribbling past five English players. In Argentina, it was seen as revenge for the war. The two goals remain the most famous in football history.",
+      "trigger": "Argentina plays England, Maradona legacy, political football"
+    },
+    {
+      "teams": "North Korea vs Italy",
+      "year": 1966,
+      "tournament": "World Cup",
+      "tags": ["upset", "unknown", "communist", "cold-war"],
+      "headline": "A communist nation nobody had heard of knocked Italy out of the World Cup — and nearly beat Portugal too",
+      "backstory": "North Korea beat Italy 1-0 in the 1966 World Cup group stage, one of the biggest upsets ever. They then led Portugal 3-0 in the quarter-final before Eusébio scored four goals to win 5-3. The North Korean players became national heroes but were reportedly punished when they returned home for conceding goals.",
+      "trigger": "North Korea mentioned, Asian teams beating European teams, Cold War football"
+    },
+    {
+      "teams": "Ivory Coast and civil war",
+      "year": 2006,
+      "tournament": "World Cup Qualification",
+      "tags": ["civil-war", "peace", "drogba", "ceasefire"],
+      "headline": "Didier Drogba got on his knees and begged a nation at war to stop killing each other — and they listened",
+      "backstory": "In 2005, after Ivory Coast qualified for their first World Cup, Drogba made a televised plea to the warring factions to lay down their arms. He asked for the qualifier against Madagascar to be moved to the rebel stronghold of Bouaké as a gesture of peace. A ceasefire was declared. Football literally stopped a civil war.",
+      "trigger": "Ivory Coast plays, Drogba legacy, football as peace, African football"
+    },
+    {
+      "teams": "Brazil vs Germany",
+      "year": 2014,
+      "tournament": "World Cup",
+      "tags": ["humiliation", "7-1", "national-trauma", "home-soil"],
+      "headline": "Seven goals. One nation's heart ripped out on home soil — the night Brazil will never forget",
+      "backstory": "Brazil hosted the 2014 World Cup semi-final against Germany and lost 7-1 in the most humiliating result in their history. Five goals came in 18 first-half minutes. Brazilian fans in the stadium wept openly. The result became a national trauma — 'Mineirazo' — referencing the 1950 Maracanazo.",
+      "trigger": "Brazil plays Germany, heavy defeats, hosting embarrassments"
+    },
+    {
+      "teams": "South Korea World Cup run",
+      "year": 2002,
+      "tournament": "World Cup",
+      "tags": ["hosts", "controversy", "upset", "semi-final"],
+      "headline": "The hosts beat Spain and Italy on their way to the semi-final — but the world still argues about how they did it",
+      "backstory": "South Korea, co-hosting the 2002 World Cup, beat Spain and Italy in the knockout rounds in matches marred by controversial refereeing decisions. Italy had a goal wrongly disallowed and Spain had two goals ruled out. South Korea became the first Asian team to reach a World Cup semi-final, but the results remain among the most disputed in World Cup history.",
+      "trigger": "South Korea plays Spain or Italy, refereeing controversies, hosting advantages"
+    }
+  ]
+}
