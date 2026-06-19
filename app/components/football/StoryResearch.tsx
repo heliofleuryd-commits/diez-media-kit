@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getDailySpend, addSpend, formatCost } from '@/lib/football/costTracker';
 
 interface Story {
@@ -100,23 +100,55 @@ export function StoryResearch() {
   const [filter, setFilter] = useState<Filter>('all');
   const [lastDate, setLastDate] = useState<string | null>(null);
   const [cost, setCost] = useState(0);
+  const [cached, setCached] = useState(false);
 
-  async function fetchStories() {
+  const applyData = useCallback((data: any) => {
+    setStories(data.stories || []);
+    setLastDate(data.date);
+    setCached(!!data.cached);
+    if (data.cost && !data.cached) {
+      setCost(data.cost);
+      addSpend(data.cost);
+    }
+  }, []);
+
+  // Auto-load: try GET (cached) first, then POST if empty
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const cached = await fetch('/api/football/stories').then(r => r.json());
+        if (cancelled) return;
+        if (cached.ok && cached.stories?.length > 0) {
+          applyData(cached);
+          return;
+        }
+        // No cache — auto-generate
+        setLoading(true);
+        const fresh = await fetch('/api/football/stories', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        }).then(r => r.json());
+        if (cancelled) return;
+        if (fresh.ok) applyData(fresh);
+      } catch { /* page will show empty state */ }
+      finally { if (!cancelled) setLoading(false); }
+    })();
+    return () => { cancelled = true; };
+  }, [applyData]);
+
+  async function refreshStories() {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch('/api/football/stories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: true }),
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || 'Failed to fetch stories');
-      setStories(data.stories || []);
-      setLastDate(data.date);
-      if (data.cost) {
-        setCost(data.cost);
-        addSpend(data.cost);
-      }
+      applyData(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
     } finally {
@@ -143,15 +175,17 @@ export function StoryResearch() {
 
         <div className="flex items-center gap-3 mb-5">
           <button
-            onClick={fetchStories}
+            onClick={refreshStories}
             disabled={loading}
             className="px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider text-white disabled:opacity-40"
             style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}
           >
-            {loading ? 'Researching…' : stories.length > 0 ? 'Refresh Stories' : "Get Today's Stories"}
+            {loading ? 'Researching…' : 'Refresh Stories'}
           </button>
           {lastDate && (
-            <span className="text-[10px] text-gray-400 font-semibold">{lastDate}</span>
+            <span className="text-[10px] text-gray-400 font-semibold">
+              {lastDate}{cached ? ' (cached)' : ''}
+            </span>
           )}
           {cost > 0 && (
             <span className="text-[10px] text-gray-300 font-mono">{formatCost(cost)}</span>
@@ -195,12 +229,22 @@ export function StoryResearch() {
           </>
         )}
 
+        {loading && stories.length === 0 && (
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-12 text-center">
+            <div className="text-3xl mb-3 animate-pulse">📖</div>
+            <h2 className="text-[14px] font-bold text-gray-800 mb-1">Researching today's stories…</h2>
+            <p className="text-[11px] text-gray-400 max-w-sm mx-auto">
+              Pulling live ESPN data, Google News trends, and cross-referencing the story bank. This takes ~15 seconds.
+            </p>
+          </div>
+        )}
+
         {!loading && stories.length === 0 && !error && (
           <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-12 text-center">
             <div className="text-3xl mb-3">📖</div>
-            <h2 className="text-[14px] font-bold text-gray-800 mb-1">No stories loaded yet</h2>
+            <h2 className="text-[14px] font-bold text-gray-800 mb-1">No stories yet</h2>
             <p className="text-[11px] text-gray-400 max-w-sm mx-auto">
-              Hit the button above to research today's stories — it'll pull live World Cup data and surface the most powerful emotional narratives to script.
+              Stories auto-generate each morning. Hit Refresh to generate now.
             </p>
           </div>
         )}

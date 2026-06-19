@@ -1,3 +1,5 @@
+export const maxDuration = 60;
+
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs';
@@ -10,6 +12,22 @@ const client = new Anthropic();
 const MODEL = 'claude-sonnet-4-6';
 const BANK_PATH = path.join(process.cwd(), 'content-plan', 'story-bank.json');
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
+const CACHE_DIR = '/tmp';
+
+function todayKey() { return new Date().toISOString().slice(0, 10); }
+function cachePath() { return path.join(CACHE_DIR, `stories-${todayKey()}.json`); }
+
+function readCache(): any | null {
+  try {
+    const data = JSON.parse(fs.readFileSync(cachePath(), 'utf-8'));
+    if (data._date === todayKey()) return data;
+  } catch { /* miss */ }
+  return null;
+}
+
+function writeCache(payload: any) {
+  try { fs.writeFileSync(cachePath(), JSON.stringify({ ...payload, _date: todayKey() })); } catch { /* */ }
+}
 
 function loadStoryBank(): { personal: any[]; country: any[] } {
   try {
@@ -59,14 +77,63 @@ async function fetchESPN() {
   } catch { return { matches: [], headlines: [] }; }
 }
 
+async function fetchTrending(): Promise<string[]> {
+  const queries = [
+    'World Cup 2026', 'FIFA World Cup player', 'World Cup goal today',
+    'World Cup 2026 upset', 'World Cup 2026 story',
+  ];
+  const items: string[] = [];
+  const seen = new Map<string, boolean>();
+  await Promise.all(queries.map(async (q) => {
+    try {
+      const res = await fetch(
+        `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`,
+        { next: { revalidate: 0 } },
+      );
+      const xml = await res.text();
+      const matches = Array.from(xml.matchAll(/<item>([\s\S]*?)<\/item>/g)).slice(0, 5);
+      for (const m of matches) {
+        const t = m[1].match(/<title>([\s\S]*?)<\/title>/);
+        const title = (t?.[1] || '').replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+        if (title.length > 10 && !seen.has(title)) {
+          seen.set(title, true);
+          items.push(title);
+        }
+      }
+    } catch { /* skip */ }
+  }));
+  return items.slice(0, 20);
+}
+
+// GET: return cached stories (instant) or empty if none for today
+export async function GET() {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+  }
+  const cached = readCache();
+  if (cached) {
+    return NextResponse.json({ ok: true, stories: cached.stories, date: cached.date, cost: 0, cached: true });
+  }
+  return NextResponse.json({ ok: true, stories: [], date: null, cached: false });
+}
+
 export async function POST(req: Request) {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Check server cache first (skip if force refresh requested)
+  const body = await req.json().catch(() => ({}));
+  if (!body.refresh) {
+    const cached = readCache();
+    if (cached) {
+      return NextResponse.json({ ok: true, stories: cached.stories, date: cached.date, cost: 0, cached: true });
+    }
+  }
+
   const bank = loadStoryBank();
   const toqueymedio = loadToqueymedio();
-  const espn = await fetchESPN();
+  const [espn, trending] = await Promise.all([fetchESPN(), fetchTrending()]);
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
@@ -88,6 +155,10 @@ export async function POST(req: Request) {
     ...bank.country.map((s: any) => `- ${s.teams} ${s.year}: ${s.headline}`),
   ].join('\n');
 
+  const trendingSection = trending.length > 0
+    ? `\n## TRENDING NOW (Google News)\n${trending.map(t => `- ${t}`).join('\n')}\n`
+    : '';
+
   const prompt = `Today is ${today}.
 
 ## TODAY'S WORLD CUP MATCHES & NEWS
@@ -95,7 +166,7 @@ ${matchLines.length > 0 ? matchLines.join('\n') : 'Check the current World Cup 2
 
 ESPN Headlines:
 ${espn.headlines.map((h: any) => `- ${h.title}`).join('\n') || 'No headlines available'}
-
+${trendingSection}
 ## STORY BANK (pre-researched stories)
 ${bankSummary}
 
@@ -162,5 +233,8 @@ Output valid JSON only (no markdown fences) in this exact format:
 
   const cost = calcCost(MODEL, res.usage.input_tokens, res.usage.output_tokens);
 
-  return NextResponse.json({ ok: true, stories, date: today, cost });
+  const payload = { stories, date: today, cost };
+  writeCache(payload);
+
+  return NextResponse.json({ ok: true, ...payload, cached: false });
 }
