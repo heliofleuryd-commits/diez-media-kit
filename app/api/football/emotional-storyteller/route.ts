@@ -7,7 +7,19 @@ import path from 'path';
 import { calcCost } from '@/lib/football/costTracker';
 
 const client = new Anthropic();
-const MODEL = 'claude-opus-4-8';
+const OPUS = 'claude-opus-4-8';
+const SONNET = 'claude-sonnet-4-6';
+
+// Per-stage model. Opus drafts (deep biographical recall + creativity);
+// Sonnet handles the structural critique/rewrite and the flow polish within
+// Opus's frame — far cheaper, quality holds because the facts/structure are set.
+const STAGE_MODELS: Record<string, string> = {
+  draft: OPUS,
+  refine: SONNET,
+  polish: SONNET,
+  chat: SONNET,
+};
+
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
 const VIRAL_SKILL_PATH = path.join(process.cwd(), 'content-plan', 'emotional-storyteller', 'viral-style-skill.md');
 
@@ -78,7 +90,10 @@ function extractText(res: any): string {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { stage, topic, draft, messages } = body;
+    const { stage, topic, draft, messages, modelOverride } = body;
+
+    // Per-stage model (modelOverride lets us A/B test cheaper configs).
+    const model = modelOverride || STAGE_MODELS[stage] || SONNET;
 
     const system = styleSystem();
     let userPrompt = '';
@@ -133,26 +148,26 @@ Output ONLY the final script, then on new lines add:
       maxTokens = 4000;
       const apiMessages = (messages || []).slice(-20);
       const res = await client.messages.create({
-        model: MODEL,
+        model,
         max_tokens: maxTokens,
         system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
         messages: apiMessages,
       });
       const text = extractText(res);
-      const cost = calcCost(MODEL, res.usage.input_tokens, res.usage.output_tokens);
-      return NextResponse.json({ ok: true, message: text, cost });
+      const cost = calcCost(model, res.usage.input_tokens, res.usage.output_tokens);
+      return NextResponse.json({ ok: true, message: text, cost, model });
     }
 
     const res = await client.messages.create({
-      model: MODEL,
+      model,
       max_tokens: maxTokens,
       system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
       messages: [{ role: 'user', content: userPrompt }],
     });
     const text = extractText(res);
-    const cost = calcCost(MODEL, res.usage.input_tokens, res.usage.output_tokens);
+    const cost = calcCost(model, res.usage.input_tokens, res.usage.output_tokens);
 
-    return NextResponse.json({ ok: true, message: text, cost, stage });
+    return NextResponse.json({ ok: true, message: text, cost, stage, model });
   } catch (e: any) {
     console.error('[emotional-storyteller] Failed:', e.message);
     return NextResponse.json({ ok: false, error: e.message?.slice(0, 250) || 'Unknown error' }, { status: 500 });
