@@ -16,14 +16,14 @@ function Markdown({ text }: { text: string }) {
     <div className="space-y-1.5">
       {lines.map((line, i) => {
         if (line.startsWith('**') && line.endsWith('**') && line.length > 4) {
-          return <p key={i} className="font-black text-gray-900 text-[13px] mt-2 leading-snug">{line.slice(2, -2)}</p>;
+          return <p key={i} className="font-bold text-gray-500 text-[9px] uppercase tracking-widest mt-2.5">{line.slice(2, -2)}</p>;
         }
         if (line.trim() === '') return <div key={i} className="h-1.5" />;
         const parts = line.split(/(\*\*[^*]+\*\*)/g);
         return (
-          <p key={i} className="text-[12.5px] text-gray-800 leading-[1.75]">
+          <p key={i} className="text-[10.5px] text-gray-800 leading-[1.6]">
             {parts.map((p, j) => p.startsWith('**') && p.endsWith('**')
-              ? <strong key={j} className="font-bold text-gray-900">{p.slice(2, -2)}</strong>
+              ? <span key={j} className="font-semibold text-gray-900">{p.slice(2, -2)}</span>
               : p
             )}
           </p>

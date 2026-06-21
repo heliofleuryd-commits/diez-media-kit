@@ -22,30 +22,36 @@ Voice is conversational and slightly informal — written to be *spoken aloud*, 
 
 ---
 
-## 1. THE HOOK — a 3-line bolded flash-forward (NON-NEGOTIABLE)
+## 1. THE HOOK — a punchy 2–3 line flash-forward (THE MOST IMPORTANT LINES)
 
-Every script opens with a **2–3 line hook, rendered in bold**, that flashes FORWARD to the emotional climax before the story is told. It is second-person "you" immersion. It teases the devastating twist — it does not explain it yet.
+Every script opens with a **2–3 line hook in PLAIN TEXT (never bold)** that flashes FORWARD to the emotional climax before the story is told. Second-person "you" immersion. It teases the devastating twist — it does not explain it yet.
+
+CRITICAL RHYTHM RULE: each line is ONE short, punchy breath — a single clause. NOT a long comma-piled sentence. If a hook line has three commas and a dash inside it, it is WRONG. Read the 8 real examples below: every line is short enough to say in one breath.
 
 The formula:
-- **Line 1:** `Imagine [you / 2nd person] [an extreme, vivid scenario — usually trauma or the edge of a dream].`
-- **Line 2:** deepen it — make it more impossible, more painful, or raise the stakes.
-- **Line 3 (the turn, always carries "And" / "and then" / "But"):** the inversion — the redemption or the cruelty that reframes everything. This is where the bold lands hardest.
+- **Line 1:** `Imagine [you / 2nd person] [an extreme, vivid scenario — trauma or the edge of a dream].` — short.
+- **Line 2:** deepen it — more impossible, more painful, or raise the stakes. — short.
+- **Line 3 (the turn — ALWAYS starts with "And" / "and then" / "But"):** the inversion — the redemption or the cruelty that reframes everything.
 
-Real examples (study the rhythm, do not copy verbatim):
-- "**Imagine watching men take your father away into the jungle / You don't know if he is alive or if he is ever coming back / And years later, you score in your country's World Cup opener — for the man they tried to take from you.**"
-- "**Imagine the moment you crack your skull against another man / You lie motionless on the grass of a silent stadium that thinks it has just witnessed the end / and six years later, you rise from the dead to score in the opening match of a world cup in front of your country.**"
-- "**Imagine you start the world cup as the most promising midfielder of the tournament / You win the opening game for your country as man of the match / And then, on the very night you reach the summit, football cuts the rope.**"
-- "**Imagine playing your first professional game against Real Madrid, swapping shirts with Mbappé / and in the same breath you touch the sky, the phone rings — and the voice on the other end takes it all away.**"
+Sometimes it is only 2 lines (line 2 IS the turn). 2 or 3 lines only — never 4+, never one long run-on.
 
-Hook variant (occasionally) opens on the stage/context for 2–3 short lines, THEN drops the bold turn: "…others — others will do it for him." Use the "Imagine" form as default; use the context-then-turn form for ensemble/tribute stories.
+Real examples — copy the SHORTNESS and the and/but turn, not the words:
+- "Imagine watching men take your father away into the jungle / You don't know if he is alive or if he is ever coming back / And years later, you score in your country's World Cup opener — for the man they tried to take from you."
+- "Imagine the moment you crack your skull against another man / You lie motionless on the grass of a silent stadium / And six years later, you rise from the dead to score in the opening match of a World Cup."
+- "Imagine you start the World Cup as the most promising midfielder of the tournament / You win the opening game as man of the match / And then, on the very night you reach the summit, football cuts the rope."
+- "Imagine playing your first professional game against Real Madrid, swapping shirts with Mbappé / And in the same breath you touch the sky, the phone rings — and the voice on the other end takes it all away."
 
-FORBIDDEN hooks: "Did you know…", stats-first, a stand-alone question, hype/clickbait, any analytical setup.
+WRONG (sprawling, multi-clause — never do this): "Imagine you are 28 years old, running at full stride in the centre circle of a stadium in Lyon — the city where you became a champion, the city that already loves you."
+
+Hook variant (occasionally): open on the stage/context for 2–3 short lines, THEN drop the turn ("…others — others will do it for him."). Use the "Imagine" form as default.
+
+FORBIDDEN hooks: bolded hooks, long run-on sentences, "Did you know…", stats-first, a stand-alone question, hype/clickbait, any analytical setup.
 
 ---
 
-## 2. THE ARC (long-form: ~350–700 words, ~2.5–3.5 min spoken)
+## 2. THE ARC (toqueymedio length: ~230–330 words, ~105–135 seconds spoken)
 
-These are long-form emotional epics. Do not write short. The full arc:
+Keep it TIGHT — a short film, not an essay. Hit every beat below, but each beat is lean (often a sentence or two). Do NOT sprawl. The full arc:
 
 1. **THE HOOK** — bold flash-forward (above).
 2. **ORIGIN / HUMBLE BEGINNINGS** — "came from [place], a forgotten corner of [country]…" Poverty, being overlooked, undernourished, small, rejected. Establish the underdog physically and emotionally. "the boy nobody bet on." Often a believer figure (a father-coach, a mother, a little sister) who never stopped believing.
@@ -53,7 +59,7 @@ These are long-form emotional epics. Do not write short. The full arc:
 4. **THE WOUND / THE TURN** — introduced by a date stated gravely as its own sentence: "October 28th, 2023." / "November 29th, 2020." / "the 7th of February." Then the trauma described cinematically and specifically — the injury, the kidnapping, the death, the crash. Slow it down. This is the emotional core.
 5. **THE DARKNESS** — the aftermath. Depression, doubt, the body betraying him, the world counting him out: "In football, they bury you quietly and then they stop expecting anything." The goals dry up. People stop saying his name.
 6. **THE RESURRECTION SETUP** — "But the world forgot what a man carries when he has already stared into the abyss and survived." Then a NEW date: the World Cup match. "June 17th, 2026." The stadium named, the crowd counted ("Eighty-seven thousand"), the nation holding its breath, the anthem sung through tears.
-7. **THE CEREMONIAL NAMING** — at the threshold of the climax, the full birth name, stated like a coronation: "stands Luis Fernando Díaz Marulanda." / "Raúl Alonso Jiménez Rodríguez." / "João Maria Lopes Neves." Reserve the full name for THIS moment only.
+7. **THE CEREMONIAL NAMING** — at the threshold of the climax, the full birth name, stated like a coronation: "stands Luis Fernando Díaz Marulanda." / "Raúl Alonso Jiménez Rodríguez." / "João Maria Lopes Neves." Reserve the full name for THIS moment only. NOT bold.
 8. **THE CLIMAX** — a minute marker ("in the 65th", "the 67th minute"), present tense, slow motion: "for a heartbeat, time slows." The signature silence line (see §3). Then the strike: short, fearless fragments.
 9. **THE ERUPTION** — "Colombia explodes. Millions of souls erupt as if the whole country has been set free at once."
 10. **THE SKY-POINT / DEDICATION** — he points to the heavens, searches the stands, dedicates it to the one who is gone or watching "from above," who "weeps from above."

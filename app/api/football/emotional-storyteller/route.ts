@@ -109,7 +109,14 @@ PASS 1 of 3 — THE DRAFT.
 
 First, think step by step and recall EVERY specific, real fact about this subject: full birth name, birthplace, family, the clubs and dates of their rise, the exact wound (date, place, what happened), the aftermath, and the World Cup moment (date, stadium, opponent, minute, the play). Be ruthlessly factual — this is the spine.
 
-Then write a complete long-form emotional script (≈350–700 words, 2.5–3.5 min spoken) following the full arc: bold 3-line flash-forward hook → humble origin → the rise → the wound (dated, cinematic) → the darkness → resurrection setup at the World Cup → ceremonial full name → the climax with minute markers and the silence motif → eruption → sky-point dedication → the nation weeps → aphoristic two-line closer.
+Then write a complete emotional script at TOQUEYMEDIO LENGTH (≈230–330 words, ~105–135 seconds spoken — tight and punchy, NOT sprawling) following the full arc: hook → humble origin → the rise → the wound (dated, cinematic) → the darkness → resurrection setup at the World Cup → ceremonial full name → the climax with minute markers and the silence motif → eruption → sky-point dedication → the nation weeps → aphoristic two-line closer. Hit every beat but keep each one lean — this is a short film, not an essay.
+
+THE HOOK IS THE MOST IMPORTANT LINE. It must be EXACTLY 2 or 3 short, punchy lines — each line ONE short breath/clause, NOT a long comma-piled sentence. Plain text, NOT bold. The final line is the turn and MUST start with "And" or "But". Match the 8-script rhythm exactly:
+  "Imagine watching men take your father away into the jungle
+   You don't know if he is alive or if he is ever coming back
+   And years later, you score in your country's World Cup opener — for the man they tried to take from you."
+WRONG (too long, sprawling): "Imagine you are 28 years old, running at full stride in the centre circle of a stadium in Lyon — the city where you became a champion, the city that already loves you."
+RIGHT (punchy): "Imagine your heart stops in the middle of the pitch. / No tackle. No warning. / And the last thing your legs do is lay you down on the grass."
 
 Output ONLY the script — no commentary, no labels.`;
     } else if (stage === 'refine') {
@@ -121,9 +128,9 @@ Here is the draft:
 ${draft}
 """
 
-First, think step by step and critique it hard against the viral style: Is the hook a bold 3-line second-person flash-forward to the climax? Is every emotional beat sitting on a SPECIFIC real fact (dates, minutes, scores, named players)? Is the full birth name reserved for the climax only? Are the signature motifs present (the silence line, "for a heartbeat time slows", the eruption, the sky-point, the epithet-by-wound)? Is the closer an earned, story-specific aphorism? Is anything generic, invented, or vague?
+First, think step by step and critique it hard against the viral style: Is the HOOK exactly 2–3 SHORT punchy lines (each one short clause, NOT a long comma-piled sentence), plain text (not bold), with the final line starting "And"/"But" as the turn? If the hook is one long sprawling sentence, it FAILS — rewrite it punchy like the 8-script examples (Díaz, Iniesta). Is every emotional beat sitting on a SPECIFIC real fact (dates, minutes, scores, named players)? Is the full birth name reserved for the climax only? Are the signature motifs present (the silence line, "for a heartbeat time slows", the eruption, the sky-point, the epithet-by-wound)? Is the closer an earned, story-specific aphorism? Is anything generic, invented, vague, or too long?
 
-Then rewrite the ENTIRE script fixing every weakness. Make it denser with real facts and more emotionally precise. Keep it long-form.
+Then rewrite the ENTIRE script fixing every weakness. Make it denser with real facts and more emotionally precise. Keep it TIGHT at toqueymedio length (~230–330 words, ~105–135s) — cut any sprawl.
 
 Output ONLY the rewritten script — no commentary.`;
     } else if (stage === 'polish') {
@@ -135,12 +142,14 @@ Here is the refined script:
 ${draft}
 """
 
-Apply the ONE rule that matters most: FLOW OVER FULL STOPS. The emotional passages should run in long, breathing cascades joined by commas and "and", then snap to short punchy fragments at the moments of impact — that contrast is the texture. Kill choppy all-short-sentence rhythm. Keep the bold 3-line hook. Keep every fact. Make it sound like it is meant to be spoken aloud, not read.
+Apply the ONE rule that matters most: FLOW OVER FULL STOPS. The emotional passages should run in long, breathing cascades joined by commas and "and", then snap to short punchy fragments at the moments of impact — that contrast is the texture. Kill choppy all-short-sentence rhythm in the BODY.
 
-Do not shorten the story or remove facts — only re-flow and tighten the prose to match the perfected viral voice.
+BUT THE HOOK IS THE EXCEPTION: keep the hook as 2–3 SHORT punchy lines, plain text (NOT bold), each line one short breath, final line starting "And"/"But". Do not let the hook become one long sentence.
+
+Keep every fact. Keep it TIGHT at toqueymedio length (~105–135s) — if it runs long, cut sprawl, don't pad. Make it sound spoken aloud, not read.
 
 Output ONLY the final script, then on new lines add:
-**Hook:** (the opening bold lines as one block)
+**Hook:** (the opening lines as one block)
 **Caption:** (under 150 chars)
 **Hashtags:** (6–8 tags)`;
     } else {
