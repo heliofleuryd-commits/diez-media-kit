@@ -75,7 +75,8 @@ export function ScriptChat({ onCost, styles = ['pechefootball', 'fiagoball', '5.
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+    const maxH = Math.floor(window.innerHeight * 0.5);
+    el.style.height = Math.min(el.scrollHeight, maxH) + 'px';
   }, [input]);
 
   const handleFiles = useCallback(async (files: FileList | null) => {
@@ -267,7 +268,7 @@ export function ScriptChat({ onCost, styles = ['pechefootball', 'fiagoball', '5.
               placeholder="Make a vid about Ecuador being the dark horse… rewrite my hook… make this more controversial…"
               rows={1}
               className="flex-1 text-[12px] bg-transparent px-4 pt-3 pb-1 resize-none focus:outline-none placeholder-gray-300 text-gray-800 leading-relaxed"
-              style={{ minHeight: 44, maxHeight: 200 }}
+              style={{ minHeight: 44, maxHeight: '50vh' }}
             />
             <div className="flex items-center justify-between px-3 pb-2">
               <div className="flex items-center gap-1">

@@ -26,6 +26,7 @@ const NAV = [
     items: [
       { label: 'Content Studio',  href: '/football/research', icon: <span className="text-[12px]">🎬</span> },
       { label: 'Story Research',  href: '/football/stories',  icon: <span className="text-[12px]">📖</span> },
+      { label: 'Shorts Title Lab', href: '/football/shorts-titles', icon: <span className="text-[12px]">📊</span> },
       { label: 'Tactics Board',   href: '/football/tactics',  icon: <span className="text-[12px]">⚽</span> },
       { label: 'Skill Library',   href: '/football/skills',   icon: <span className="text-[12px]">📂</span> },
     ],
