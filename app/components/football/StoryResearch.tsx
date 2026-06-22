@@ -28,59 +28,102 @@ const RELEVANCE_STYLE: Record<string, string> = {
 
 // ---- Script Writer Chat ----
 
+const PASS_LABELS = ['Writing…', 'Drafting in Studio (toqueymedio only)…', 'Applying your viral style — hook, flow, length…'];
+
+// Renders the script as clean spoken lines; trailing **Hook:/Caption:/Hashtags:**
+// become small grey labels. No literal asterisks, no bold in the body.
+function ScriptText({ text }: { text: string }) {
+  const lines = text.split('\n');
+  return (
+    <div className="space-y-1.5">
+      {lines.map((line, i) => {
+        if (line.startsWith('**') && line.endsWith('**') && line.length > 4) {
+          return <p key={i} className="font-bold text-gray-500 text-[9px] uppercase tracking-widest mt-2.5">{line.slice(2, -2).replace(/:$/, '')}</p>;
+        }
+        if (line.trim() === '') return <div key={i} className="h-1.5" />;
+        const parts = line.split(/(\*\*[^*]+\*\*)/g);
+        return (
+          <p key={i} className="text-[11px] text-gray-800 leading-[1.6]">
+            {parts.map((p, j) => p.startsWith('**') && p.endsWith('**')
+              ? <span key={j} className="font-semibold text-gray-900">{p.slice(2, -2)}</span>
+              : p)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 function ScriptWriter({ story, onBack }: { story: Story; onBack: () => void }) {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [generating, setGenerating] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [scriptCost, setScriptCost] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  async function sendMessage(userText: string) {
+  async function callStage(payload: any) {
+    const res = await fetch('/api/football/stories/script', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const text = await res.text();
+    try { return JSON.parse(text); } catch { return { ok: false, error: `Server returned invalid response (${res.status})` }; }
+  }
+
+  function track(c?: number) { if (c) { setScriptCost(x => x + c); addSpend(c); } }
+
+  // First generation: Studio-toqueymedio draft → viral elevation
+  async function generateScript() {
+    setMessages([{ role: 'user', content: `Write the script for "${story.title}"` }]);
+    setGenerating(true);
+    try {
+      setProgress(1);
+      const draftRes = await callStage({ stage: 'draft', story });
+      if (!draftRes.ok) throw new Error(draftRes.error || 'Draft failed');
+      track(draftRes.cost);
+
+      setProgress(2);
+      const viralRes = await callStage({ stage: 'viral', draft: draftRes.message });
+      if (!viralRes.ok) throw new Error(viralRes.error || 'Viral pass failed');
+      track(viralRes.cost);
+
+      setMessages(m => [...m, { role: 'assistant', content: viralRes.message }]);
+    } catch (e) {
+      setMessages(m => [...m, { role: 'assistant', content: `Error: ${e instanceof Error ? e.message : 'Network error'}` }]);
+    } finally { setGenerating(false); setProgress(0); }
+  }
+
+  // Follow-up refinement
+  async function refine(userText: string) {
     const newMsgs: ChatMsg[] = [...messages, { role: 'user', content: userText }];
     setMessages(newMsgs);
     setInput('');
     setGenerating(true);
-
     try {
-      const res = await fetch('/api/football/stories/script', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          story,
-          messages: newMsgs.map(m => ({ role: m.role, content: m.content })),
-        }),
-      });
-      const text = await res.text();
-      let data;
-      try { data = JSON.parse(text); } catch { data = { ok: false, error: 'Invalid response' }; }
-
-      if (data.ok && data.message) {
-        setMessages([...newMsgs, { role: 'assistant', content: data.message }]);
-        if (data.cost) { setScriptCost(c => c + data.cost); addSpend(data.cost); }
-      } else {
-        setMessages([...newMsgs, { role: 'assistant', content: `Error: ${data.error || 'Failed to generate'}` }]);
-      }
+      const data = await callStage({ stage: 'chat', messages: newMsgs.map(m => ({ role: m.role, content: m.content })) });
+      if (!data.ok) throw new Error(data.error || 'Failed');
+      track(data.cost);
+      setMessages([...newMsgs, { role: 'assistant', content: data.message }]);
     } catch (e) {
       setMessages([...newMsgs, { role: 'assistant', content: `Error: ${e instanceof Error ? e.message : 'Network error'}` }]);
-    } finally {
-      setGenerating(false);
-    }
+    } finally { setGenerating(false); }
   }
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, generating]);
+  }, [messages, generating, progress]);
 
-  // Auto-generate script on mount
+  // Auto-generate on mount
   useEffect(() => {
-    sendMessage(`Write me a full emotional script for this story: "${story.title}"\n\nUse all the key facts provided. Follow the toqueymedio 7-beat structure. Include elefutbol metaphors. Make it 2–2.5 minutes.`);
+    generateScript();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim() || generating) return;
-    sendMessage(input.trim());
+    refine(input.trim());
   }
 
   return (
@@ -123,7 +166,7 @@ function ScriptWriter({ story, onBack }: { story: Story; onBack: () => void }) {
               </div>
             ) : (
               <div className="bg-gray-50 rounded-xl px-4 py-3 max-w-full">
-                <div className="text-[12px] text-gray-800 leading-[1.7] whitespace-pre-wrap font-[450]">{msg.content}</div>
+                <ScriptText text={msg.content} />
               </div>
             )}
           </div>
@@ -137,8 +180,15 @@ function ScriptWriter({ story, onBack }: { story: Story; onBack: () => void }) {
                 <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                 <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
-              <span className="text-[11px] text-gray-400">Writing script...</span>
+              <span className="text-[11px] text-gray-400">{PASS_LABELS[progress] || 'Writing…'}</span>
             </div>
+            {progress > 0 && (
+              <div className="flex gap-1 mt-2">
+                {[1, 2].map(n => (
+                  <div key={n} className={`h-1 rounded-full transition-all ${n <= progress ? 'bg-violet-500' : 'bg-gray-200'}`} style={{ width: 28 }} />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
