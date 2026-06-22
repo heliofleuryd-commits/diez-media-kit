@@ -76,7 +76,7 @@ export function ScriptChat({ onCost, styles = ['pechefootball', 'fiagoball', '5.
     if (!el) return;
     el.style.height = 'auto';
     const maxH = Math.floor(window.innerHeight * 0.5);
-    el.style.height = Math.min(el.scrollHeight, maxH) + 'px';
+    el.style.height = Math.min(Math.max(el.scrollHeight, 96), maxH) + 'px';
   }, [input]);
 
   const handleFiles = useCallback(async (files: FileList | null) => {
@@ -266,9 +266,9 @@ export function ScriptChat({ onCost, styles = ['pechefootball', 'fiagoball', '5.
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
               placeholder="Make a vid about Ecuador being the dark horse… rewrite my hook… make this more controversial…"
-              rows={1}
+              rows={3}
               className="flex-1 text-[12px] bg-transparent px-4 pt-3 pb-1 resize-none focus:outline-none placeholder-gray-300 text-gray-800 leading-relaxed"
-              style={{ minHeight: 44, maxHeight: '50vh' }}
+              style={{ minHeight: 96, maxHeight: '50vh' }}
             />
             <div className="flex items-center justify-between px-3 pb-2">
               <div className="flex items-center gap-1">

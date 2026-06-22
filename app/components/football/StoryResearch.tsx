@@ -61,6 +61,14 @@ function ScriptWriter({ story, onBack }: { story: Story; onBack: () => void }) {
   const [progress, setProgress] = useState(0);
   const [scriptCost, setScriptCost] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(Math.max(el.scrollHeight, 96), Math.floor(window.innerHeight * 0.5)) + 'px';
+  }, [input]);
 
   async function callStage(payload: any) {
     const res = await fetch('/api/football/stories/script', {
@@ -197,18 +205,22 @@ function ScriptWriter({ story, onBack }: { story: Story; onBack: () => void }) {
 
       {/* Input */}
       <form onSubmit={handleSubmit} className="shrink-0 border-t border-gray-100 px-5 py-3">
-        <div className="flex gap-2">
-          <input
+        <div className="flex gap-2 items-end">
+          <textarea
+            ref={inputRef}
             value={input}
             onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e as any); } }}
             placeholder="Adjust the script... (e.g. 'make the hook darker', 'add more minute markers', 'shorter version')"
             disabled={generating}
-            className="flex-1 text-[12px] px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-violet-300 focus:ring-1 focus:ring-violet-200 disabled:opacity-40 placeholder:text-gray-300"
+            rows={3}
+            className="flex-1 text-[12px] px-3.5 py-2.5 rounded-xl border border-gray-200 resize-none focus:outline-none focus:border-violet-300 focus:ring-1 focus:ring-violet-200 disabled:opacity-40 placeholder:text-gray-300 leading-relaxed"
+            style={{ minHeight: 96, maxHeight: '50vh' }}
           />
           <button
             type="submit"
             disabled={generating || !input.trim()}
-            className="px-4 py-2.5 rounded-xl text-[11px] font-bold text-white disabled:opacity-30"
+            className="px-4 py-2.5 rounded-xl text-[11px] font-bold text-white disabled:opacity-30 shrink-0"
             style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}
           >
             Send

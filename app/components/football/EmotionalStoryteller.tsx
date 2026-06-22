@@ -56,7 +56,7 @@ export function EmotionalStoryteller() {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, Math.floor(window.innerHeight * 0.5)) + 'px';
+    el.style.height = Math.min(Math.max(el.scrollHeight, 96), Math.floor(window.innerHeight * 0.5)) + 'px';
   }, [input]);
 
   const track = (c: number) => {
@@ -189,9 +189,9 @@ export function EmotionalStoryteller() {
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
               placeholder="A player and their story… 'Diogo Jota tribute' · 'Iniesta's goal for Dani Jarque' · or refine the script above…"
-              rows={1}
+              rows={3}
               className="flex-1 text-[12px] bg-transparent px-4 pt-3 pb-1 resize-none focus:outline-none placeholder-gray-300 text-gray-800 leading-relaxed"
-              style={{ minHeight: 44, maxHeight: '50vh' }}
+              style={{ minHeight: 96, maxHeight: '50vh' }}
             />
             <div className="flex items-center justify-end px-3 pb-2">
               <p className="text-[8px] text-gray-300">Enter · Shift+Enter new line · first script runs 3 passes (~1–3 min)</p>
