@@ -67,7 +67,7 @@ function ScriptWriter({ story, onBack }: { story: Story; onBack: () => void }) {
     const el = inputRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = Math.min(Math.max(el.scrollHeight, 96), Math.floor(window.innerHeight * 0.5)) + 'px';
+    el.style.height = Math.min(el.scrollHeight, Math.floor(window.innerHeight * 0.5)) + 'px';
   }, [input]);
 
   async function callStage(payload: any) {
@@ -213,9 +213,9 @@ function ScriptWriter({ story, onBack }: { story: Story; onBack: () => void }) {
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e as any); } }}
             placeholder="Adjust the script... (e.g. 'make the hook darker', 'add more minute markers', 'shorter version')"
             disabled={generating}
-            rows={3}
-            className="flex-1 text-[12px] px-3.5 py-2.5 rounded-xl border border-gray-200 resize-none focus:outline-none focus:border-violet-300 focus:ring-1 focus:ring-violet-200 disabled:opacity-40 placeholder:text-gray-300 leading-relaxed"
-            style={{ minHeight: 96, maxHeight: '50vh' }}
+            rows={1}
+            className="flex-1 text-[12px] px-3.5 py-2.5 rounded-xl border border-gray-200 resize-none overflow-y-auto focus:outline-none focus:border-violet-300 focus:ring-1 focus:ring-violet-200 disabled:opacity-40 placeholder:text-gray-300 leading-relaxed"
+            style={{ minHeight: 44, maxHeight: '50vh' }}
           />
           <button
             type="submit"
