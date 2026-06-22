@@ -4,179 +4,268 @@ import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs';
 import path from 'path';
+import { CREATOR_BIAS } from '@/lib/football/creatorBias';
 import { calcCost } from '@/lib/football/costTracker';
 
 const client = new Anthropic();
 const OPUS = 'claude-opus-4-8';
 const SONNET = 'claude-sonnet-4-6';
 
-// Per-stage model. Opus drafts (deep biographical recall + creativity);
-// Sonnet handles the structural critique/rewrite and the flow polish within
-// Opus's frame — far cheaper, quality holds because the facts/structure are set.
-const STAGE_MODELS: Record<string, string> = {
-  draft: OPUS,
-  refine: SONNET,
-  polish: SONNET,
-  chat: SONNET,
-};
-
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
 const VIRAL_SKILL_PATH = path.join(process.cwd(), 'content-plan', 'emotional-storyteller', 'viral-style-skill.md');
 
-function loadToqueymedio(): string {
-  try { return fs.readFileSync(path.join(SKILLS_DIR, 'channel-toqueymedio-profile.md'), 'utf-8'); } catch { return ''; }
+// ════════════════════════════════════════════════════════════════════════════
+//  STUDIO BASE — faithful copy of Content Studio › Studio with ONLY toqueymedio
+//  selected. (Replicated, NOT imported, so the protected scriptchat route is
+//  never touched.) The DRAFT stage runs through exactly this.
+// ════════════════════════════════════════════════════════════════════════════
+
+function loadSkills(styles: string[] = []): string {
+  if (!fs.existsSync(SKILLS_DIR)) return '';
+  return fs.readdirSync(SKILLS_DIR)
+    .filter(f => f.endsWith('.md'))
+    .filter(f => {
+      if (!f.startsWith('channel-')) return true;
+      if (styles.length === 0) return true;
+      return styles.some(s => f.includes(s));
+    })
+    .map(f => {
+      const content = fs.readFileSync(path.join(SKILLS_DIR, f), 'utf-8');
+      return `### ${f}\n${content.slice(0, f.startsWith('channel-') ? 1200 : 1400)}`;
+    })
+    .join('\n---\n');
 }
+
+const TOQUEYMEDIO_SCRIPT_STRUCTURE = `
+═══════════════════════════════════════════
+TOQUEYMEDIO EMOTIONAL STORYTELLING SYSTEM
+═══════════════════════════════════════════
+
+FUNDAMENTAL RULE: Emotion is the DELIVERY. The CONTENT is always a specific, factual, accurate play-by-play of a real game or moment. Facts + emotion woven together = the formula. Facts alone = Wikipedia. Emotion alone = empty poetry.
+
+━━━ BEAT 1: THE HOOK (0:00–0:08) — Pure emotional ante. No facts yet. ━━━
+
+TEMPLATE A — "Imagine" Immersion (most used):
+  "Imagine [vivid scene: viewer at the exact moment of maximum tension/hope/dread].
+   [Sentence that makes it more impossible or beautiful — deepens the stakes].
+   [A fragment — a name, a question, one devastating fact — that opens the story]."
+  → Underdogs, comebacks, World Cup finals.
+
+TEMPLATE B — Paradox / Contradiction:
+  "[What everyone believes]. [Its devastating inversion]. [The consequence that reframes everything]."
+
+TEMPLATE C — Dramatic Irony:
+  "[Date and place, stated gravely]. [They don't know what's coming]. [What is coming]."
+
+FORBIDDEN hooks: "Did you know…" / stats-first / stand-alone question / hype openers / analytical setups.
+
+━━━ BEAT 2: THE SACRED GROUND (0:08–0:20) ━━━
+Date. Place. Stakes — one sentence. Stated gravely, like a verdict.
+
+━━━ BEAT 3: THE GAME NARRATIVE (0:20–1:10) — LONGEST & MOST CRITICAL SECTION ━━━
+MANDATORY: minute markers, specific player names at every moment, exact score progression, specific plays described cinematically, the specific controversy if there is one, an emotional sentence after each fact.
+
+━━━ BEAT 4: THE TURN — "And then…" — one fragment. The pivot. ━━━
+━━━ BEAT 5: THE CLIMAX — SLOW DOWN — ceremonial full name — cosmic imagery ━━━
+━━━ BEAT 6: TWO FACES — winner's euphoria / loser's desolation — one sentence each ━━━
+━━━ BEAT 7: APHORISTIC CLOSER — one universal truth — standalone — silence follows ━━━
+`;
+
+// Exactly the Studio system prompt, hard-set to the toqueymedio (emotional) branch.
+function buildStudioToqueymedioPrompt(): string {
+  return `You are an elite TikTok football script writer and content strategist for a creator covering the 2026 FIFA World Cup.
+
+You have studied 120 top-performing football videos from 16 creators and know exactly what makes football content go viral.
+
+STYLE — write in the voice of: @toqueymedio
+Emotional, cinematic, poetic storytelling. Present-tense narration, religious/cosmic imagery, ceremonial full names at climaxes, aphoristic final line. Deep feeling over hot takes.
+
+CAPABILITIES:
+- Write complete, ready-to-record TikTok scripts on any football topic
+- Research angles, find the hot take, identify the narrative hook
+- Rewrite, improve, or expand anything the creator sends
+- Suggest formats, hooks, captions, hashtags
+- Give direct, opinionated creative direction
+
+FORMAT (non-negotiable):
+- 105–135 seconds read aloud at natural pace (2–2.5 min target — emotional stories need length to build properly through all 7 beats)
+- Clean spoken words only — no [CAM], no [BROLL], no direction notes whatsoever
+- Build to a payoff — every script needs a reveal or a strong take
+${TOQUEYMEDIO_SCRIPT_STRUCTURE}
+${CREATOR_BIAS}
+
+WHEN WRITING A SCRIPT:
+After the script, always add:
+**Hook:** (the opening line alone)
+**Caption:** (under 150 chars)
+**Hashtags:** (6–8 relevant tags)
+
+Be direct. Don't ask clarifying questions unless essential — make a creative decision and write the script.`;
+}
+
 function loadViralSkill(): string {
   try { return fs.readFileSync(VIRAL_SKILL_PATH, 'utf-8'); } catch { return ''; }
 }
 
-// ── Research (same capability as Content Studio › Studio) ───────────────────────
-async function quickResearch(topic: string): Promise<string> {
-  const results: string[] = [];
+// ── Deep research (signals like Studio, but biographical + recency-aware) ────────
+async function fetchHeadlines(query: string, limit: number): Promise<string[]> {
   try {
-    const ytRes = await fetch(
-      `https://suggestqueries-clients6.youtube.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(topic)}&hl=en`,
-      { signal: AbortSignal.timeout(5000) }
+    const res = await fetch(
+      `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`,
+      { signal: AbortSignal.timeout(5000), cache: 'no-store' }
     );
-    const ytText = await ytRes.text();
-    const match = ytText.match(/\[[\s\S]+\]/);
-    if (match) {
-      const suggestions = JSON.parse(match[0])[1]?.slice(0, 8).map((s: any) => Array.isArray(s) ? s[0] : s) || [];
-      if (suggestions.length) results.push(`YouTube searches: ${suggestions.join(', ')}`);
-    }
-  } catch { /* skip */ }
-
-  try {
-    const newsRes = await fetch(
-      `https://news.google.com/rss/search?q=${encodeURIComponent(topic + ' football')}&hl=en-US&gl=US&ceid=US:en`,
-      { signal: AbortSignal.timeout(5000) }
-    );
-    const xml = await newsRes.text();
-    const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 8);
-    const headlines = items.map(m => {
+    const xml = await res.text();
+    return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, limit).map(m => {
       const t = m[1].match(/<title>([\s\S]*?)<\/title>/)?.[1]?.replace(/<!\[CDATA\[|\]\]>/g, '').replace(/&amp;/g, '&').trim();
-      return t ? `- ${t}` : '';
+      return t || '';
     }).filter(Boolean);
-    if (headlines.length) results.push(`Recent news:\n${headlines.join('\n')}`);
-  } catch { /* skip */ }
-
-  return results.length ? `\n\n[Live research on "${topic}"]\n${results.join('\n\n')}` : '';
+  } catch { return []; }
 }
 
-function styleSystem(): string {
-  const toqueymedio = loadToqueymedio();
-  const viral = loadViralSkill();
-  return `You are the Emotional Storyteller — an elite scriptwriter for viral TikTok/Shorts football films about players' lives: comeback arcs, loss, injury, poverty, redemption, with the World Cup as the stage where wound meets glory.
-
-You write in EXACTLY ONE voice: the refined toqueymedio emotional style below. There is no other style. Never analytical, never a hot take.
-
-The CONTENT is always specific, accurate, real facts (dates, places, clubs, minutes, scores, named players). The EMOTION is the delivery. Facts + emotion woven together is the entire craft.
-
-═══════════════════════════════════════════
-TOQUEYMEDIO BASE PROFILE
-═══════════════════════════════════════════
-${toqueymedio.slice(0, 3500)}
-
-═══════════════════════════════════════════
-REFINED VIRAL STYLE — THIS OVERRIDES THE BASE WHERE THEY DIFFER
-═══════════════════════════════════════════
-${viral}`;
+async function liveResearch(topic: string): Promise<string> {
+  const t = String(topic).slice(0, 90);
+  const [recent, general, bio] = await Promise.all([
+    fetchHeadlines(`${t} when:4d`, 8),   // recent: catches "yesterday's performance"
+    fetchHeadlines(`${t} football`, 6),  // general
+    fetchHeadlines(`${t} career story`, 5), // biographical
+  ]);
+  const blocks: string[] = [];
+  if (recent.length) blocks.push(`RECENT (last 4 days — use for any "yesterday/this week" facts):\n${recent.map(h => `- ${h}`).join('\n')}`);
+  if (general.length) blocks.push(`GENERAL:\n${general.map(h => `- ${h}`).join('\n')}`);
+  if (bio.length) blocks.push(`BACKGROUND:\n${bio.map(h => `- ${h}`).join('\n')}`);
+  return blocks.length ? blocks.join('\n\n') : '(no live headlines found — rely on verified knowledge, do not invent recent events)';
 }
 
 function extractText(res: any): string {
   return res.content.filter((b: any) => b.type === 'text').map((b: any) => b.text).join('');
 }
 
+// Strip stray markdown dividers the user doesn't want.
+function stripDividers(s: string): string {
+  return s.split('\n').filter(l => !/^\s*-{3,}\s*$/.test(l) && !/^\s*={3,}\s*$/.test(l)).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { stage, topic, draft, messages, modelOverride } = body;
+    const { stage, topic, bullets, draft, messages, modelOverride } = body;
+    const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
-    // Per-stage model (modelOverride lets us A/B test cheaper configs).
-    const model = modelOverride || STAGE_MODELS[stage] || SONNET;
-
-    const system = styleSystem();
-    let userPrompt = '';
-    let maxTokens = 5000;
-
-    if (stage === 'draft') {
-      const research = topic ? await quickResearch(String(topic).slice(0, 90)) : '';
-      maxTokens = 5000;
-      userPrompt = `TOPIC: ${topic}
-${research}
-
-PASS 1 of 3 — THE DRAFT.
-
-First, think step by step and recall EVERY specific, real fact about this subject: full birth name, birthplace, family, the clubs and dates of their rise, the exact wound (date, place, what happened), the aftermath, and the World Cup moment (date, stadium, opponent, minute, the play). Be ruthlessly factual — this is the spine.
-
-Then write a complete emotional script at TOQUEYMEDIO LENGTH (≈230–330 words, ~105–135 seconds spoken — tight and punchy, NOT sprawling) following the full arc: hook → humble origin → the rise → the wound (dated, cinematic) → the darkness → resurrection setup at the World Cup → ceremonial full name → the climax with minute markers and the silence motif → eruption → sky-point dedication → the nation weeps → aphoristic two-line closer. Hit every beat but keep each one lean — this is a short film, not an essay.
-
-THE HOOK IS THE MOST IMPORTANT LINE. It must be EXACTLY 2 or 3 short, punchy lines — each line ONE short breath/clause, NOT a long comma-piled sentence. Plain text, NOT bold. The final line is the turn and MUST start with "And" or "But". Match the 8-script rhythm exactly:
-  "Imagine watching men take your father away into the jungle
-   You don't know if he is alive or if he is ever coming back
-   And years later, you score in your country's World Cup opener — for the man they tried to take from you."
-WRONG (too long, sprawling): "Imagine you are 28 years old, running at full stride in the centre circle of a stadium in Lyon — the city where you became a champion, the city that already loves you."
-RIGHT (punchy): "Imagine your heart stops in the middle of the pitch. / No tackle. No warning. / And the last thing your legs do is lay you down on the grass."
-
-Output ONLY the script — no commentary, no labels.`;
-    } else if (stage === 'refine') {
-      maxTokens = 5000;
-      userPrompt = `PASS 2 of 3 — CRITIQUE & REWRITE.
-
-Here is the draft:
-"""
-${draft}
-"""
-
-First, think step by step and critique it hard against the viral style: Is the HOOK exactly 2–3 SHORT punchy lines (each one short clause, NOT a long comma-piled sentence), plain text (not bold), with the final line starting "And"/"But" as the turn? If the hook is one long sprawling sentence, it FAILS — rewrite it punchy like the 8-script examples (Díaz, Iniesta). Is every emotional beat sitting on a SPECIFIC real fact (dates, minutes, scores, named players)? Is the full birth name reserved for the climax only? Are the signature motifs present (the silence line, "for a heartbeat time slows", the eruption, the sky-point, the epithet-by-wound)? Is the closer an earned, story-specific aphorism? Is anything generic, invented, vague, or too long?
-
-Then rewrite the ENTIRE script fixing every weakness. Make it denser with real facts and more emotionally precise. Keep it TIGHT at toqueymedio length (~230–330 words, ~105–135s) — cut any sprawl.
-
-Output ONLY the rewritten script — no commentary.`;
-    } else if (stage === 'polish') {
-      maxTokens = 4000;
-      userPrompt = `PASS 3 of 3 — FINAL FLOW POLISH.
-
-Here is the refined script:
-"""
-${draft}
-"""
-
-Apply the ONE rule that matters most: FLOW OVER FULL STOPS. The emotional passages should run in long, breathing cascades joined by commas and "and", then snap to short punchy fragments at the moments of impact — that contrast is the texture. Kill choppy all-short-sentence rhythm in the BODY.
-
-BUT THE HOOK IS THE EXCEPTION: keep the hook as 2–3 SHORT punchy lines, plain text (NOT bold), each line one short breath, final line starting "And"/"But". Do not let the hook become one long sentence.
-
-Keep every fact. Keep it TIGHT at toqueymedio length (~105–135s) — if it runs long, cut sprawl, don't pad. Make it sound spoken aloud, not read.
-
-Output ONLY the final script, then on new lines add:
-**Hook:** (the opening lines as one block)
-**Caption:** (under 150 chars)
-**Hashtags:** (6–8 tags)`;
-    } else {
-      // chat refinement on an existing script — single pass, full conversation context
-      maxTokens = 4000;
-      const apiMessages = (messages || []).slice(-20);
+    // ── STAGE 1: RESEARCH → 10 emotional bullet points ──────────────────────────
+    if (stage === 'research') {
+      const live = await liveResearch(topic);
+      const model = modelOverride || SONNET;
       const res = await client.messages.create({
         model,
-        max_tokens: maxTokens,
-        system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
-        messages: apiMessages,
+        max_tokens: 1500,
+        system: [{
+          type: 'text',
+          text: `You are a football story researcher who digs out the deep, emotional human spine behind a player or a nation: where they came from, childhood and early life, poverty, migration, family, loss, injury, rejection, comeback arcs, underdog journeys. You are ruthlessly factual — real names, real dates, no invention. You never present an old event as if it were recent.`,
+        }],
+        messages: [{
+          role: 'user',
+          content: `Today is ${todayStr}.
+
+STORY REQUEST: "${topic}"
+
+LIVE HEADLINES:
+${live}
+
+Produce EXACTLY 10 factual bullet points that will feed an emotional football script. Weight them toward the emotional spine that makes these videos work:
+- where they came from, childhood, early life, the place that raised them
+- poverty / migration / leaving home young / adversity
+- family — a parent, a sibling, loss, sacrifice
+- the wound: a death, an injury, a rejection, a tragedy (with the date)
+- the comeback arc / underdog journey / what they overcame
+- IF the request mentions a recent match or performance, the ACCURATE specifics of that recent moment (date, opponent, what happened) — take these from the RECENT headlines above, NOT from an unrelated old match. If you are unsure of a recent detail, say so rather than inventing or substituting an old event.
+
+Player-tied or country-tied are both fine. Each bullet is one specific, checkable fact with names and dates where possible.
+
+Output ONLY the 10 bullets, one per line, each starting with "- ". No preamble.`,
+        }],
       });
       const text = extractText(res);
       const cost = calcCost(model, res.usage.input_tokens, res.usage.output_tokens);
       return NextResponse.json({ ok: true, message: text, cost, model });
     }
 
+    // ── STAGE 2: DRAFT — Content Studio › Studio with ONLY toqueymedio ───────────
+    if (stage === 'draft') {
+      const model = modelOverride || OPUS;
+      const systemBlocks: any[] = [
+        { type: 'text', text: buildStudioToqueymedioPrompt(), cache_control: { type: 'ephemeral' } },
+        { type: 'text', text: `## YOUR SKILL LIBRARY (120 viral football videos analysed)\n\n${loadSkills(['toqueymedio'])}`, cache_control: { type: 'ephemeral' } },
+      ];
+      const userMsg = `Write me a complete emotional toqueymedio script about:
+
+"${topic}"
+
+Researched context — weave these real facts in, and use the origin/early-life facts to open the story:
+${bullets || '(no extra context)'}`;
+      const res = await client.messages.create({
+        model,
+        max_tokens: 4000,
+        system: systemBlocks,
+        messages: [{ role: 'user', content: userMsg }],
+      });
+      const text = extractText(res);
+      const cost = calcCost(model, res.usage.input_tokens, res.usage.output_tokens);
+      return NextResponse.json({ ok: true, message: text, cost, model });
+    }
+
+    // ── STAGE 3: VIRAL — apply the 9-scripts refined skill ──────────────────────
+    if (stage === 'viral') {
+      const model = modelOverride || SONNET;
+      const viral = loadViralSkill();
+      const res = await client.messages.create({
+        model,
+        max_tokens: 4000,
+        system: [{ type: 'text', text: `You are the final editor. You take a toqueymedio script that is ~75% there and elevate it to the perfected viral style below, reverse-engineered from the creator's own viral scripts. This style guide OVERRIDES everything else.\n\n${viral}`, cache_control: { type: 'ephemeral' } }],
+        messages: [{
+          role: 'user',
+          content: `Here is the toqueymedio draft to elevate:
+"""
+${draft}
+"""
+
+Rewrite it to the perfected viral style. Non-negotiables:
+
+1. THE HOOK — rewrite it as EXACTLY 2 or 3 SHORT punchy lines, each one a single short breath (max ~14 words), plain text. The final line is the turn and MUST start with "And" or "But". NO long sprawling multi-clause hook. Match the reference rhythm: "Imagine watching men take your father away into the jungle / You don't know if he is alive or if he is ever coming back / And years later, you score in your country's World Cup opener — for the man they tried to take from you."
+
+2. FLOW — write in complete, flowing sentences. FEWER full stops AND fewer commas than the draft. Don't chop into staccato one-liners and don't comma-splice into endless run-ons — each sentence is a complete, vivid thought that flows into the next. Reserve short fragments only for moments of real impact.
+
+3. LENGTH — toqueymedio length (~230–330 words, ~105–135 seconds). Tight. Cut any sprawl.
+
+4. Keep every real fact. Keep the emotional spine, the ceremonial full name at the climax, the silence motif, the sky-point dedication, the aphoristic two-line closer.
+
+FORMATTING (important):
+- Output the script as clean spoken lines, each sentence or short beat on its OWN line, a blank line between beats — exactly like a Content Studio script.
+- NO "---" dividers, NO horizontal rules, NO bold anywhere in the script, NO markdown headers.
+
+After the script, on new lines:
+**Hook:** (the opening lines as one block)
+**Caption:** (under 150 chars)
+**Hashtags:** (6–8 tags)`,
+        }],
+      });
+      const text = stripDividers(extractText(res));
+      const cost = calcCost(model, res.usage.input_tokens, res.usage.output_tokens);
+      return NextResponse.json({ ok: true, message: text, cost, model });
+    }
+
+    // ── CHAT — single-pass refinement on an existing script ─────────────────────
+    const model = modelOverride || SONNET;
+    const viral = loadViralSkill();
+    const apiMessages = (messages || []).slice(-20);
     const res = await client.messages.create({
       model,
-      max_tokens: maxTokens,
-      system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
-      messages: [{ role: 'user', content: userPrompt }],
+      max_tokens: 4000,
+      system: [{ type: 'text', text: `You are the Emotional Storyteller editor. Keep the perfected viral style below. Always: 2–3 line punchy hook (final line starts And/But), complete flowing sentences (few full stops and commas), toqueymedio length, clean spoken lines, no "---", no bold in the script body.\n\n${viral}`, cache_control: { type: 'ephemeral' } }],
+      messages: apiMessages,
     });
-    const text = extractText(res);
+    const text = stripDividers(extractText(res));
     const cost = calcCost(model, res.usage.input_tokens, res.usage.output_tokens);
-
-    return NextResponse.json({ ok: true, message: text, cost, stage, model });
+    return NextResponse.json({ ok: true, message: text, cost, model });
   } catch (e: any) {
     console.error('[emotional-storyteller] Failed:', e.message);
     return NextResponse.json({ ok: false, error: e.message?.slice(0, 250) || 'Unknown error' }, { status: 500 });

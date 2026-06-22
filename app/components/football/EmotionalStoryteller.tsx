@@ -33,7 +33,7 @@ function Markdown({ text }: { text: string }) {
   );
 }
 
-const PASS_LABELS = ['Researching the story…', 'Pass 1 — drafting in toqueymedio structure…', 'Pass 2 — refining to your viral flow…', 'Pass 3 — final polish…'];
+const PASS_LABELS = ['Researching the story…', 'Researching — origin, comeback, the deep story…', 'Drafting in Studio (toqueymedio only)…', 'Applying your viral style — hook, flow, length…'];
 
 export function EmotionalStoryteller() {
   const [messages, setMessages] = useState<Message[]>([{
@@ -89,23 +89,23 @@ export function EmotionalStoryteller() {
 
     try {
       if (!hasScript) {
-        // ── FULL 3-PASS PIPELINE on the first script request ──
-        setProgress(1); // research + draft
-        const draftRes = await callStage({ stage: 'draft', topic: text });
+        // ── RESEARCH → STUDIO TOQUEYMEDIO DRAFT → VIRAL POLISH ──
+        setProgress(1); // research
+        const researchRes = await callStage({ stage: 'research', topic: text });
+        if (!researchRes.ok) throw new Error(researchRes.error || 'Research failed');
+        track(researchRes.cost || 0);
+
+        setProgress(2); // draft (Studio, toqueymedio only)
+        const draftRes = await callStage({ stage: 'draft', topic: text, bullets: researchRes.message });
         if (!draftRes.ok) throw new Error(draftRes.error || 'Draft failed');
         track(draftRes.cost || 0);
 
-        setProgress(2); // refine
-        const refineRes = await callStage({ stage: 'refine', draft: draftRes.message });
-        if (!refineRes.ok) throw new Error(refineRes.error || 'Refine failed');
-        track(refineRes.cost || 0);
+        setProgress(3); // viral elevation
+        const viralRes = await callStage({ stage: 'viral', draft: draftRes.message });
+        if (!viralRes.ok) throw new Error(viralRes.error || 'Viral pass failed');
+        track(viralRes.cost || 0);
 
-        setProgress(3); // polish
-        const polishRes = await callStage({ stage: 'polish', draft: refineRes.message });
-        if (!polishRes.ok) throw new Error(polishRes.error || 'Polish failed');
-        track(polishRes.cost || 0);
-
-        setMessages(p => [...p, { id: `a${Date.now()}`, role: 'assistant', text: polishRes.message || '' }]);
+        setMessages(p => [...p, { id: `a${Date.now()}`, role: 'assistant', text: viralRes.message || '' }]);
       } else {
         // ── Single-pass refinement for follow-up chat ──
         const apiMessages = [...messages.filter(m => m.id !== 'welcome'), userMsg].map(m => ({ role: m.role, content: m.text }));

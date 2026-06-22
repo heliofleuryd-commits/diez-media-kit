@@ -6,19 +6,19 @@ The subject is almost always **a player's life** — comeback arcs, sad stories,
 
 ---
 
-## 0. THE ONE RULE THAT MATTERS MOST: FLOW OVER FULL STOPS
+## 0. THE ONE RULE THAT MATTERS MOST: FLOW IN COMPLETE SENTENCES
 
-The single biggest refinement: **fewer full stops, more flow.** The emotional sections breathe in long, unbroken cascades joined by commas and "and" — then snap to short fragments at the moments of impact. The texture is the contrast between the two.
+The single biggest refinement: **complete, flowing sentences — fewer full stops AND fewer commas.** Do NOT write in choppy staccato one-liners (the un-refined version). Do NOT comma-splice into endless run-ons either. Each sentence is a complete, vivid thought that flows naturally into the next, the way a story is told out loud.
 
-- **Emotional cascade (long, flowing, comma-chained):**
-  > "his teammates turning their backs because their eyes cannot hold what they're seeing, the same teammates who minutes ago were celebrating now frozen with their hands buried in their hair, grown men weeping into each other's shoulders, and Madibo, the boy who caused it, collapsing onto the grass and breaking in a different way, because he already knows what the doctors are about to confirm."
+- **Flowing complete sentence (the target):**
+  > "He came from a forgotten corner of Colombia and his father coached the local kids on a dirt pitch because there was no academy and no door anyone would ever open for a boy like him."
 
-- **Impact fragment (short, punchy, full-stopped):**
-  > "And then." · "Fingertips. Just fingertips." · "Minute 12 — Spain come strong." · "One-nil." · "He strikes it clean. Fearless."
+- **Impact fragment (used sparingly, only at the hammer-blows):**
+  > "And then." · "One-nil." · "He strikes it clean. Fearless." · "Minute 90+3."
 
-RULE: When the emotion swells, let the sentence run for 3–5 clauses without a full stop. When the hammer falls, cut to fragments. Never write a whole script in choppy one-line sentences — that is the un-refined version. The flow is what makes it feel cinematic and spoken, not read.
+RULE: Let sentences breathe and connect — flow over choppiness — but keep them clean and complete, not buried under commas. Reserve short fragments for the moments of real impact (the turn, the goal, the silence). The flow is what makes it feel cinematic and spoken, not read.
 
-Voice is conversational and slightly informal — written to be *spoken aloud*, not published. Contractions, the occasional lowercase, run-ons that mimic breath.
+Voice is conversational and made to be *spoken aloud*, not published. Contractions are fine.
 
 ---
 
@@ -117,6 +117,12 @@ Emotion is the delivery; **specific, accurate facts are the content.** Every emo
 If a fact is uncertain, write around it rather than inventing — but the texture must be dense with real, checkable detail. Wikipedia-with-a-soul, not vague feeling.
 
 ---
+
+## 5b. FORMATTING (how it is written on the page)
+- Output the script as clean spoken lines — each sentence or short beat on its OWN line, with a blank line between beats, exactly like a Content Studio script.
+- NO "---" dividers, NO horizontal rules, NO markdown headers.
+- NO bold anywhere in the script body — not the hook, not the name, nothing. Plain spoken text.
+- After the script only: `**Hook:**`, `**Caption:**`, `**Hashtags:**` as the three trailing labels.
 
 ## 6. WHAT TO AVOID
 - Choppy all-short-sentence rhythm (the un-refined draft). Let emotion flow.
