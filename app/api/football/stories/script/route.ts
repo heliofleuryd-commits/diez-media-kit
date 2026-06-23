@@ -16,6 +16,7 @@ function storyContext(story: any): string {
   for (const f of story.key_facts || []) lines.push(`- ${f}`);
   if (story.emotional_arc) lines.push(`- Emotional arc: ${story.emotional_arc}`);
   if (story.script_angle) lines.push(`- Suggested angle: ${story.script_angle}`);
+  if (story.caution) lines.push(`- ⚠️ ACCURACY GUARDRAIL (do NOT contradict or repeat as myth): ${story.caution}`);
   return lines.join('\n');
 }
 

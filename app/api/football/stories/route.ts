@@ -43,6 +43,79 @@ function loadToqueymedio(): string {
   try { return fs.readFileSync(f, 'utf-8').slice(0, 1500); } catch { return ''; }
 }
 
+// ---- Heartbreak / Underdog bank + deterministic matching ----
+
+const HEARTBREAK_PATH = path.join(process.cwd(), 'content-plan', 'heartbreak-files.json');
+
+function loadHeartbreak(): { players: any[]; countries: any[]; excluded: string[]; debunked: string[] } {
+  try {
+    const b = JSON.parse(fs.readFileSync(HEARTBREAK_PATH, 'utf-8'));
+    return { players: b.players || [], countries: b.countries || [], excluded: b.excluded || [], debunked: b.debunked || [] };
+  } catch { return { players: [], countries: [], excluded: [], debunked: [] }; }
+}
+
+// strip accents + lowercase for robust matching against ESPN/news text
+function norm(s: string): string {
+  return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+function nameHit(name: string, haystack: string): boolean {
+  const n = norm(name);
+  if (n.length > 4 && haystack.includes(n)) return true;
+  const last = norm(name).split(/\s+/).pop() || '';
+  return last.length >= 5 && haystack.includes(last);
+}
+
+interface Matched { entry: any; type: 'personal' | 'country'; why: string; score: number; }
+
+// Scan live signals for bank players/countries that scored, played, or are trending today.
+function matchBank(
+  bank: { players: any[]; countries: any[] },
+  todayMatches: string[], yesterdayMatches: string[], newsItems: string[],
+): Matched[] {
+  const todayStr = norm(todayMatches.join(' | '));
+  const yestStr = norm(yesterdayMatches.join(' | '));
+  const matchStr = todayStr + ' || ' + yestStr; // scorer/card names live here
+  const newsStr = norm(newsItems.join(' | '));
+  const out: Matched[] = [];
+
+  for (const p of bank.players) {
+    const country = norm(p.country || '');
+    const scored = nameHit(p.name, matchStr);
+    const playedToday = country.length > 2 && todayStr.includes(country);
+    const playedYest = country.length > 2 && yestStr.includes(country);
+    const trending = nameHit(p.name, newsStr);
+    let why = '', score = 0;
+    if (scored) { why = 'Featured in a match scoreline in the last 48h (likely scored or was involved)'; score = 100; }
+    else if (playedToday) { why = `${p.country} are playing today`; score = 80; }
+    else if (trending) { why = 'Trending in today\'s headlines'; score = 70; }
+    else if (playedYest) { why = `${p.country} played yesterday`; score = 55; }
+    if (score > 0) out.push({ entry: p, type: 'personal', why, score: score + (p.sadness || 0) });
+  }
+
+  for (const c of bank.countries) {
+    const name = norm(c.name || '');
+    const playedToday = name.length > 2 && todayStr.includes(name);
+    const playedYest = name.length > 2 && yestStr.includes(name);
+    const trending = name.length > 2 && newsStr.includes(name);
+    let why = '', score = 0;
+    if (playedToday) { why = `${c.name} are playing today`; score = 85; }
+    else if (trending) { why = `${c.name} trending in headlines`; score = 65; }
+    else if (playedYest) { why = `${c.name} played yesterday`; score = 50; }
+    if (score > 0) out.push({ entry: c, type: 'country', why, score: score + (c.weight || 0) });
+  }
+
+  return out.sort((a, b) => b.score - a.score);
+}
+
+function fmtMatched(m: Matched): string {
+  const e = m.entry;
+  if (m.type === 'personal') {
+    return `- [${m.why}] ${e.name} (${e.country}, ${e.club || '?'}): ${e.story} HOOK: "${e.hook}"${e.caution ? ` ⚠️ CAUTION: ${e.caution}` : ''}`;
+  }
+  return `- [${m.why}] ${e.name} (country story, ${e.status}): ${e.story} HOOK: "${e.hook}"${e.caution ? ` ⚠️ CAUTION: ${e.caution}` : ''}`;
+}
+
 // ---- DATA (same as flash news) ----
 
 function parseMatches(data: any): string[] {
@@ -136,9 +209,26 @@ export async function POST(req: Request) {
     }
 
     const [espn, news, ytItems] = await Promise.all([fetchESPN(), fetchGoogleNews(), fetchYouTube()]);
-    const bankCompact = loadBankCompact();
 
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+    // Deterministically match the curated Heartbreak/Underdog bank against live signals.
+    const bank = loadHeartbreak();
+    const allNews = [...espn.headlines, ...news, ...ytItems];
+    const matched = matchBank(bank, espn.todayMatches, espn.yesterdayMatches, allNews);
+    const topMatched = matched.slice(0, 16);
+
+    // If few live matches, top up with the highest-emotional-weight evergreen players.
+    const matchedNames = new Set(topMatched.map(m => m.entry.name));
+    const evergreen = bank.players
+      .filter(p => !matchedNames.has(p.name))
+      .sort((a, b) => (b.sadness || 0) - (a.sadness || 0))
+      .slice(0, Math.max(0, 6 - topMatched.length))
+      .map(p => `- [Evergreen — no live trigger today, use only if nothing else fits] ${p.name} (${p.country}, ${p.club || '?'}): ${p.story} HOOK: "${p.hook}"${p.caution ? ` ⚠️ CAUTION: ${p.caution}` : ''}`);
+
+    const matchedText = topMatched.length > 0
+      ? topMatched.map(fmtMatched).join('\n')
+      : '(no bank players/countries matched live signals today)';
 
     const rawData = [
       '## TODAY', espn.todayMatches.join('\n') || 'No matches today.',
@@ -152,22 +242,29 @@ export async function POST(req: Request) {
 
 ${rawData}
 
-## PRE-RESEARCHED STORY BANK
-${bankCompact}
+## MATCHED FROM THE EMOTIONAL BANK (these players/countries scored, played, or are trending NOW — PRIORITISE THESE)
+${matchedText}
+${evergreen.length ? `\n## EVERGREEN BACKUPS\n${evergreen.join('\n')}` : ''}
 
-Generate 10 emotional story ideas ranked by today's relevance. Mix of PERSONAL (player adversity) and COUNTRY (historic matches/upsets). Prioritise goal scorers from today/yesterday. At least 5 HOT.
+## NEVER USE (wrong tournament / not selected / ethically risky)
+${bank.excluded.join('; ')}
+
+## DEBUNKED — never repeat these myths
+${bank.debunked.join('; ')}
+
+Build 10 emotional story ideas ranked by today's relevance, drawn FIRST from the MATCHED bank entries above (they have a real live trigger today). Use their provided facts and HOOK. Keep at least 5 as HOT. Mix PERSONAL (player) and COUNTRY stories. If a matched entry has a ⚠️ CAUTION, copy it into the "caution" field verbatim-ish so the creator doesn't repeat a myth on camera. Only fall back to EVERGREEN backups if there aren't enough live matches.
 
 ${CREATOR_BIAS}
 
 Output ONLY valid JSON array, no other text:
-[{"rank":1,"type":"personal","title":"Short title","player":"Name","teams":null,"relevance":"HOT","why_today":"Why now","headline":"Hook line","key_facts":["F1","F2","F3","F4","F5"],"emotional_arc":"Arc","script_angle":"Angle"}]`;
+[{"rank":1,"type":"personal","title":"Short title","player":"Name","teams":null,"relevance":"HOT","why_today":"The live trigger (scored/played/trending)","headline":"Hook line","key_facts":["F1","F2","F3","F4","F5"],"emotional_arc":"Arc","script_angle":"Angle","caution":"Myth/accuracy flag or empty string"}]`;
 
     const res = await client.messages.create({
       model: M_FAST,
-      max_tokens: 4000,
+      max_tokens: 4500,
       system: [{
         type: 'text',
-        text: `You are a football story researcher who finds emotional backstories behind today's matches. Goal scorers, assists, red cards — every player has a story. Focus on real adversity: injury comebacks, poverty, family tragedy, refugee backgrounds, racism, rejection. For country stories: upsets, revenge arcs, colonial subtext. Be specific with facts. Output only valid JSON array. No markdown.`,
+        text: `You are a football story researcher. You are given a CURATED, FACT-CHECKED bank of emotional player and country backstories that already matched today's live signals (who scored, who played, what's trending). Your job is to turn the matched entries into ranked story ideas, faithfully using their facts and hooks. Never invent backstories, never use excluded players, never repeat debunked myths, and always carry forward any ⚠️ CAUTION flag. Output only valid JSON array. No markdown.`,
         cache_control: { type: 'ephemeral' },
       }],
       messages: [{ role: 'user', content: prompt }],

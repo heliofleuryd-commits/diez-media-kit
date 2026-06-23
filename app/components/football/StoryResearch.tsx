@@ -15,6 +15,7 @@ interface Story {
   key_facts: string[];
   emotional_arc: string;
   script_angle: string;
+  caution?: string;
 }
 
 type Filter = 'all' | 'personal' | 'country';
@@ -254,6 +255,7 @@ function StoryContext({ story }: { story: Story }) {
           </div>
           <p className="text-[10.5px] text-gray-500"><span className="text-gray-300 font-bold">Arc:</span> {story.emotional_arc}</p>
           <p className="text-[10.5px] text-gray-500"><span className="text-gray-300 font-bold">Angle:</span> {story.script_angle}</p>
+          {story.caution && <p className="text-[10.5px] text-amber-700"><span className="font-bold">⚠️ Caution:</span> {story.caution}</p>}
         </div>
       )}
     </div>
@@ -316,6 +318,12 @@ function StoryCard({ story, onWriteScript }: { story: Story; onWriteScript: () =
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Script Angle</p>
             <p className="text-[11.5px] text-gray-700 leading-relaxed">{story.script_angle}</p>
           </div>
+          {story.caution && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+              <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 mb-0.5">⚠️ Accuracy / Myth Flag</p>
+              <p className="text-[11px] text-amber-800 leading-relaxed">{story.caution}</p>
+            </div>
+          )}
           <button
             onClick={onWriteScript}
             className="w-full mt-2 px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider text-white transition-all hover:opacity-90"
