@@ -46,8 +46,8 @@ const ACCOUNTS: AccountStat[] = [
     platform: 'tiktok',
     niche: 'Football',
     url: 'https://tiktok.com/@diez.ball',
-    avgViews: { '3m': '212K', '6m': '198K', '12m': '185K' },
-    engRate:  { '3m': '7.8%', '6m': '7.4%', '12m': '7.1%' },
+    avgViews: { '3m': '425K', '6m': '358K', '12m': '358K' },
+    engRate:  { '3m': '14.8%', '6m': '14.5%', '12m': '14.5%' },
   },
   {
     handle: '@imDiez',
