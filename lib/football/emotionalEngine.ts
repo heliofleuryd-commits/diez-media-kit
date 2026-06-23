@@ -194,7 +194,7 @@ ${context || '(no extra context)'}`;
   return { text: extractText(res), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
 }
 
-export async function runViral(client: Anthropic, draft: string, model = SONNET): Promise<StageResult> {
+export async function runViral(client: Anthropic, draft: string, model = OPUS): Promise<StageResult> {
   const viral = loadViralSkill();
   const res = await client.messages.create({
     model,
@@ -207,18 +207,20 @@ export async function runViral(client: Anthropic, draft: string, model = SONNET)
 ${draft}
 """
 
-Rewrite it to the perfected viral style. Non-negotiables:
+Rewrite it into a finished script that reads like the creator's own viral scripts. Non-negotiables:
 
-1. THE HOOK — rewrite it as EXACTLY 2 or 3 SHORT punchy lines, each one a single short breath (max ~14 words), plain text. The final line is the turn and MUST start with "And" or "But". NO long sprawling multi-clause hook. Match the reference rhythm: "Imagine watching men take your father away into the jungle / You don't know if he is alive or if he is ever coming back / And years later, you score in your country's World Cup opener — for the man they tried to take from you."
+0. STRUCTURE — follow the reference arc beat-for-beat: the bold-feeling 3-line hook, then the humble origin (where he came from), the rise, the dated wound (state the date plainly), the darkness/doubt, the World Cup resurrection setup (date, stadium, a nation holding its breath), the ceremonial FULL birth name at the threshold of the climax, the slow-motion climax with the "they say it is hard to hear silence…" motif, the eruption, the sky-point dedication, and a two-line aphoristic closer ("Some… / Very few…"). This shape is what makes it resemble the reference scripts — do not drift from it.
 
-2. FLOW — write in complete, flowing sentences. FEWER full stops AND fewer commas than the draft. Don't chop into staccato one-liners and don't comma-splice into endless run-ons — each sentence is a complete, vivid thought that flows into the next. Reserve short fragments only for moments of real impact.
+1. THE HOOK — EXACTLY 2 or 3 short punchy lines, each a single breath (max ~14 words), plain text. The final line is the turn and MUST start with "And" or "But". No long sprawling multi-clause hook. Reference rhythm: "Imagine watching men take your father away into the jungle / You don't know if he is alive or if he is ever coming back / And years later, you score in your country's World Cup opener — for the man they tried to take from you."
 
-3. LENGTH — this is a HARD limit. The final script body MUST be about 480–540 words and MUST NEVER exceed 600 words (the length of the longest reference script). Count as you go and cut any sprawl until it fits. Shorter and tighter is always better than longer.
+2. FLOW & FULL SENTENCES — after the hook, write in COMPLETE, FLOWING SENTENCES, exactly like the reference scripts. Each sentence is a full thought that breathes — use connectors (and, because, until, while) and commas WITHIN a sentence to carry the listener forward. Do NOT chop the script into many short staccato lines or fragments. Reserve a standalone short fragment only for a single deliberate hammer-blow (the turn, the goal, the silence). The body should feel like flowing narration, not a bullet list.
 
-4. Keep every real fact. Keep the emotional spine, the ceremonial full name at the climax, the silence motif, the sky-point dedication, the aphoristic two-line closer.
+3. LENGTH — HARD limit: ~480–540 words, NEVER above 600 (the longest reference script). Cut sprawl to fit.
 
-FORMATTING (important):
-- Output the script as clean spoken lines, each sentence or short beat on its OWN line, a blank line between beats — exactly like a Content Studio script.
+4. Keep every real fact, the emotional spine, the ceremonial full name at the climax, the silence motif, the sky-point dedication, and the earned aphoristic closer.
+
+FORMATTING — match the reference scripts exactly:
+- Each line is ONE complete, flowing sentence (not a fragment). Put a blank line between beats so it breathes. Keep the TOTAL number of lines modest — never shatter a single thought across multiple short lines.
 - NO "---" dividers, NO horizontal rules, NO bold anywhere in the script body, NO markdown headers.
 
 After the script, on new lines:
@@ -230,12 +232,12 @@ After the script, on new lines:
   return { text: stripDividers(extractText(res)), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
 }
 
-export async function runChat(client: Anthropic, messages: any[], model = SONNET): Promise<StageResult> {
+export async function runChat(client: Anthropic, messages: any[], model = OPUS): Promise<StageResult> {
   const viral = loadViralSkill();
   const res = await client.messages.create({
     model,
     max_tokens: 4000,
-    system: [{ type: 'text', text: `You are the Emotional Storyteller editor. Keep the perfected viral style below. Always: 2–3 line punchy hook (final line starts And/But), complete flowing sentences (few full stops and commas), ~500 words and never above 600, clean spoken lines, no "---", no bold in the script body.\n\n${viral}`, cache_control: { type: 'ephemeral' } }],
+    system: [{ type: 'text', text: `You are the Emotional Storyteller editor. Keep the perfected viral style below. Always: 2–3 line punchy hook (final line starts And/But); the body in complete, flowing full sentences (not choppy fragments, modest number of lines, blank line between beats); ~500 words and never above 600; clean spoken lines; no "---"; no bold in the script body.\n\n${viral}`, cache_control: { type: 'ephemeral' } }],
     messages: (messages || []).slice(-20),
   });
   return { text: stripDividers(extractText(res)), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };

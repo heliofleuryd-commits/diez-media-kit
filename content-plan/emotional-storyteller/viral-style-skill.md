@@ -8,15 +8,15 @@ The subject is almost always **a player's life** — comeback arcs, sad stories,
 
 ## 0. THE ONE RULE THAT MATTERS MOST: FLOW IN COMPLETE SENTENCES
 
-The single biggest refinement: **complete, flowing sentences — fewer full stops AND fewer commas.** Do NOT write in choppy staccato one-liners (the un-refined version). Do NOT comma-splice into endless run-ons either. Each sentence is a complete, vivid thought that flows naturally into the next, the way a story is told out loud.
+The single biggest refinement: **the body is written in complete, flowing sentences — like the reference scripts — NOT chopped into many short staccato lines.** Each sentence is a full thought that breathes and carries the listener forward, using connectors (and, because, until, while) and commas WITHIN the sentence for rhythm. Commas are good here — they are how the sentence flows. What to avoid is fragmenting one thought across several tiny lines, and writing a whole script as a list of clipped one-liners.
 
-- **Flowing complete sentence (the target):**
-  > "He came from a forgotten corner of Colombia and his father coached the local kids on a dirt pitch because there was no academy and no door anyone would ever open for a boy like him."
+- **Flowing complete sentence (the target — note how it runs on one line):**
+  > "He came from a forgotten corner of Colombia where his father coached the local kids on a dirt pitch, because there was no academy and no path to glory and no door anyone would ever open for a boy like him."
 
-- **Impact fragment (used sparingly, only at the hammer-blows):**
+- **Impact fragment (used SPARINGLY — only at a single hammer-blow):**
   > "And then." · "One-nil." · "He strikes it clean. Fearless." · "Minute 90+3."
 
-RULE: Let sentences breathe and connect — flow over choppiness — but keep them clean and complete, not buried under commas. Reserve short fragments for the moments of real impact (the turn, the goal, the silence). The flow is what makes it feel cinematic and spoken, not read.
+RULE: flowing complete sentences are the default; reserve a standalone short fragment only for the turn, the goal, or the silence. Keep the total number of lines modest. The flow is what makes it feel cinematic and spoken, not a bullet list.
 
 Voice is conversational and made to be *spoken aloud*, not published. Contractions are fine.
 
@@ -118,8 +118,8 @@ If a fact is uncertain, write around it rather than inventing — but the textur
 
 ---
 
-## 5b. FORMATTING (how it is written on the page)
-- Output the script as clean spoken lines — each sentence or short beat on its OWN line, with a blank line between beats, exactly like a Content Studio script.
+## 5b. FORMATTING (how it is written on the page — match the reference scripts)
+- Each line is ONE complete, flowing sentence (not a fragment). Put a blank line between beats so it breathes. Keep the total number of lines modest — NEVER shatter a single thought across multiple short lines.
 - NO "---" dividers, NO horizontal rules, NO markdown headers.
 - NO bold anywhere in the script body — not the hook, not the name, nothing. Plain spoken text.
 - After the script only: `**Hook:**`, `**Caption:**`, `**Hashtags:**` as the three trailing labels.
