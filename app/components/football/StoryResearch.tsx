@@ -385,24 +385,17 @@ export function StoryResearch() {
     catch { return { ok: false, error: `Server returned invalid response (${res.status})` }; }
   }
 
+  // On mount only LOAD already-cached stories (GET is free — no model call).
+  // Never auto-generate; the creator must hit Refresh to spend tokens.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        setLoading(true);
         const cachedRes = await fetch('/api/football/stories');
         const cachedData = await safeJson(cachedRes);
         if (cancelled) return;
-        if (cachedData.ok && cachedData.stories?.length > 0) { applyData(cachedData); setLoading(false); return; }
-        const freshRes = await fetch('/api/football/stories', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}),
-        });
-        const fresh = await safeJson(freshRes);
-        if (cancelled) return;
-        if (fresh.ok && fresh.stories?.length > 0) applyData(fresh);
-        else if (fresh.error) setError(fresh.error);
-      } catch (e) { if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load stories'); }
-      finally { if (!cancelled) setLoading(false); }
+        if (cachedData.ok && cachedData.stories?.length > 0) applyData(cachedData);
+      } catch { /* ignore — empty state will show */ }
     })();
     return () => { cancelled = true; };
   }, [applyData]);
@@ -504,8 +497,8 @@ export function StoryResearch() {
         {!loading && stories.length === 0 && !error && (
           <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-12 text-center">
             <div className="text-3xl mb-3">📖</div>
-            <h2 className="text-[14px] font-bold text-gray-800 mb-1">No stories yet</h2>
-            <p className="text-[11px] text-gray-400 max-w-sm mx-auto">Stories auto-generate each morning. Hit Refresh to generate now.</p>
+            <h2 className="text-[14px] font-bold text-gray-800 mb-1">No stories loaded</h2>
+            <p className="text-[11px] text-gray-400 max-w-sm mx-auto">Hit <span className="font-bold text-violet-600">Refresh Stories</span> to research today's, or type your own story above. (Won't run on its own — no tokens spent until you click.)</p>
           </div>
         )}
       </div>
