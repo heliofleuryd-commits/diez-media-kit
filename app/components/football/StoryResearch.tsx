@@ -447,10 +447,9 @@ export function StoryResearch() {
             <textarea
               value={customTopic}
               onChange={e => setCustomTopic(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); scriptCustom(); } }}
               placeholder="e.g. 'Marc-Vivien Foé collapsing on the pitch' · 'Sergio Agüero's heart forcing him to retire' · a player + their story…"
               rows={2}
-              className="flex-1 text-[12px] bg-white border border-gray-200 rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:border-violet-300 focus:ring-1 focus:ring-violet-200 placeholder:text-gray-300 leading-relaxed"
+              className="flex-1 text-[12px] text-gray-800 bg-white border border-gray-200 rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:border-violet-300 focus:ring-1 focus:ring-violet-200 placeholder:text-gray-300 leading-relaxed"
             />
             <button onClick={scriptCustom} disabled={!customTopic.trim()}
               className="px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider text-white disabled:opacity-30 shrink-0"
