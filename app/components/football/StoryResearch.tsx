@@ -227,7 +227,7 @@ function ScriptWriter({ story, onBack }: { story: Story; onBack: () => void }) {
             placeholder="Adjust the script... (e.g. 'make the hook darker', 'add more minute markers', 'shorter version')"
             disabled={generating}
             rows={1}
-            className="flex-1 text-[12px] px-3.5 py-2.5 rounded-xl border border-gray-200 resize-none overflow-y-auto focus:outline-none focus:border-violet-300 focus:ring-1 focus:ring-violet-200 disabled:opacity-40 placeholder:text-gray-300 leading-relaxed"
+            className="flex-1 text-[12px] text-gray-800 px-3.5 py-2.5 rounded-xl border border-gray-200 resize-none overflow-y-auto focus:outline-none focus:border-violet-300 focus:ring-1 focus:ring-violet-200 disabled:opacity-40 placeholder:text-gray-300 leading-relaxed"
             style={{ minHeight: 44, maxHeight: '50vh' }}
           />
           <button
