@@ -2,7 +2,7 @@ export const maxDuration = 300;
 
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { runDraft, runViral, runChat } from '@/lib/football/emotionalEngine';
+import { runResearch, runDraft, runViral, runChat, liveResearch } from '@/lib/football/emotionalEngine';
 
 const client = new Anthropic();
 
@@ -23,13 +23,23 @@ function storyContext(story: any): string {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { stage, story, draft, messages, modelOverride } = body;
+    const { stage, story, topic, context, draft, messages, modelOverride } = body;
 
-    // STAGE 1: DRAFT — Studio toqueymedio, seeded by the story's curated facts
-    // (the research is already done — these stories come pre-researched).
+    // STAGE 0: RESEARCH — for a free-text custom topic the creator typed in.
+    // Deep + recency-aware bullets, same engine as the Emotional Storyteller.
+    if (stage === 'research') {
+      const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+      const live = await liveResearch(topic);
+      const r = await runResearch(client, topic, todayStr, live, modelOverride);
+      return NextResponse.json({ ok: true, message: r.text, cost: r.cost, model: r.model });
+    }
+
+    // STAGE 1: DRAFT — Studio toqueymedio. Seeded by the story's curated facts,
+    // or by `context` (researched bullets) when it's a custom typed-in topic.
     if (stage === 'draft') {
-      const topic = story?.player ? `${story.title} — ${story.player}` : story?.title || 'this story';
-      const r = await runDraft(client, topic, storyContext(story || {}), modelOverride);
+      const t = story?.player ? `${story.title} — ${story.player}` : story?.title || topic || 'this story';
+      const ctx = context || storyContext(story || {});
+      const r = await runDraft(client, t, ctx, modelOverride);
       return NextResponse.json({ ok: true, message: r.text, cost: r.cost, model: r.model });
     }
 

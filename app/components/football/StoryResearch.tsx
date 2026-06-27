@@ -16,6 +16,7 @@ interface Story {
   emotional_arc: string;
   script_angle: string;
   caution?: string;
+  custom?: boolean;
 }
 
 type Filter = 'all' | 'personal' | 'country';
@@ -29,7 +30,8 @@ const RELEVANCE_STYLE: Record<string, string> = {
 
 // ---- Script Writer Chat ----
 
-const PASS_LABELS = ['Writing…', 'Drafting in Studio (toqueymedio only)…', 'Applying your viral style — hook, flow, length…'];
+const PASS_LABELS_CURATED = ['Writing…', 'Drafting in Studio (toqueymedio only)…', 'Applying your viral style — hook, flow, length…'];
+const PASS_LABELS_CUSTOM = ['Writing…', 'Researching the story…', 'Drafting in Studio (toqueymedio only)…', 'Applying your viral style — hook, flow, length…'];
 
 // Renders the script as clean spoken lines; trailing **Hook:/Caption:/Hashtags:**
 // become small grey labels. No literal asterisks, no bold in the body.
@@ -82,17 +84,27 @@ function ScriptWriter({ story, onBack }: { story: Story; onBack: () => void }) {
 
   function track(c?: number) { if (c) { setScriptCost(x => x + c); addSpend(c); } }
 
-  // First generation: Studio-toqueymedio draft → viral elevation
+  // First generation. Custom typed-in topics get a research pass first
+  // (research → draft → viral); curated daily stories already have facts (draft → viral).
   async function generateScript() {
     setMessages([{ role: 'user', content: `Write the script for "${story.title}"` }]);
     setGenerating(true);
     try {
-      setProgress(1);
-      const draftRes = await callStage({ stage: 'draft', story });
+      let context: string | undefined;
+      if (story.custom) {
+        setProgress(1); // research
+        const r = await callStage({ stage: 'research', topic: story.title });
+        if (!r.ok) throw new Error(r.error || 'Research failed');
+        track(r.cost);
+        context = r.message;
+      }
+
+      setProgress(story.custom ? 2 : 1); // draft
+      const draftRes = await callStage({ stage: 'draft', story, context });
       if (!draftRes.ok) throw new Error(draftRes.error || 'Draft failed');
       track(draftRes.cost);
 
-      setProgress(2);
+      setProgress(story.custom ? 3 : 2); // viral
       const viralRes = await callStage({ stage: 'viral', draft: draftRes.message });
       if (!viralRes.ok) throw new Error(viralRes.error || 'Viral pass failed');
       track(viralRes.cost);
@@ -189,11 +201,11 @@ function ScriptWriter({ story, onBack }: { story: Story; onBack: () => void }) {
                 <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                 <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
-              <span className="text-[11px] text-gray-400">{PASS_LABELS[progress] || 'Writing…'}</span>
+              <span className="text-[11px] text-gray-400">{(story.custom ? PASS_LABELS_CUSTOM : PASS_LABELS_CURATED)[progress] || 'Writing…'}</span>
             </div>
             {progress > 0 && (
               <div className="flex gap-1 mt-2">
-                {[1, 2].map(n => (
+                {(story.custom ? [1, 2, 3] : [1, 2]).map(n => (
                   <div key={n} className={`h-1 rounded-full transition-all ${n <= progress ? 'bg-violet-500' : 'bg-gray-200'}`} style={{ width: 28 }} />
                 ))}
               </div>
@@ -348,6 +360,17 @@ export function StoryResearch() {
   const [cost, setCost] = useState(0);
   const [cached, setCached] = useState(false);
   const [activeStory, setActiveStory] = useState<Story | null>(null);
+  const [customTopic, setCustomTopic] = useState('');
+
+  function scriptCustom() {
+    const t = customTopic.trim();
+    if (!t) return;
+    setActiveStory({
+      rank: 0, type: 'personal', title: t, player: t, teams: null,
+      relevance: 'EVERGREEN', why_today: 'Your request', headline: '',
+      key_facts: [], emotional_arc: '', script_angle: '', custom: true,
+    });
+  }
 
   const applyData = useCallback((data: any) => {
     setStories(data.stories || []);
@@ -413,8 +436,29 @@ export function StoryResearch() {
         <div className="mb-5">
           <h1 className="text-xl font-black text-gray-900 tracking-tight">Story Research</h1>
           <p className="text-[12px] text-gray-500 mt-1">
-            Daily emotional stories to script — click any story and hit Write Script to generate a full toqueymedio-style script.
+            Daily emotional stories to script — or give me your own below and I'll research it and write the script.
           </p>
+        </div>
+
+        {/* Custom topic — type a story, it researches + scripts it */}
+        <div className="rounded-xl border border-violet-200 bg-violet-50/40 px-4 py-3.5 mb-5">
+          <p className="text-[10px] font-black uppercase tracking-widest text-violet-500 mb-2">✍️ Write a script from your own story</p>
+          <div className="flex gap-2 items-start">
+            <textarea
+              value={customTopic}
+              onChange={e => setCustomTopic(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); scriptCustom(); } }}
+              placeholder="e.g. 'Marc-Vivien Foé collapsing on the pitch' · 'Sergio Agüero's heart forcing him to retire' · a player + their story…"
+              rows={2}
+              className="flex-1 text-[12px] bg-white border border-gray-200 rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:border-violet-300 focus:ring-1 focus:ring-violet-200 placeholder:text-gray-300 leading-relaxed"
+            />
+            <button onClick={scriptCustom} disabled={!customTopic.trim()}
+              className="px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider text-white disabled:opacity-30 shrink-0"
+              style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
+              Research &amp; Script
+            </button>
+          </div>
+          <p className="text-[9px] text-gray-400 mt-1.5">I research it (origin, comeback, the deep story), draft in toqueymedio, then apply your viral style. ~1–2 min.</p>
         </div>
 
         <div className="flex items-center gap-3 mb-5">
