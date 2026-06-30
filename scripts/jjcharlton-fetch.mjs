@@ -32,7 +32,8 @@ console.log('(full metadata extraction — this can take a few minutes)\n');
 
 let raw;
 try {
-  raw = execFileSync('yt-dlp', [
+  raw = execFileSync('python3', [
+    '-m', 'yt_dlp',         // use the pip-installed yt-dlp (no separate binary needed)
     '--dump-json',          // full info per video → includes view_count
     '--skip-download',
     '--no-warnings',
