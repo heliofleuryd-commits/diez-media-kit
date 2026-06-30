@@ -45,6 +45,8 @@ Below are his ${'50'} best videos of the last year (ranked by views) with captio
 ${corpus}
 """
 
+CRITICAL — DO THIS FIRST: read the LITERAL first words of all 50 transcripts and the LITERAL last sentence of each. If most/all share a fixed formula (e.g. they all open with the same phrase, or all close with the same sign-off), THAT formula is the hook/closer — quote it verbatim, state what fraction use it, and put it at the very top as a non-negotiable template. DO NOT abstract a recurring formula away into a vague description. The opening and closing formulas are the most important things to capture exactly.
+
 Write a complete, highly specific channel skill profile in this EXACT markdown format. Be concrete — quote real lines from the transcripts. Vague descriptions are useless; an AI must be able to write a script that is indistinguishable from jjcharlton from this profile alone.
 
 # Channel Profile: @jjcharlton

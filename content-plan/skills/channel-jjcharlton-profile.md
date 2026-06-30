@@ -1,150 +1,126 @@
 # Channel Profile: @jjcharlton
 
-## 1. Voice & Persona
+Reverse-engineered from his 50 most-viewed videos of the last year (full transcripts). This is an ANALYTICAL/STORYTELLING football creator. The single most important thing about him is his **fixed opening formula** — get that wrong and it is not jjcharlton. 50 out of 50 videos use it.
 
-JJ is a **football storyteller-analyst** — he sits somewhere between a documentary narrator and a mate explaining a wild story he just read. His core mode is NOT cold tactical analysis; it's **narrative-driven human-interest storytelling** with an analytical spine. He frames every topic as a *story* with a protagonist, a turning point, and an emotional payoff (warrior redemption, robbery, injustice, triumph).
+---
 
-His confidence level is **high but warm**. He delivers verdicts as settled fact ("And let's be real, he's absolutely spot on") but he's not arrogant or sneering — he's emotionally invested *on behalf of the player or fan*. He's the guy rooting for the underdog, outraged at the injustice, delighted at the fairytale.
+## 0. THE NON-NEGOTIABLE FORMULA (get this exactly right)
 
-He positions his take through **shared assumption** — "I think we can all agree," "I'm sure all football fans will agree with me." He rarely fights the audience; he assumes they already feel what he feels and voices it for them. When he's contrarian (e.g. the France squad video, the match-rating videos), it's framed as *common-sense truth the algorithms/ratings/officials got wrong* — never as a hot edgy outlier opinion.
+Every single script follows this skeleton:
 
-He's emotionally generous: players are "warriors," moments are "beautiful," and he openly champions class, professionalism and fairytales. He genuinely *feels* the stories.
+1. **HOOK** — `Imagine being a [role] who [an ironic / paradoxical / extraordinary situation]…` (usually with a "but" twist inside it).
+2. **PIVOT/REVEAL** — `Well, this is the story of [Name].` (or "So this is the story of…", "Because this is the story of…", "Well this is the story on how…").
+3. **CONTEXT** — `So as we all know…` / `Now let's first of all address the elephant in the room…` — set the scene.
+4. **THE EVENTS** — the story told chronologically in long flowing sentences chained with And / But / Because / So, with his opinion woven in.
+5. **CLOSER** — `And in conclusion to this video, [verdict / prediction / "all I have is X words…" / comment-bait question].`
 
-## 2. Tone & Vocabulary Register
+If a script does not open with "Imagine being a…" (or a close variant) and does not close with "And in conclusion to this video…", it is wrong.
 
-**Register:** Conversational British, mid-formality. Clean, broadcast-friendly storytelling sentences mixed with bursts of casual British football slang. He narrates like a YouTube doc but punctuates with lad energy.
+---
 
-**British-isms & slang:**
-- "absolutely dreadful," "absolutely ridiculous," "absolutely brilliant" (heavy "absolutely" user)
-- "bagging," "dropping numbers," "dropped an unbelievable 45 minutes," "drops a masterclass"
-- "knuckled down," "got his head down," "downs tools"
-- "on the piss," "having a couple of drinks"
-- "tasty" ("things get tasty"), "bottles it" ("the referee, he bottles it")
-- "proper" ("he proper went for it"), "mental" ("which is absolutely mental to say")
-- "gaffer," "the cop" (the Kop), "the Prem"
-- crude-but-cheeky comparisons: "the same price that it costs to take a dump in a public toilet," "Nike absolutely shat on Adidas"
+## 1. THE HOOK (first ~5 seconds) — THE MOST IMPORTANT LINE
 
-**Football vocabulary:** High fluency but accessible — "centre half," "pocket two of the best midfielders," "run in behind," "press," "cameo minutes," "goal contributions," "match rating," "the eye test," "PSR situation," "ultras culture," "Harambeau" (Bordalás's anti-football). He uses stats casually ("30 goal contributions in his first 16 matches") but always in service of the story.
+ALWAYS starts with **"Imagine"** + a second-person role, framing a contradiction or a surprising outcome (the curiosity gap). The hook teases the whole story without naming the person yet.
 
-**Sentence rhythm:** Long flowing narrative sentences for setup, then **short punchy fragments for emphasis**: "45!" / "Nothing." / "Until today." / "Isn't there." He loves the one-word/short hammer line dropped after a build.
+The exact shapes he uses (all verbatim openings):
+- `Imagine being a [role] who/that [ironic setup]` — "Imagine being a striker that recorded the lowest match rating out of the entire Arsenal starting 11 but he was in fact the best player on the pitch."
+- `Imagine being a [role], [setup], but [twist]` — "Imagine being a goalkeeper, giving over two decades of service to your national team, and in a home World Cup you're handed…"
+- `Imagine [gerund] [X]` — "Imagine sacking your manager, even though he beat one of the best nations in the world, but you have decided to replace him with the greatest free-kick taker of all time."
+- `Imagine there being a [X]` — "Imagine there being a football manager who is so hated in his country that the national broadcaster had to blur his face."
+- `Imagine a [X]` — "Imagine a fanbase gate-crashing a wedding."
 
-## 3. The Hook (first 3 seconds) — THE MOST IMPORTANT SECTION
+Roles he plugs in: a footballer, a striker, a winger, a defender, a centre-back, a goalkeeper, a referee, a football manager, a pundit, a nation, a football club, a fanbase.
 
-His hook is **almost mechanically consistent**: the overwhelming majority of videos open with the word **"Imagine"** followed by a second-person hypothetical that sounds impossible, then twists.
+RULES for the hook:
+- It is built on a **paradox or irony** — the lowest rating but the best player; sacked even though he won; the least famous player who becomes a global star; a dream taken away then given back.
+- Keep it to ONE flowing sentence (commas, "but", "even though") — do not chop it.
+- NEVER name the subject in the hook. The name is revealed in the pivot.
+- Forbidden: starting with a stat, a question, "Did you know", or "In today's video".
 
-### Hook Pattern A — "Imagine being a [ROLE]…" (his signature, ~70% of videos)
-He puts YOU in the protagonist's shoes via second person, builds an impossible-sounding scenario, and ends on the twist. The structure is: *Imagine being a [role] who [does/experiences something remarkable], but [twist/injustice/payoff].*
+## 2. THE PIVOT / REVEAL (immediately after the hook)
 
-VERBATIM:
-- "Imagine being a referee whose dream was to officiate at a World Cup. A dream that was set to happen but it gets taken away from him."
-- "Imagine being a goalkeeper, giving over two decades of service to your national team and in a home World Cup you're handed an opportunity to make one final appearance inside your national stadium and FIFA ends up giving you the one thing you deserved."
-- "Imagine being a footballer who's the least famous player going to the World Cup but overnight he becomes an international superstar."
-- "Imagine being a striker that recorded the lowest match rating out of the entire Arsenal starting 11 but he was in fact the best player on the pitch."
-- "Imagine being a footballer who barely played a minute this season being named a Europa League champion."
+One short sentence that names the subject and turns the hook into a story. Verbatim patterns:
+- "Well, this is the story of [Name]."
+- "So this is the story of [Name] against [opponent]."
+- "Because this is the story on how [Name] is going to [X]."
+- "Well this is the story of [Name]."
 
-### Hook Pattern B — "Imagine [SCENARIO/ACTION]…" (no "being a")
-Same "Imagine" opener but framed around a situation, event or action rather than a role.
+He often follows it with "And for those that weren't aware…" or "Now let's first of all address the elephant in the room…".
 
-VERBATIM:
-- "Imagine the biggest tournament in the world being hosted on football pitches where the ball does not bounce."
-- "Imagine a fanbase gate crashing a wedding."
-- "Imagine scoring your 1000th career goal and your son is playing for the same team as you so you can share the moment together."
-- "Imagine two football clubs going face-to-face in a promotion shootout for a place in the football league."
-- "Imagine a team winning the Copa del Rey and they show off the trophy in their next home game. But the opposition coach and the king of Harambeau takes offence to this and goes and beats them 1-0 without having a single shot."
+## 3. Voice & Persona
 
-### Hook Pattern C — "Imagine there being a [ROLE] who is so [X]…"
-A subtype escalating into something extreme/absurd.
+A **football storyteller-analyst** — half documentary narrator, half mate telling you a wild story he just saw. Warm, high-confidence, emotionally invested ON BEHALF of the player/fan/underdog. He delivers verdicts as settled fact ("absolutely ridiculous", "he's absolutely spot on") but he's championing someone, not sneering. He speaks FOR the audience: "I think we can all agree", "as we all know", "for anyone who watched that game".
 
-VERBATIM:
-- "Imagine there being a football manager who is so hated in his country that the national broadcaster had to blur his face during his final press conference as head coach."
-- "Imagine there being a nation doing a football chant that the world falls in love with…"
-- "Imagine there being a nation who gave their nation the best World Cup send-off ever, who were labelled as one of the dark horses of the competition, crashing out with a game spare and failing to score in 60 shots."
+## 4. Tone, Vocabulary & British-isms
 
-**What he NEVER does:** He never opens with a question. He never opens with "Today I'm going to talk about…" He never opens with a stat or a name cold. He never opens with himself ("I think…"). The hook is ALWAYS the impossible second-person scenario, and crucially the hook contains the **full mini-paradox of the story** before he's even named anyone.
+Conversational British, mid-formality, broadcast-friendly storytelling. Heavy on:
+- "absolutely" + adjective: "absolutely ridiculous / brilliant / amazing / spot on / dreadful"
+- "incredible / incredibly", "insane", "ridiculous", "unbelievable", "massive problem"
+- football slang: "dropping numbers", "drop a masterclass", "run in behind", "roll the centre half", "win fouls", "bossing the midfield", "the eye test", "match rating", "cameo minutes", "the Prem", "the gaffer"
+- "And in an incredible series of events…", "single-handedly wrecked", "got the job done"
 
-## 4. Intro / Setup (≈3–12s)
+## 5. Flow & Pacing (fix the "too many full stops" problem)
 
-Immediately after the hook, he names the story with a fixed **"Well, this is the story of…"** formula, then drops his follow CTA.
+His sentences FLOW — they are long and chained with connectors, not chopped into staccato fragments. Look at a real one:
 
-VERBATIM:
-- "Well this is the story of Omar Attan being kicked out of the World Cup."
-- "Well, this is the story of Memo Ochoa's last match for Mexico and before we get into this story consider following for more."
-- "Well this is the depressing decline of Nick Voltimata at Newcastle United and it's all because of one man."
-- "Well, this is the story of Jean-Philippe Mateta's Conference League winning goal for Crystal Palace. And before we get into this story consider following for more."
+> "And in an incredible series of events, they've decided to appoint Shinsuke Nakamura as the new permanent head coach, and for those that weren't aware, he was one of the best free-kick takers in the world at Celtic, scoring an insane goal against Manchester United and having the most ridiculous goal catalogue."
 
-Then the **"So to kick off this story, I'd like to take you back to…"** time-travel device that launches the chronology:
-- "So to kick off this story I'd like to take you back to the CAF Award Ceremony in Morocco on the 19th of November in 2025."
-- "So to kick things off let's go back 20 years where Ochoa made his first World Cup appearance."
-- "So I'd like to take you back a couple of days where Omar Attan landed in Miami."
+That is ONE sentence. Most of his lines run two-to-four clauses joined by **and / but / because / so / even though / which means**. Start sentences with "And…" and "But…" to keep momentum. Reserve a genuinely short line only for a hammer beat ("Absolutely ridiculous.").
 
-The stakes are always embedded in the hook itself, so the setup's job is to *anchor the timeline* and start the chronological build.
+## 6. Body Structure & Argument Flow
 
-## 5. Body Structure & Argument Flow
+After the pivot:
+1. **Context** — "So as we all know…" establish what happened / the situation.
+2. **Address the obvious counterpoint** — "Now let's first of all address the elephant in the room, which was [the miss / the bad rating / the result]…" then dismiss or reframe it.
+3. **Stack the evidence as a story** — chronological events, each chained with And/But, opinion woven in ("how on earth he got a 5.5 I find absolutely ridiculous"). He uses specific facts/stats casually but always in service of the narrative.
+4. **The payoff / verdict** — the resolution, the legacy line, or his judgement ("this would make Mateta a Crystal Palace legend forever").
 
-His body is almost always a **chronological narrative arc**, not a list. He builds the story beat by beat through time, planting the rise and then the fall (or fall then rise).
+## 7. Length
 
-**Typical beat order (the redemption/fairytale arc):**
-1. **Hook** (the paradox)
-2. **"Well this is the story of…" + follow CTA**
-3. **"Take you back to…"** — establish the starting point / the rise
-4. **The build** — stacks achievements/evidence chronologically: "scoring in his debut… he was scoring every single week… this led to him winning player of the month"
-5. **The turn** — a "But then…" pivot: "But then Eddie Howell makes a controversial decision."
-6. **The low point / injustice / tension** — fully dwelled on emotionally
-7. **The payoff** — the redemptive moment or final verdict, described with rising emotion
-8. **"And in conclusion to this video…"** — verdict + emotional sign-off or question
+~300–350 words is typical (range 219–576), i.e. **roughly 60–90 seconds** read at pace. Tight single-story videos sit around 220–250 words. Do not pad past ~350 unless the story genuinely needs it.
 
-**Suspense-withholding technique:** He deliberately teases reveals and holds them. "He decides to play Anthony Gordon up front instead of Nick Voltimata." / "But who does Arne Slott end up bringing off? He brings off Rio Ngamoha." / "look who is coming on. Ochoa would come onto the pitch." He sets up the question, pauses, then answers it himself.
+## 8. The Closer (almost every video)
 
-**Handling counterpoints:** When making an argument-style video (match ratings, France squad), he *acknowledges the case against first* then dismantles it: "Now let's first of all address the elephant in the room which was this golden opportunity… It was an absolute sitter but he missed it. But for anyone who watched that game tonight…" He pre-empts the obvious objection then overrides it with the eye-test verdict.
+Signature sign-off: **"And in conclusion to this video, …"** followed by one of:
+- a **verdict**: "…I think we can all agree, this was definitely the right decision."
+- a **prediction / intrigue**: "…it's going to be incredibly interesting to see which World Cup games Omar Attan will referee."
+- the **"X words" device**: "…all I have is four words. Thank you, Memo Ochoa."
+- **comment-bait**: "…your thoughts are the most important, so let me know in the comments. Do you think João Pedro should have gone to the World Cup or not?"
+- Occasionally he closes on a forward-looking line instead: "But I, for one, have never seen a manager do this before."
 
-**Evidence stacking:** He stacks rapid-fire examples for momentum: "He's not moaned once about Eddie Howell moving position for him. He's not moaned once about being on the bench every single week. He's just knuckled down…" Triple-repetition for emphasis is common.
+## 9. Signature Phrases & Verbal Tics (use these)
 
-## 6. Length & Pacing
+- "Imagine being a…" (open)
+- "Well, this is the story of…" (pivot)
+- "And in conclusion to this video…" (close)
+- "So as we all know…" / "for those that weren't aware…"
+- "let's first of all address the elephant in the room"
+- "I think we can all agree" / "I think we all know"
+- "absolutely [ridiculous/brilliant/spot on]"
+- "And in an incredible series of events…"
+- "via the eye test" / "for anyone who watched that game"
+- direct address to the subject: "Well [Name], I have a message for you."
 
-- **Duration:** Mostly **1m07s–1m50s**, clustering around **1m20s–1m35s**. Longer narrative pieces (Ochoa, Iraola, Koné injury) push **2m07s–2m41s**.
-- **Word count:** Roughly **220–420 words** for standard videos; ~500+ for the 2m30s+ ones.
-- **Speaking speed:** Brisk — roughly **180–210 wpm**. He talks fast and continuous, very few real pauses; momentum is constant.
-- **Beats:** Typically **5–8 chronological beats** between hook and conclusion.
-- **Pacing dynamics:** Fast continuous narration, then he **slams the brakes for a punch line** — drops a one-word or short fragment ("Nothing." / "45!" / "Until today.") to create a beat of contrast. Speeds back up immediately into the next build. The conclusion slows slightly into a warm or emphatic close.
+## 10. Format Patterns (named)
 
-## 7. Signature Rhetorical Devices, Phrases & Verbal Tics
+- **Pattern A — The Ironic Injustice**: "Imagine being a [player] who got the worst rating / was booed / was snubbed… but he was actually brilliant." → defend him via the eye test → verdict. (match-rating & snub videos)
+- **Pattern B — The Fairytale / Legacy**: "Imagine being a [player/keeper] giving decades of service… last game, send-off." → emotional payoff → "thank you, [name]." (Ochoa, retirements, milestones)
+- **Pattern C — The Incredible Series of Events**: "Imagine sacking your manager even though he won…" → "this is the story on how [X]" → the absurd chain of events → wry prediction. (manager/transfer/World Cup admin stories)
+- **Pattern D — The Off-Pitch Story**: "Imagine a fanbase gate-crashing a wedding / a chant the world fell in love with…" → human-interest tale → feel-good close.
 
-1. **"Imagine being a…"** — the universal opener (see Section 3).
+## 11. How to Write in This Style — Step by Step
 
-2. **"Well, this is the story of…"** — the title-drop that follows every hook. "Well this is the story of Raul Jimenez's goal against South Africa."
+1. Find the **paradox** in the topic (the thing that shouldn't be true but is). That IS the hook.
+2. Write the hook: `Imagine being a [role] who [paradox], but [twist]…` — one flowing sentence, no name yet.
+3. Pivot: `Well, this is the story of [Name].`
+4. Context: `So as we all know…` set the scene in 1–2 flowing sentences.
+5. Address the elephant in the room (the obvious counter), then reframe it.
+6. Tell the events chronologically in long And/But-chained sentences, weaving in your verdict and a couple of specific facts/stats.
+7. Land the payoff / legacy line.
+8. Close: `And in conclusion to this video, …` + a verdict, a prediction, "X words: …", or a comment-bait question.
+9. Keep it ~300–350 words, flowing, British, warm-but-confident.
 
-3. **"And before we get into this story, consider following for more."** — near-mandatory CTA welded into the intro. Sometimes "before we get into things, consider following for more World Cup stories."
-
-4. **"So to kick off this story, I'd like to take you back to…"** — the time-machine transition launching the chronology. Variants: "take you back to," "let's go back to," "I want to take you back to."
-
-5. **"But then…" / "Until today." / "But..."** — the pivot device that flips the narrative from rise to fall (or vice versa). "He's just knuckled down… Until today."
-
-6. **The withheld reveal as rhetorical question** — sets up then answers: "But who does Arne Slott end up bringing off? He brings off Rio Ngamoha which is absolutely insane." / "And guess who Nike ran with for England? … They go with Cole Palmer."
-
-7. **The triple-stack repetition** — "fighting and fighting and fighting and fighting for every single duel" / "social media posts after social media posts after social media posts" / "many, many more."
-
-8. **"And in conclusion to this video…"** — the fixed closing signpost. Almost every video ends with this phrase.
-
-9. **Consensus-claiming** — "And I think we can all agree…" / "I'm sure all football fans will agree with me when I say…" / "And let's be real, he's absolutely spot on."
-
-10. **"Absolutely [adjective]"** — his intensifier of choice: "absolutely ridiculous," "absolutely dreadful," "absolutely brilliant," "absolutely box office," "absolutely baffling," "absolute warrior," "absolute sitter," "absolute state of it."
-
-11. **"The eye test"** — his recurring analytical authority appeal against stats/ratings: "For anyone who watches football via the eye test they will all be aware that you were absolutely brilliant."
-
-12. **Direct address to the player** — he breaks into second person to talk TO the subject: "Well Victor I have a message for you." / "Well, Thomas Tuchel didn't listen to you, my friend." / "Well Harvey, I guess you didn't play a huge part in the way that you wanted to but you did in the way that you had to."
-
-13. **"And do you want to know what's [beautiful/amazing] about this?"** — sets up the emotional kicker. "And do you want to know what's also amazing about this? Look what was on his sleeve."
-
-14. **Reaction-cue narration** — describes on-screen footage live: "Just look at the absolute state of it." / "Look at the max height the ball got off the bounce." / "look at his run up it's identical to his dad's."
-
-## 8. Format Patterns (named)
-
-**Pattern A — The Redemption/Warrior Fairytale** (his bread and butter)
-Topics: comebacks, last dances, underdog triumphs, players overcoming adversity. (Ochoa, Jimenez, Mateta, Maeda, Harvey Elliott, Koné, Tim Payne.)
-Structure: Hook (impossible scenario) → "story of" → "take you back" to the low/origin point → chronological rise → setback → the redemptive moment described with peak emotion → warm conclusion ("Thank you, Memo Ochoa" / "he's an absolute warrior").
-
-**Pattern B — The Injustice / Robbery** (outrage on behalf of)
-Topics: bad match ratings, MOTM snubs, squad omissions, the referee travel ban, journalist's comments. (Gyökeres 5.5, Bouaddi, João Pedro, Bellingham MOTM, Omar Artan, Doku/Pierron.)
-Structure: Hook framing the unfairness → build the case that the person deserved better → present the injustice → stack evidence/eye-test verdict → conclusion that often throws it to the audience: "your opinions are the most important. Do you think…?"
-
-**Pattern C — The Viral Spectacle / "You Won
+Example openings in his exact voice:
+- "Imagine being a 17-year-old who gets booed by his own fans in his first World Cup start, but by full-time the entire stadium is chanting his name. Well, this is the story of…"
+- "Imagine being a manager who didn't win a single one of his first nine games, but somehow he's about to lead his club out at a World Cup. So this is the story of…"
+- "Imagine being a striker the whole country gave up on, sold for almost nothing, but tonight he's just knocked his old club out of the Champions League. Well, this is the story of…"
