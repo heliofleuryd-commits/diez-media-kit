@@ -81,7 +81,7 @@ Write a complete, highly specific channel skill profile in this EXACT markdown f
 
 const res = await client.messages.create({
   model: 'claude-opus-4-8',
-  max_tokens: 5000,
+  max_tokens: 8000,
   messages: [{ role: 'user', content: prompt }],
 });
 
