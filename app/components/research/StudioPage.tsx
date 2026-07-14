@@ -200,6 +200,7 @@ export function StudioPage() {
     emotional: [
       { id: 'toqueymedio', label: 'toqueymedio' },
       { id: 'elefutbol',   label: 'elefutbol' },
+      { id: 'davidkingstories', label: 'davidking' },
     ],
   };
   const [selectedStyles, setSelectedStyles] = useState<Set<string>>(
