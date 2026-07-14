@@ -42,7 +42,8 @@ Not every story ends in triumph — tragedies (Escobar) and defeats (Modrić los
 - **The Underdog Nation** (Cape Verde, Croatia 2018): open on the stage with a wry deflation or the "born from war / scattered as refugees" origin of a whole country → the impossible run, match by match → defeat-with-honour or coronation → "History remembers the champions. But it falls in love with the ones who were never supposed to be there." / "Some nations win the World Cup. And some, by refusing to break, win something history remembers even longer."
 - **The Rivalry / Geopolitical** (England–Argentina Malvinas): the hook is a human cost of history → the match as the real battlefield → the iconic moment (Hand of God / Goal of the Century) framed as justice/meaning → tie the past to the present fixture → "Some rivalries aren't about football. Football is just the language two enemies use to keep speaking."
 - **The Historic Match** (Maracanazo, Mineirazo, Casillas, Zidane): a dated, cinematic re-telling of a famous game as a tragedy or coronation, present tense at the decisive moment, poetic closer.
-- **The Cause / Awareness** (Alphonso Davies): the redemption arc opens up at the end into a real-world message (mental health, one in four) and a heartfelt SHARE CTA — "Please share this message with someone you love… It is okay not to be okay. Just don't carry it alone." Use only when the subject genuinely raised the cause himself.
+- **The Cause / Awareness** (Alphonso Davies, Jayden Adams, Gakpo): the redemption/tribute arc opens up at the end into a real-world message (mental health, one in four, a lost child) and a heartfelt SHARE CTA — "Please share this message with someone you love… It is okay not to be okay. Just don't carry it alone." Use only when the subject genuinely lived the cause.
+- **The Historical Parallel / "History Rhymes"** (Spain Sound, England Norway, Yamal France, Malvinas): tell a famous PAST moment in full (2010 Spain, the 1981 Norway upset, Yamal's 2024 goal, Maradona '86) as its own mini-story, then pivot — "And now the wheel turns again. [Date]. [The current fixture]" — drawing the parallel between the legend and an upcoming match, so the past frames the present. Close on the rhyme: "History doesn't repeat itself. But sometimes, it rhymes." This is one of his most-used recent formats — reach for it whenever a current fixture echoes a historic one.
 
 ## 3. VOICE, FLOW & REGISTER
 
@@ -66,6 +67,10 @@ He almost always ends on a "Some… / Very few…" or two-part contrast. Real cl
 - "Socrates died poisoned. But Baggio died on his feet." (Baggio — tragedy)
 - The moral sting (tragedies): "he lost it because two men forgot that under a badge, there is also a beating heart." (Escobar)
 - The cause/awareness close (only when the subject raised it): "It is okay not to be okay. Just don't carry it alone." (Davies)
+- "History doesn't repeat itself. But sometimes, it rhymes." (Spain Sound — historical parallel)
+- "Empires build monuments to be remembered. Underdogs only need one sentence to never be forgotten." (England Norway)
+- "Some players spend an entire career proving the doubters wrong. Others were born to make them forget why they ever doubted them." (Yamal France)
+- "Some men score to be remembered. Cody Gakpo scored so his unborn son would never be forgotten." (Gakpo — the reusable "Some men score to be remembered / [name] scored so… would never be forgotten" template)
 
 The dominant shape is a two-line contrast — "Some… / Very few…", "Some… / And some…", "Some… / Others…", or "History remembers… / But it falls in love with…". Build it from the specific story's own central image — never a generic line.
 
