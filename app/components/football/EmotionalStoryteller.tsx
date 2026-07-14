@@ -45,6 +45,7 @@ export function EmotionalStoryteller() {
   const [progress, setProgress] = useState(0); // 0 = idle, 1-3 = pass number
   const [cost, setCost] = useState(0);
   const [dailySpend, setDailySpend] = useState(0);
+  const [mode, setMode] = useState<'old' | 'new'>('new'); // OLD = base viral style · NEW = blended with Diez's Notion story format
   const endRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -68,7 +69,7 @@ export function EmotionalStoryteller() {
   async function callStage(payload: any): Promise<{ ok: boolean; message?: string; error?: string; cost?: number }> {
     const res = await fetch('/api/football/emotional-storyteller', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, mode }),
     });
     const text = await res.text();
     try { return JSON.parse(text); }
@@ -129,8 +130,22 @@ export function EmotionalStoryteller() {
         <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px]" style={{ background: 'linear-gradient(135deg,#f59e0b,#dc2626)' }}>🕯️</span>
         <div className="flex-1 min-w-0">
           <p className="text-[12px] font-black text-gray-900">Emotional Storyteller</p>
-          <p className="text-[8px] text-gray-400 uppercase tracking-widest font-bold">toqueymedio · viral-refined · 3-pass</p>
+          <p className="text-[8px] text-gray-400 uppercase tracking-widest font-bold">{mode === 'new' ? 'diez format · 50% merged' : 'base viral style'} · 3-pass</p>
         </div>
+
+        {/* OLD / NEW style toggle */}
+        <div className="flex items-center rounded-lg border border-gray-200 overflow-hidden shrink-0" title="OLD = base viral style. NEW = blended 50/50 with your Notion Story format.">
+          {(['old', 'new'] as const).map(m => (
+            <button key={m} onClick={() => setMode(m)}
+              className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider transition-colors ${
+                mode === m ? 'text-white' : 'text-gray-400 hover:text-gray-600 bg-white'
+              }`}
+              style={mode === m ? { background: 'linear-gradient(135deg,#f59e0b,#dc2626)' } : undefined}>
+              {m}
+            </button>
+          ))}
+        </div>
+
         {cost > 0 && <span className="text-[9px] text-gray-300 font-mono">{formatCost(cost)} this session</span>}
         <span className={`text-[9px] font-mono font-bold ${dailySpend >= 1.8 ? 'text-orange-500' : 'text-gray-300'}`}>
           {formatCost(dailySpend)}<span className="font-normal text-gray-300">/day</span>

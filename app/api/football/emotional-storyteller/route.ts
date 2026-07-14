@@ -10,6 +10,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { stage, topic, bullets, draft, messages, modelOverride } = body;
+    const mode = body.mode === 'old' ? 'old' : 'new'; // OLD = base viral only; NEW = blended with Diez's format
     const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
     if (stage === 'research') {
@@ -24,11 +25,11 @@ export async function POST(req: Request) {
     }
 
     if (stage === 'viral') {
-      const r = await runViral(client, draft, modelOverride);
+      const r = await runViral(client, draft, modelOverride, mode);
       return NextResponse.json({ ok: true, message: r.text, cost: r.cost, model: r.model });
     }
 
-    const r = await runChat(client, messages, modelOverride);
+    const r = await runChat(client, messages, modelOverride, mode);
     return NextResponse.json({ ok: true, message: r.text, cost: r.cost, model: r.model });
   } catch (e: any) {
     console.error('[emotional-storyteller] Failed:', e.message);

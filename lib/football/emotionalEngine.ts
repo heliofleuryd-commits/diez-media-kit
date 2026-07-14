@@ -107,10 +107,14 @@ function loadDiezFormat(): string {
   try { return fs.readFileSync(DIEZ_SKILL_PATH, 'utf-8'); } catch { return ''; }
 }
 
-// The Emotional Storyteller blends the base viral style 50/50 with Diez's own
-// proven format; on any conflict, Diez's real posted-script habits win.
-function blendedStyle(): string {
+// Emotional Storyteller style modes:
+//  'old' = the base viral style only (pre-Diez-merge).
+//  'new' = base viral style blended 50/50 with Diez's own Notion Story format.
+export type StyleMode = 'old' | 'new';
+
+function blendedStyle(mode: StyleMode = 'new'): string {
   const viral = loadViralSkill();
+  if (mode === 'old') return viral;
   const diez = loadDiezFormat();
   if (!diez) return viral;
   return `Blend the TWO style guides below roughly 50/50. Guide A is the base viral style; Guide B is DIEZ'S OWN format, reverse-engineered from his real posted scripts. Where they differ, FOLLOW GUIDE B (Diez's own hooks, closers, structure and motifs win — they are his proven voice).
@@ -214,8 +218,8 @@ ${context || '(no extra context)'}`;
   return { text: extractText(res), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
 }
 
-export async function runViral(client: Anthropic, draft: string, model = OPUS): Promise<StageResult> {
-  const style = blendedStyle();
+export async function runViral(client: Anthropic, draft: string, model = OPUS, mode: StyleMode = 'new'): Promise<StageResult> {
+  const style = blendedStyle(mode);
   const res = await client.messages.create({
     model,
     max_tokens: 4000,
@@ -254,8 +258,8 @@ After the script, on new lines:
   return { text: stripDividers(extractText(res)), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
 }
 
-export async function runChat(client: Anthropic, messages: any[], model = OPUS): Promise<StageResult> {
-  const style = blendedStyle();
+export async function runChat(client: Anthropic, messages: any[], model = OPUS, mode: StyleMode = 'new'): Promise<StageResult> {
+  const style = blendedStyle(mode);
   const res = await client.messages.create({
     model,
     max_tokens: 4000,
