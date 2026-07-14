@@ -60,8 +60,8 @@ Keep it TIGHT — a short film, not an essay. Hit every beat below, but each bea
 5. **THE DARKNESS** — the aftermath. Depression, doubt, the body betraying him, the world counting him out: "In football, they bury you quietly and then they stop expecting anything." The goals dry up. People stop saying his name.
 6. **THE RESURRECTION SETUP** — "But the world forgot what a man carries when he has already stared into the abyss and survived." Then a NEW date: the World Cup match. "June 17th, 2026." The stadium named, the crowd counted ("Eighty-seven thousand"), the nation holding its breath, the anthem sung through tears.
 7. **THE CEREMONIAL NAMING** — at the threshold of the climax, the full birth name, stated like a coronation: "stands Luis Fernando Díaz Marulanda." / "Raúl Alonso Jiménez Rodríguez." / "João Maria Lopes Neves." Reserve the full name for THIS moment only. NOT bold.
-8. **THE CLIMAX** — a minute marker ("in the 65th", "the 67th minute"), present tense, slow motion: "for a heartbeat, time slows." The signature silence line (see §3). Then the strike: short, fearless fragments.
-9. **THE ERUPTION** — "Colombia explodes. Millions of souls erupt as if the whole country has been set free at once."
+8. **THE CLIMAX** — a minute marker ("in the 65th", "the 67th minute"), present tense, slow motion. Then the strike. Write FRESH climax imagery specific to this person — do NOT default to a stock line, and NEVER use "they say it is hard to hear silence" (that line is banned from overuse).
+9. **THE CROWD REACTION** — only if there is an actual goal or a trophy lifted. If so, describe the eruption in NEW words unique to this story. If the story has no goal/celebration (a tragedy, an injury, a dedication), skip crowd-eruption imagery entirely — never force "[Country] explodes / millions of souls erupt".
 10. **THE SKY-POINT / DEDICATION** — he points to the heavens, searches the stands, dedicates it to the one who is gone or watching "from above," who "weeps from above."
 11. **THE NATION WEEPS** — widen out: "across Colombia, in every barrio that has waited by silent phones, they cry — because tonight, his goal belongs to all of them."
 12. **THE APHORISTIC CLOSER** — two lines, a universal truth, usually a "Some… / Very few…" contrast (see §4).
@@ -71,15 +71,20 @@ Not every story has a goal/triumph — some end in tragedy carried forward by te
 
 ---
 
-## 3. SIGNATURE MOTIFS & LINES (the DNA — weave these, vary the wording)
+## 3. SIGNATURE MOTIFS & LINES (the DNA — the *techniques*, never the exact words)
 
-These recur across the viral scripts. Use them as a palette — adapt, don't photocopy:
+These are TECHNIQUES that recur across the viral scripts. Learn the move, then write it FRESH every single time. The goal is variety — no two scripts should share a sentence. Photocopying a line is the biggest failure mode.
 
-- **The silence line (signature):** "They say it is hard to hear silence. But [name], in that moment, heard the silence of [the frightened boy / the hospital / his trauma] — while an entire nation screamed his name."
-- **The fearless strike:** "He strikes it clean. Fearless. The way a man finishes when he has already survived the worst the world could throw at him."
-- **Time slowing:** "for a heartbeat, time slows." / "suspended in that single, weightless second."
-- **The eruption:** "[Country] explodes. Millions of souls erupt as if the earth itself has split open."
-- **The sky / the third element in heaven:** points to the sky; "his father weeps from above"; "a fifteen-year-old girl finally watches her brother become exactly what she always promised"; "an angel above their heads."
+⛔ **BANNED — do not write these, they have been overused:**
+- "They say it is hard to hear silence…" — never use this line again, in any form.
+- "[Country] explodes / millions of souls erupt" — only ever for a real goal or trophy, and even then rewrite it in new words; never for a story without a celebration.
+
+Techniques to reinvent each time:
+- **The silenced-noise move** (the feeling of silence amid a screaming crowd) — evoke it with entirely new imagery each script; never the banned line above.
+- **The fearless strike:** convey "he finishes like a man who has survived worse" — reworded fresh each time.
+- **Time slowing:** a beat of suspension at the decisive moment — vary the phrasing ("the world held its breath", "a single weightless second").
+- **The crowd reaction** — ONLY if there is a goal/trophy; always new words.
+- **The sky / the third element in heaven:** points to the sky; a lost parent/sibling "watching from above"; an angel above their heads — fresh wording each time.
 - **The epithet:** re-name the subject by his wound — "the man who spent a year in the dark," "the thin, undernourished boy from a dirt pitch," "the boy nobody bet on."
 - **The standalone date:** "October 28th, 2023." as its own sentence.
 - **"And then."** as a one-word-ish turn on its own line.

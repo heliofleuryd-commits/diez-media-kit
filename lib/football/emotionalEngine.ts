@@ -209,7 +209,9 @@ ${draft}
 
 Rewrite it into a finished script that reads like the creator's own viral scripts. Non-negotiables:
 
-0. STRUCTURE — follow the reference arc beat-for-beat: the bold-feeling 3-line hook, then the humble origin (where he came from), the rise, the dated wound (state the date plainly), the darkness/doubt, the World Cup resurrection setup (date, stadium, a nation holding its breath), the ceremonial FULL birth name at the threshold of the climax, the slow-motion climax with the "they say it is hard to hear silence…" motif, the eruption, the sky-point dedication, and a two-line aphoristic closer ("Some… / Very few…"). This shape is what makes it resemble the reference scripts — do not drift from it.
+0. STRUCTURE — follow the reference arc beat-for-beat: the bold-feeling 3-line hook, then the humble origin (where he came from), the rise, the dated wound (state the date plainly), the darkness/doubt, the World Cup resurrection setup (date, stadium, a nation holding its breath), the ceremonial FULL birth name at the threshold of the climax, the slow-motion climax, the crowd/nation reaction, the sky-point dedication, and a two-line aphoristic closer ("Some… / Very few…"). This shape is what makes it resemble the reference scripts — do not drift from it.
+
+VARIETY — CRITICAL: do NOT reuse stock lines. NEVER write "they say it is hard to hear silence" — that line is banned. NEVER write "[Country] explodes" or "millions of souls erupt" UNLESS the script is literally describing a goal being scored or a trophy being lifted; if there is no goal/celebration, do not use crowd-eruption imagery at all. For the climax and the crowd reaction, invent FRESH imagery every time, specific to this person's story — no two scripts should share the same climax sentence or celebration line.
 
 1. THE HOOK — EXACTLY 2 or 3 short punchy lines, each a single breath (max ~14 words), plain text. The final line is the turn and MUST start with "And" or "But". No long sprawling multi-clause hook. Reference rhythm: "Imagine watching men take your father away into the jungle / You don't know if he is alive or if he is ever coming back / And years later, you score in your country's World Cup opener — for the man they tried to take from you."
 
@@ -217,7 +219,7 @@ Rewrite it into a finished script that reads like the creator's own viral script
 
 3. LENGTH — HARD limit: ~480–540 words, NEVER above 600 (the longest reference script). Cut sprawl to fit.
 
-4. Keep every real fact, the emotional spine, the ceremonial full name at the climax, the silence motif, the sky-point dedication, and the earned aphoristic closer.
+4. Keep every real fact, the emotional spine, the ceremonial full name at the climax, the sky-point dedication, and the earned aphoristic closer — but express each in FRESH words for this specific story, never a recycled template line.
 
 FORMATTING — match the reference scripts exactly:
 - Each line is ONE complete, flowing sentence (not a fragment). Put a blank line between beats so it breathes. Keep the TOTAL number of lines modest — never shatter a single thought across multiple short lines.
@@ -237,7 +239,7 @@ export async function runChat(client: Anthropic, messages: any[], model = OPUS):
   const res = await client.messages.create({
     model,
     max_tokens: 4000,
-    system: [{ type: 'text', text: `You are the Emotional Storyteller editor. Keep the perfected viral style below. Always: 2–3 line punchy hook (final line starts And/But); the body in complete, flowing full sentences (not choppy fragments, modest number of lines, blank line between beats); ~500 words and never above 600; clean spoken lines; no "---"; no bold in the script body.\n\n${viral}`, cache_control: { type: 'ephemeral' } }],
+    system: [{ type: 'text', text: `You are the Emotional Storyteller editor. Keep the perfected viral style below. Always: 2–3 line punchy hook (final line starts And/But); the body in complete, flowing full sentences (not choppy fragments, modest number of lines, blank line between beats); ~500 words and never above 600; clean spoken lines; no "---"; no bold in the script body. VARIETY: never write "they say it is hard to hear silence" (banned); never use "[Country] explodes"/"millions of souls erupt" unless literally describing a goal or a trophy; invent fresh climax and celebration imagery every time.\n\n${viral}`, cache_control: { type: 'ephemeral' } }],
     messages: (messages || []).slice(-20),
   });
   return { text: stripDividers(extractText(res)), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
