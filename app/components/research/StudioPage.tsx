@@ -195,6 +195,7 @@ export function StudioPage() {
       { id: 'joeham.1',      label: 'joeham' },
       { id: 'matchday.fc',   label: 'matchday' },
       { id: 'jjcharlton',    label: 'jjcharlton' },
+      { id: 'diez',          label: 'diez' },
     ],
     emotional: [
       { id: 'toqueymedio', label: 'toqueymedio' },

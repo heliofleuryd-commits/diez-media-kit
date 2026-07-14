@@ -14,6 +14,7 @@ export const SONNET = 'claude-sonnet-4-6';
 
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
 const VIRAL_SKILL_PATH = path.join(process.cwd(), 'content-plan', 'emotional-storyteller', 'viral-style-skill.md');
+const DIEZ_SKILL_PATH = path.join(process.cwd(), 'content-plan', 'emotional-storyteller', 'diez-format-skill.md');
 
 // ── Studio toqueymedio base (faithful copy of Content Studio › Studio) ──────────
 
@@ -100,6 +101,25 @@ Be direct. Don't ask clarifying questions unless essential — make a creative d
 
 function loadViralSkill(): string {
   try { return fs.readFileSync(VIRAL_SKILL_PATH, 'utf-8'); } catch { return ''; }
+}
+
+function loadDiezFormat(): string {
+  try { return fs.readFileSync(DIEZ_SKILL_PATH, 'utf-8'); } catch { return ''; }
+}
+
+// The Emotional Storyteller blends the base viral style 50/50 with Diez's own
+// proven format; on any conflict, Diez's real posted-script habits win.
+function blendedStyle(): string {
+  const viral = loadViralSkill();
+  const diez = loadDiezFormat();
+  if (!diez) return viral;
+  return `Blend the TWO style guides below roughly 50/50. Guide A is the base viral style; Guide B is DIEZ'S OWN format, reverse-engineered from his real posted scripts. Where they differ, FOLLOW GUIDE B (Diez's own hooks, closers, structure and motifs win — they are his proven voice).
+
+=== GUIDE A — BASE VIRAL STYLE ===
+${viral}
+
+=== GUIDE B — DIEZ'S OWN FORMAT (wins on any conflict) ===
+${diez}`;
 }
 
 export function stripDividers(s: string): string {
@@ -195,11 +215,11 @@ ${context || '(no extra context)'}`;
 }
 
 export async function runViral(client: Anthropic, draft: string, model = OPUS): Promise<StageResult> {
-  const viral = loadViralSkill();
+  const style = blendedStyle();
   const res = await client.messages.create({
     model,
     max_tokens: 4000,
-    system: [{ type: 'text', text: `You are the final editor. You take a toqueymedio script that is ~75% there and elevate it to the perfected viral style below, reverse-engineered from the creator's own viral scripts. This style guide OVERRIDES everything else.\n\n${viral}`, cache_control: { type: 'ephemeral' } }],
+    system: [{ type: 'text', text: `You are the final editor. You take a toqueymedio script that is ~75% there and elevate it to the perfected style below. This style guide OVERRIDES everything else.\n\n${style}`, cache_control: { type: 'ephemeral' } }],
     messages: [{
       role: 'user',
       content: `Here is the toqueymedio draft to elevate:
@@ -235,11 +255,11 @@ After the script, on new lines:
 }
 
 export async function runChat(client: Anthropic, messages: any[], model = OPUS): Promise<StageResult> {
-  const viral = loadViralSkill();
+  const style = blendedStyle();
   const res = await client.messages.create({
     model,
     max_tokens: 4000,
-    system: [{ type: 'text', text: `You are the Emotional Storyteller editor. Keep the perfected viral style below. Always: 2–3 line punchy hook (final line starts And/But); the body in complete, flowing full sentences (not choppy fragments, modest number of lines, blank line between beats); ~500 words and never above 600; clean spoken lines; no "---"; no bold in the script body. VARIETY: never write "they say it is hard to hear silence" (banned); never use "[Country] explodes"/"millions of souls erupt" unless literally describing a goal or a trophy; invent fresh climax and celebration imagery every time.\n\n${viral}`, cache_control: { type: 'ephemeral' } }],
+    system: [{ type: 'text', text: `You are the Emotional Storyteller editor. Keep the blended style below. Always: 2–3 line punchy "Imagine…" hook (final line starts And/But); the body in complete, flowing full sentences (not choppy fragments, modest number of lines, blank line between beats); ~500 words and never above 600; clean spoken lines; no "---"; no bold in the script body. VARIETY: never write "they say it is hard to hear silence" (banned); never use "[Country] explodes"/"millions of souls erupt" unless literally describing a goal or a trophy; invent fresh climax and celebration imagery every time.\n\n${style}`, cache_control: { type: 'ephemeral' } }],
     messages: (messages || []).slice(-20),
   });
   return { text: stripDividers(extractText(res)), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
