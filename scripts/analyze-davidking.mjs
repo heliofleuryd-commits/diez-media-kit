@@ -25,7 +25,7 @@ if (!fs.existsSync(TRANSCRIPTS)) { console.error(`❌  Missing ${TRANSCRIPTS}\n 
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 let corpus = fs.readFileSync(TRANSCRIPTS, 'utf-8');
-if (corpus.length > 140_000) corpus = corpus.slice(0, 140_000);
+if (corpus.length > 240_000) corpus = corpus.slice(0, 240_000); // ~100 transcripts fit
 
 console.log('🧠  Sending @DavidKingStories transcripts to Claude Opus for deep storytelling analysis…\n');
 
@@ -35,7 +35,7 @@ IMPORTANT WEIGHTING: Diez makes FOOTBALL/SOCCER content, so weight your analysis
 
 CRITICAL — DO THIS FIRST: read the LITERAL first sentence of all videos and the LITERAL last sentence of each. If most share a fixed opening or closing formula, quote it verbatim, state what fraction use it, and put it at the very top as a non-negotiable template. Do NOT abstract a recurring formula into a vague description — the exact hook and closer are the most important things to capture.
 
-Below are his top ~30 videos of the last year by views, with titles and full transcripts:
+Below are his top videos of the last year by views — his top ~50 on YouTube AND top ~50 on TikTok (~100 videos), each labelled by platform, with titles and full transcripts:
 
 """
 ${corpus}
