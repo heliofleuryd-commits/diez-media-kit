@@ -34,6 +34,16 @@ Rules: second person ("Imagine you are…", "Imagine watching…", "Imagine bein
 
 Not every story ends in triumph — tragedies (Escobar) and defeats (Modrić losing in extra time) keep the same architecture but invert the ending into ache and meaning.
 
+### 2b. STRUCTURAL VARIANTS (pick the one that fits the story — all read across his posted scripts)
+
+- **The Redemption / Comeback** (Díaz, Ochoa, Jiménez): origin → wound → darkness → the World Cup moment → goal → dedication → "Some… / Very few…". The default.
+- **The Tragedy / Broken Promise** (Roberto Baggio, Andrés Escobar): the hook flashes forward to the heartbreak ("the day fate finally gives you that chance, it breaks you forever"). Build the dream, then the cruel fall. Closer is a mournful aphorism ("Socrates died poisoned. But Baggio died on his feet." / "under a badge, there is also a beating heart.").
+- **The Injury Carried Forward** (Ismaël Koné): triumph → the injury in an ordinary minute → the whole team's grief → he salutes the crowd from the stretcher → "Now eleven men carry it for him. Some dreams you finish yourself. Others, your brothers finish for you."
+- **The Underdog Nation** (Cape Verde, Croatia 2018): open on the stage with a wry deflation or the "born from war / scattered as refugees" origin of a whole country → the impossible run, match by match → defeat-with-honour or coronation → "History remembers the champions. But it falls in love with the ones who were never supposed to be there." / "Some nations win the World Cup. And some, by refusing to break, win something history remembers even longer."
+- **The Rivalry / Geopolitical** (England–Argentina Malvinas): the hook is a human cost of history → the match as the real battlefield → the iconic moment (Hand of God / Goal of the Century) framed as justice/meaning → tie the past to the present fixture → "Some rivalries aren't about football. Football is just the language two enemies use to keep speaking."
+- **The Historic Match** (Maracanazo, Mineirazo, Casillas, Zidane): a dated, cinematic re-telling of a famous game as a tragedy or coronation, present tense at the decisive moment, poetic closer.
+- **The Cause / Awareness** (Alphonso Davies): the redemption arc opens up at the end into a real-world message (mental health, one in four) and a heartfelt SHARE CTA — "Please share this message with someone you love… It is okay not to be okay. Just don't carry it alone." Use only when the subject genuinely raised the cause himself.
+
 ## 3. VOICE, FLOW & REGISTER
 
 - **Flowing, complete sentences** chained with and / because / but / until — long lines that breathe, not choppy fragments. Reserve a short fragment only for a hammer beat.
@@ -50,9 +60,14 @@ He almost always ends on a "Some… / Very few…" or two-part contrast. Real cl
 - "Some men score goals to be remembered. Andrés Iniesta scored one so that someone else would never be forgotten." (Iniesta)
 - "Some men are remembered for how they arrive. Guillermo Ochoa will be remembered because, for twenty patient years, he refused to leave." (Ochoa)
 - "History remembers the champions. But it falls in love with the ones who were never supposed to be there." (Cape Verde)
+- "Some nations win the World Cup. And some, by refusing to break, win something history remembers even longer." (Croatia 2018 — defeat with honour)
+- "Some dreams you finish yourself. Others, your brothers finish for you." (Koné — injury carried forward)
+- "Some rivalries aren't about football. Football is just the language two enemies use to keep speaking." (Malvinas — rivalry)
+- "Socrates died poisoned. But Baggio died on his feet." (Baggio — tragedy)
 - The moral sting (tragedies): "he lost it because two men forgot that under a badge, there is also a beating heart." (Escobar)
+- The cause/awareness close (only when the subject raised it): "It is okay not to be okay. Just don't carry it alone." (Davies)
 
-Build the closer from the specific story's own central image — never a generic line.
+The dominant shape is a two-line contrast — "Some… / Very few…", "Some… / And some…", "Some… / Others…", or "History remembers… / But it falls in love with…". Build it from the specific story's own central image — never a generic line.
 
 ## 5. RECURRING MOTIFS (techniques — reinvent the wording each time)
 

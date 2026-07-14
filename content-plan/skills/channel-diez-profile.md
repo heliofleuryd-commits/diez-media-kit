@@ -56,6 +56,9 @@ Rules: state a claim the algorithm/crowd disagrees with, or pose the exact quest
 - **Pattern B — The Explainer:** "We all know X. But how exactly?" → chronological factual recap (dates, scores, scorers, the drama) → poetic/aphoristic closer. (e.g. "How did Argentina win 2022")
 - **Pattern C — The Bait-and-Switch:** build a conspiracy/hot theory with real evidence → flip and reveal it's nonsense → debunk fairly → send-to-a-friend CTA. (e.g. "France easy path")
 - **Pattern D — The Problem / Suspense Analysis:** "X have a huge problem nobody's noticed" → steelman why they look flawless → pose the fatal question → build suspense with rhetorical questions → reveal the specific threat → fair caveat → leave on a suspenseful question. (e.g. "Spain problem")
+- **Pattern E — The Data Thesis / Investigation:** "The World Cup has a huge problem nobody can see" → stack hard stats (goals per game, %, minute windows, samples) → reveal the hidden mechanism (e.g. hydration breaks = disguised coaching windows + more ad money) → close on a provocative question ("are hydration breaks good, or are they destroying the game?"). Stats are the whole spine. (e.g. "Hydration Breaks")
+- **Pattern F — The Eerie Coincidence:** "This cannot be a coincidence" → stack uncanny matching numbers/dates (same kickoff day as 2010, the 116th minute, 16 years) → imply a pattern → polymarket odds → let the viewer draw the conclusion. A pure curiosity-hook format. (e.g. "Coincidences")
+- **Pattern G — The Hype Case (poetic-analytical):** for the GOAT/legacy takes, he blends analysis with his emotional register — "They told you it was over" → the achievement + records → polymarket surge → the buried-debate reveal ("there was never a debate") → poetic closer ("some debts not even destiny knows how to finish paying"). (e.g. "Messi 1", "Messi 3")
 
 ## 8. How to Write in This Style — Step by Step
 
