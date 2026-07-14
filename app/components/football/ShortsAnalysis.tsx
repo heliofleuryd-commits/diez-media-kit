@@ -140,7 +140,7 @@ function CategoryCard({
   );
 }
 
-export function ShortsAnalysis() {
+export function ShortsAnalysis({ embedded = false }: { embedded?: boolean }) {
   const [shorts, setShorts] = useState<ShortVideo[]>([]);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(false);
@@ -218,15 +218,17 @@ export function ShortsAnalysis() {
     : [];
 
   return (
-    <div className="h-full overflow-y-auto bg-white">
-      <div className="max-w-4xl mx-auto px-5 py-6">
+    <div className={embedded ? '' : 'h-full overflow-y-auto bg-white'}>
+      <div className={embedded ? '' : 'max-w-4xl mx-auto px-5 py-6'}>
         {/* Header */}
-        <div className="mb-5">
-          <h1 className="text-xl font-black text-gray-900 tracking-tight">Shorts Title Lab</h1>
-          <p className="text-[12px] text-gray-500 mt-1">
-            Analyzes top-performing YouTube Shorts titles in football — what packaging patterns get the most views.
-          </p>
-        </div>
+        {!embedded && (
+          <div className="mb-5">
+            <h1 className="text-xl font-black text-gray-900 tracking-tight">Shorts Title Lab</h1>
+            <p className="text-[12px] text-gray-500 mt-1">
+              Analyzes top-performing YouTube Shorts titles in football — what packaging patterns get the most views.
+            </p>
+          </div>
+        )}
 
         <div className="flex items-center gap-3 mb-5">
           <button onClick={analyze} disabled={loading}

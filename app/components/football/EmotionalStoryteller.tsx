@@ -50,6 +50,14 @@ export function EmotionalStoryteller() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { setDailySpend(getDailySpend()); }, []);
+
+  // Prefill the topic when arriving from a YouTube Lab "Write Script" link (?topic=…)
+  useEffect(() => {
+    try {
+      const t = new URLSearchParams(window.location.search).get('topic');
+      if (t) setInput(t);
+    } catch { /* ignore */ }
+  }, []);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading, progress]);
 
   // Auto-resize textarea up to 50% of viewport

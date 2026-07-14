@@ -25,10 +25,11 @@ function writeCache(data: any) {
   try { fs.writeFileSync(cachePath(), JSON.stringify({ ...data, _date: todayKey() })); } catch {}
 }
 
+// The whole footballing world — current + evergreen great stories, not just the World Cup.
 const QUERIES = [
-  'football', 'soccer', 'world cup 2026', 'fútbol',
-  'messi football', 'ronaldo football', 'football edit',
-  'premier league', 'champions league football',
+  'football story', 'soccer story', 'football history', 'greatest football moment',
+  'world cup', 'champions league', 'premier league', 'football transfer',
+  'messi', 'ronaldo', 'football legend', 'football tragedy', 'football comeback',
 ];
 
 function decodeHtml(s: string): string {
@@ -100,6 +101,25 @@ async function getStats(ids: string[]): Promise<Map<string, { views: number; lik
   return map;
 }
 
+// David King is the benchmark storyteller — pull his own channel's top shorts.
+async function fetchDavidKing(): Promise<{ id: string; title: string; channel: string; published: string }[]> {
+  if (!YT_KEY) return [];
+  try {
+    const chRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=DavidKingStories&key=${YT_KEY}`, { cache: 'no-store' });
+    const channelId = (await chRes.json())?.items?.[0]?.id;
+    if (!channelId) return [];
+    const params = new URLSearchParams({ part: 'snippet', channelId, type: 'video', order: 'viewCount', maxResults: '50', key: YT_KEY });
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`, { cache: 'no-store' });
+    const json = await res.json();
+    return (json.items || []).map((item: any) => ({
+      id: item.id?.videoId,
+      title: decodeHtml(item.snippet?.title || ''),
+      channel: 'David King Stories',
+      published: item.snippet?.publishedAt || '',
+    })).filter((v: any) => v.id);
+  } catch { return []; }
+}
+
 export async function GET() {
   const cached = readCache();
   if (cached) {
@@ -111,9 +131,13 @@ export async function GET() {
 export async function POST() {
   try {
     const oneYearAgo = new Date(Date.now() - 365 * 86400000).toISOString();
-    const batches = await Promise.all(QUERIES.map(q => searchShorts(q, oneYearAgo)));
+    const [batches, davidKing] = await Promise.all([
+      Promise.all(QUERIES.map(q => searchShorts(q, oneYearAgo))),
+      fetchDavidKing(),
+    ]);
 
     const seen = new Map<string, { id: string; title: string; channel: string; published: string }>();
+    for (const v of davidKing) if (!seen.has(v.id)) seen.set(v.id, v); // benchmark creator first
     for (const batch of batches) {
       for (const v of batch) {
         if (!seen.has(v.id)) seen.set(v.id, v);
@@ -146,6 +170,8 @@ export async function POST() {
     ).join('\n');
 
     const analysisPrompt = `Analyze these ${top.length} YouTube Shorts titles from football/soccer creators. Each shows view count and creator name.
+
+NOTE: "@David King Stories" is the BENCHMARK football storyteller — pay special attention to how his titles are built, and call him out specifically in your insights.
 
 TITLES:
 ${titlesText}
