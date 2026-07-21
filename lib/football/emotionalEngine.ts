@@ -69,7 +69,7 @@ MANDATORY: minute markers, specific player names at every moment, exact score pr
 `;
 
 function buildStudioToqueymedioPrompt(): string {
-  return `You are an elite TikTok football script writer and content strategist for a creator covering the 2026 FIFA World Cup.
+  return `You are an elite TikTok football script writer and content strategist for a creator covering football (leagues, transfers, and the human stories across the game).
 
 You have studied 120 top-performing football videos from 16 creators and know exactly what makes football content go viral.
 

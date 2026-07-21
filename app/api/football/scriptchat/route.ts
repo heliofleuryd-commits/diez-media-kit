@@ -85,7 +85,7 @@ function buildStudioSystemPrompt(styles: string[]): string {
     ? 'Emotional, cinematic, poetic storytelling. Present-tense narration, religious/cosmic imagery, ceremonial full names at climaxes, aphoristic final line. Deep feeling over hot takes.'
     : 'Analytical, confident, strong POV — hot takes, contrarian angles, bold claims. Never neutral.';
 
-  return `You are an elite TikTok football script writer and content strategist for a creator covering the 2026 FIFA World Cup.
+  return `You are an elite TikTok football script writer and content strategist for a creator covering football (leagues, transfers, and the human stories across the game).
 
 You have studied 120 top-performing football videos from 16 creators and know exactly what makes football content go viral.
 

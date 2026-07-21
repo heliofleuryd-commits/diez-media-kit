@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { CREATOR_BIAS } from '@/lib/football/creatorBias';
 import { calcCost } from '@/lib/football/costTracker';
+import { LEAGUES } from '@/lib/football/footballData';
 
 const client = new Anthropic();
 const YT_KEY = process.env.YOUTUBE_API_KEY || '';
@@ -11,59 +12,44 @@ const M_FAST   = 'claude-haiku-4-5-20251001'; // bullets
 const M_SCRIPT = 'claude-sonnet-4-6';          // flash news script
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
 
-// ── ESPN: live scores, results, fixtures ──────────────────────────────────────
+// ── ESPN: live scores, results, fixtures across the tracked competitions ──────
 async function fetchESPN() {
   try {
-    // Scoreboard: recent + live + upcoming matches
-    const [scoreRes, newsRes] = await Promise.all([
-      fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard', { next: { revalidate: 0 } }),
-      fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/news?limit=15', { next: { revalidate: 0 } }),
+    const base = 'https://site.api.espn.com/apis/site/v2/sports/soccer';
+    const jobs = LEAGUES.flatMap(l => [
+      fetch(`${base}/${l.code}/scoreboard`, { next: { revalidate: 0 } }).then(r => r.json()).then(d => ({ kind: 'score', d })).catch(() => ({ kind: 'score', d: {} })),
+      fetch(`${base}/${l.code}/news?limit=5`, { next: { revalidate: 0 } }).then(r => r.json()).then(d => ({ kind: 'news', d })).catch(() => ({ kind: 'news', d: {} })),
     ]);
+    const results = await Promise.all(jobs);
 
-    const [scoreData, newsData] = await Promise.all([scoreRes.json(), newsRes.json()]);
-
-    const matches = (scoreData.events || []).map((ev: any) => {
-      const comp = ev.competitions?.[0];
-      const home = comp?.competitors?.find((c: any) => c.homeAway === 'home');
-      const away = comp?.competitors?.find((c: any) => c.homeAway === 'away');
-      const status = comp?.status?.type?.description || '';
-      const detail = comp?.status?.type?.detail || '';
-      const completed = comp?.status?.type?.completed || false;
-
-      // Extract scorers from leaders
-      const scorers = (comp?.leaders || [])
-        .flatMap((l: any) => l.leaders || [])
-        .map((l: any) => l.athlete?.displayName).filter(Boolean);
-
-      return {
-        home: home?.team?.displayName || '',
-        away: away?.team?.displayName || '',
-        homeScore: home?.score || '0',
-        awayScore: away?.score || '0',
-        status,
-        detail,
-        completed,
-        scorers,
-        date: ev.date,
-      };
-    });
-
-    const headlines = (newsData.articles || []).map((a: any) => ({
-      title: a.headline || a.title,
-      description: a.description?.slice(0, 120) || '',
-    }));
-
-    return { matches, headlines };
+    const matches: any[] = [];
+    const headlines: { title: string; description: string }[] = [];
+    for (const r of results) {
+      if (r.kind === 'score') {
+        for (const ev of (r.d.events || [])) {
+          const comp = ev.competitions?.[0];
+          const home = comp?.competitors?.find((c: any) => c.homeAway === 'home');
+          const away = comp?.competitors?.find((c: any) => c.homeAway === 'away');
+          const scorers = (comp?.leaders || []).flatMap((l: any) => l.leaders || []).map((l: any) => l.athlete?.displayName).filter(Boolean);
+          matches.push({
+            home: home?.team?.displayName || '', away: away?.team?.displayName || '',
+            homeScore: home?.score || '0', awayScore: away?.score || '0',
+            status: comp?.status?.type?.description || '', detail: comp?.status?.type?.detail || '',
+            completed: comp?.status?.type?.completed || false, scorers, date: ev.date,
+          });
+        }
+      } else {
+        for (const a of (r.d.articles || []).slice(0, 4)) headlines.push({ title: a.headline || a.title, description: a.description?.slice(0, 120) || '' });
+      }
+    }
+    return { matches: matches.slice(0, 40), headlines: headlines.slice(0, 20) };
   } catch { return { matches: [], headlines: [] }; }
 }
 
 async function fetchNewsLast24h() {
   const queries = [
-    'World Cup 2026 result score',
-    'World Cup 2026 injury',
-    'World Cup 2026 group stage',
-    'FIFA 2026 news today',
-    'World Cup 2026 player',
+    'football result today', 'footballer injury', 'footballer death', 'football controversy',
+    'football transfer', 'footballer illness', 'Premier League', 'Champions League',
   ];
   const seen = new Set<string>();
   const items: { title: string; source: string }[] = [];
@@ -95,7 +81,7 @@ async function fetchYouTubeLast24h() {
   const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
   try {
     const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent('World Cup 2026')}&type=video&order=viewCount&publishedAfter=${since}&maxResults=12&key=${YT_KEY}`,
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent('football')}&type=video&order=viewCount&publishedAfter=${since}&maxResults=12&key=${YT_KEY}`,
       { next: { revalidate: 0 } }
     );
     const json = await res.json();
@@ -137,26 +123,26 @@ export async function POST(req: Request) {
 
   const rawData = [
     `## MATCH RESULTS & FIXTURES (ESPN Live Data)`,
-    matchLines.length > 0 ? matchLines.join('\n') : 'No matches in last 24h — World Cup starts June 11',
-    `\n## ESPN World Cup News`,
+    matchLines.length > 0 ? matchLines.join('\n') : 'No matches in the last 24h.',
+    `\n## ESPN Football News`,
     espn.headlines.map((h: any) => `- ${h.title}${h.description ? ': ' + h.description : ''}`).join('\n'),
     `\n## Google News Headlines (last 24h)`,
     newsItems.map(n => `- [${n.source}] ${n.title}`).join('\n'),
-    `\n## Most Watched YouTube WC Content (last 24h)`,
+    `\n## Most Watched Football YouTube (last 24h)`,
     ytItems.map((v: any) => `- [${v.channel}] ${v.title}`).join('\n'),
   ].join('\n');
 
   const bulletPrompt = `Today is ${today}.
 
-Here is live data from the last 24 hours of the 2026 FIFA World Cup:
+Here is live data from the last 24 hours across the footballing world (top-5 leagues + UCL/Europa, plus news):
 
 ${rawData}
 
 Produce exactly 20 bullet points ranked by importance and audience interest.
 Rank them #1 (most important/viral) to #20 (least).
-Cover: match scores and key moments, goal scorers, injuries, red cards, standout performances, group table implications, manager decisions, controversies, what fans are talking about, tomorrow's must-watch fixtures.
+Cover: match scores and key moments, goal scorers, injuries, red cards, standout performances, title/relegation/qualification implications, manager decisions, transfers, controversies, deaths or tragedies, what fans are talking about, tomorrow's must-watch fixtures.
 Each bullet: one punchy sentence, specific facts, no vague statements.
-If Spain, Lamine Yamal, Barcelona players, or Argentina/Messi are involved — prioritise those higher.
+Prioritise the big emotional or controversial stories (a death, a serious injury, a scandal, a comeback) and the biggest clubs/players.
 Output ONLY a JSON array of 20 strings (ranked #1 first), no other text.`;
 
   const selectedBullets: string[] = body.selectedBullets || [];
@@ -178,12 +164,12 @@ Output ONLY a JSON array of 20 strings (ranked #1 first), no other text.`;
     ? selectedBullets.map((b, i) => `${i+1}. ${b}`).join('\n')
     : null;
 
-  const scriptPrompt = (generateScript && bulletListForScript) ? `Generate a "World Cup Flash News — ${scriptDateFormatted}" script from these selected stories:
+  const scriptPrompt = (generateScript && bulletListForScript) ? `Generate a "Football Flash News — ${scriptDateFormatted}" script from these selected stories:
 
 ${bulletListForScript}
 
 RULES:
-- Start with exactly: "World Cup Flash News — ${scriptDateFormatted}"
+- Start with exactly: "Football Flash News — ${scriptDateFormatted}"
 - Read every story fast and factual — no padding, no waffle, no transitions like "meanwhile" or "in other news"
 - One punchy sentence per story, straight into the next
 - Facts only: scores, names, numbers — nothing vague

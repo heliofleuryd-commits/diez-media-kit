@@ -20,9 +20,9 @@ const M_SCRIPT = 'claude-opus-4-8';             // scripts only — quality non-
 // ── YouTube: what people are SEARCHING ───────────────────────────────────────
 async function fetchYouTubeSearchTrends() {
   const seedQueries = [
-    'world cup 2026', 'fifa world cup 2026', 'world cup squad 2026',
-    'world cup predictions', 'world cup group stage', 'world cup host city',
-    'best player world cup', 'world cup upset',
+    'football', 'premier league', 'champions league', 'football transfer',
+    'football story', 'footballer injury', 'football controversy',
+    'messi', 'ronaldo', 'football emotional',
   ];
   const seen = new Set<string>();
   const results: { query: string; suggestions: string[] }[] = [];
@@ -55,8 +55,8 @@ async function fetchYouTubeTrending() {
   const [trendingRes, recentRes] = await Promise.all([
     // Most popular sports videos right now
     fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&videoCategoryId=17&regionCode=US&maxResults=8&key=${YT_KEY}`, { next: { revalidate: 0 } }),
-    // World Cup content most viewed in last 48h
-    fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent('World Cup 2026')}&type=video&order=viewCount&publishedAfter=${since}&maxResults=10&key=${YT_KEY}`, { next: { revalidate: 0 } }),
+    // Football content most viewed in last 48h
+    fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent('football')}&type=video&order=viewCount&publishedAfter=${since}&maxResults=10&key=${YT_KEY}`, { next: { revalidate: 0 } }),
   ]);
 
   const [trendingJson, recentJson] = await Promise.all([trendingRes.json(), recentRes.json()]);
@@ -79,8 +79,8 @@ async function fetchYouTubeTrending() {
 async function fetchGoogleTrends() {
   const results: { title: string; traffic: string; type: string }[] = [];
 
-  // 1. World Cup / football specific news volume from Google News as a proxy for trending searches
-  const footballQueries = ['World Cup 2026', 'FIFA 2026', 'Lamine Yamal', 'Spain football', 'Messi 2026'];
+  // 1. Football news volume from Google News as a proxy for trending searches
+  const footballQueries = ['football transfer', 'Premier League', 'Champions League', 'footballer injury', 'football controversy'];
   for (const q of footballQueries) {
     try {
       const res = await fetch(
@@ -123,7 +123,7 @@ async function fetchGoogleTrends() {
 async function fetchGoogleNews() {
   try {
     const res = await fetch(
-      'https://news.google.com/rss/search?q=World+Cup+2026+football&hl=en-US&gl=US&ceid=US:en',
+      'https://news.google.com/rss/search?q=football+news+today&hl=en-US&gl=US&ceid=US:en',
       { next: { revalidate: 0 } }
     );
     const xml = await res.text();
@@ -148,7 +148,7 @@ async function _fetchTikTokRaw() {
   const HOST = 'tokapi-mobile-version.p.rapidapi.com';
   const headers = { 'x-rapidapi-key': rapidKey, 'x-rapidapi-host': HOST };
 
-  const tags = ['WorldCup2026', 'FIFA2026', 'football'];
+  const tags = ['football', 'transfernews', 'premierleague'];
   const hashtags: { tag: string; views: string }[] = [];
 
   await Promise.all(tags.map(async (tag) => {
@@ -344,7 +344,7 @@ function buildSystemPrompt(styles: string[]): string {
 - Bold claim, stat reveal, contrarian angle, or rhetorical provocation
 - Never start with "Did you know" or a generic question`;
 
-  return `You are a viral TikTok football content strategist for a creator making 2026 FIFA World Cup videos.
+  return `You are a viral TikTok football content strategist for a creator making football videos.
 
 STYLE — write in the voice of: ${refs}
 ${tone}
@@ -402,7 +402,7 @@ function buildTrendsText(ytSearch: any, ytContent: any, googleTrends: any, news:
   ].join('\n');
 }
 
-const SYSTEM_STRATEGIST = `You are a viral TikTok football content strategist for a creator making daily 2026 FIFA World Cup videos.
+const SYSTEM_STRATEGIST = `You are a viral TikTok football content strategist for a creator making daily football videos.
 
 CREATOR STYLE (non-negotiable):
 - Reference channels: @pechefootball, @fiagoball, @5.at.the.back

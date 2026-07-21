@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/football/stories/cron",
-      "schedule": "0 8 * * *"
+      "schedule": "0 8,14,20 * * *"
     }
   ]
 }

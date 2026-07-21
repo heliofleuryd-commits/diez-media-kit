@@ -16,8 +16,9 @@ function writeCache(data: any) { try { fs.writeFileSync(cachePath(), JSON.string
 
 // Broad football news — the whole footballing world, not just the World Cup.
 const NEWS_QUERIES = [
-  'football', 'world cup 2026', 'champions league', 'premier league',
-  'football transfer', 'Messi', 'Ronaldo', 'football injury', 'football tribute',
+  'football', 'football transfer', 'champions league', 'premier league',
+  'footballer injury', 'footballer death', 'football controversy', 'footballer comeback',
+  'Messi', 'Ronaldo', 'football tribute',
 ];
 
 async function fetchHeadlines(query: string, limit: number): Promise<string[]> {
