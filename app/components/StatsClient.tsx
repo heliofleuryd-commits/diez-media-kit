@@ -11,9 +11,12 @@ gsap.registerPlugin(ScrollTrigger);
 
 type Period = '3m' | '6m' | '12m';
 
+type Niche = 'gaming' | 'football';
+
 interface AccountStat {
   handle: string;
   platform: 'tiktok' | 'youtube' | 'instagram';
+  group: Niche;
   niche: string;
   url: string;
   avgViews: Record<Period, string>;
@@ -32,58 +35,25 @@ interface CaseStudy {
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
+// avgViews = highest average monthly views; engRate = best.
 const ACCOUNTS: AccountStat[] = [
-  {
-    handle: '@diez.gg',
-    platform: 'tiktok',
-    niche: 'Warzone / FPS',
-    url: 'https://tiktok.com/@diez.gg',
-    avgViews: { '3m': '310K', '6m': '285K', '12m': '248K' },
-    engRate:  { '3m': '9.1%', '6m': '8.7%', '12m': '8.2%' },
-  },
-  {
-    handle: '@diez.ball',
-    platform: 'tiktok',
-    niche: 'Football',
-    url: 'https://tiktok.com/@diez.ball',
-    avgViews: { '3m': '425K', '6m': '358K', '12m': '358K' },
-    engRate:  { '3m': '14.8%', '6m': '14.5%', '12m': '14.5%' },
-  },
-  {
-    handle: '@imDiez',
-    platform: 'youtube',
-    niche: 'Warzone / FPS',
-    url: 'https://youtube.com/@imDiez',
-    avgViews: { '3m': '224K', '6m': '210K', '12m': '195K' },
-    engRate:  { '3m': '6.2%', '6m': '5.8%', '12m': '5.5%' },
-  },
-  {
-    handle: '@diez.gg',
-    platform: 'instagram',
-    niche: 'Gaming / Lifestyle',
-    url: 'https://instagram.com/diez.gg',
-    avgViews: { '3m': '238K', '6m': '218K', '12m': '196K' },
-    engRate:  { '3m': '8.9%', '6m': '8.4%', '12m': '8.0%' },
-  },
-  {
-    handle: '@diezball10',
-    platform: 'instagram',
-    niche: 'Football',
-    url: 'https://instagram.com/diezball10',
-    avgViews: { '3m': '204K', '6m': '194K', '12m': '183K' },
-    engRate:  { '3m': '10.2%', '6m': '9.7%', '12m': '9.2%' },
-  },
+  { handle: '@diez.gg',       platform: 'tiktok',    group: 'gaming',   niche: 'Warzone / FPS',      url: 'https://tiktok.com/@diez.gg',        avgViews: '310K', engRate: '9.1%' },
+  { handle: '@imDiez',        platform: 'youtube',   group: 'gaming',   niche: 'Warzone / FPS',      url: 'https://youtube.com/@imDiez',        avgViews: '224K', engRate: '6.2%' },
+  { handle: '@diez.gg',       platform: 'instagram', group: 'gaming',   niche: 'Gaming / Lifestyle', url: 'https://instagram.com/diez.gg',      avgViews: '238K', engRate: '8.9%' },
+  { handle: '@diez.ball',     platform: 'tiktok',    group: 'football', niche: 'Football',           url: 'https://tiktok.com/@diez.ball',      avgViews: '425K', engRate: '14.8%' },
+  { handle: '@diezknowsball', platform: 'tiktok',    group: 'football', niche: 'Football',           url: 'https://tiktok.com/@diezknowsball',  avgViews: '485K', engRate: '13.0%' },
+  { handle: '@diezball10',    platform: 'instagram', group: 'football', niche: 'Football',           url: 'https://instagram.com/diezball10',   avgViews: '204K', engRate: '10.2%' },
 ];
 
-const SUMMARY: Record<Period, { avgViews: string; engRate: string; totalViews: string }> = {
-  '3m':  { avgViews: '238K', engRate: '8.4%', totalViews: '18.5M' },
-  '6m':  { avgViews: '221K', engRate: '7.9%', totalViews: '47M'   },
-  '12m': { avgViews: '201K', engRate: '7.6%', totalViews: '118M'  },
+// Lifetime-ish total views per niche (marketing figure for the scorecard).
+const NICHE_TOTAL_VIEWS: Record<Niche, string> = { gaming: '150M', football: '30M' };
+
+const NICHE_META: Record<Niche, { emoji: string; label: string; tag: string }> = {
+  gaming:   { emoji: '🎮', label: 'Gaming',   tag: 'Warzone · Call of Duty · Lifestyle' },
+  football: { emoji: '⚽️', label: 'Football', tag: 'Emotional football storytelling' },
 };
 
-const PERIOD_LABELS: Record<Period, string> = {
-  '3m': '3 Months', '6m': '6 Months', '12m': '12 Months',
-};
+function parseNum(s: string): number { const n = parseFloat(s); return s.includes('M') ? n * 1e6 : s.includes('K') ? n * 1e3 : n; }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -393,7 +363,7 @@ function AccordionSection({
 
 // ─── AccountRow ───────────────────────────────────────────────────────────────
 
-function AccountRow({ account, followers, period }: { account: AccountStat; followers: number; period: Period }) {
+function AccountRow({ account, followers }: { account: AccountStat; followers: number }) {
   return (
     <a
       href={account.url}
@@ -416,12 +386,12 @@ function AccountRow({ account, followers, period }: { account: AccountStat; foll
           <div className="text-[10px] text-white/35 uppercase tracking-wider mt-1">Followers</div>
         </div>
         <div className="text-center">
-          <div className="font-black italic text-base sm:text-xl leading-none" style={{ color: '#FF0080' }}>{account.avgViews[period]}</div>
+          <div className="font-black italic text-base sm:text-xl leading-none" style={{ color: '#FF0080' }}>{account.avgViews}</div>
           <div className="text-[9px] sm:text-[10px] text-white/35 uppercase tracking-wider mt-1">Avg Views</div>
         </div>
         {/* Eng rate — hidden on mobile */}
         <div className="hidden sm:block text-center">
-          <div className="font-black italic text-xl text-white leading-none text-stroke-sm">{account.engRate[period]}</div>
+          <div className="font-black italic text-xl text-white leading-none text-stroke-sm">{account.engRate}</div>
           <div className="text-[10px] text-white/35 uppercase tracking-wider mt-1">Eng. Rate</div>
         </div>
       </div>
@@ -436,7 +406,8 @@ function AccountRow({ account, followers, period }: { account: AccountStat; foll
 
 // ─── HeroSection ──────────────────────────────────────────────────────────────
 
-function HeroSection({ totalFollowers }: { totalFollowers: number }) {
+function HeroSection({ totalFollowers, niche }: { totalFollowers: number; niche: Niche }) {
+  const meta = NICHE_META[niche];
   return (
     <div className="mb-2 sm:mb-5">
       <div className="flex items-stretch gap-4 sm:gap-5 mb-2 sm:mb-4">
@@ -467,14 +438,14 @@ function HeroSection({ totalFollowers }: { totalFollowers: number }) {
                 <path d="M7 12.5l3.5 3.5 6.5-7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <p className="text-white/55 font-semibold text-sm sm:text-base text-stroke-sm">Creator · Warzone &amp; Football</p>
+            <p className="text-white/55 font-semibold text-sm sm:text-base text-stroke-sm">{meta.emoji} {meta.label} · {meta.tag}</p>
           </div>
 
-          {/* Total Audience */}
+          {/* Total Audience (for the selected niche) */}
           <div>
-            <div className="text-[10px] sm:text-xs font-black uppercase tracking-[0.18em] text-white/60 leading-none mb-1">Total Audience</div>
+            <div className="text-[10px] sm:text-xs font-black uppercase tracking-[0.18em] text-white/60 leading-none mb-1">{meta.label} Audience</div>
             <div className="font-black italic text-3xl sm:text-4xl leading-none text-white text-stroke" style={{ letterSpacing: '-0.02em' }}>
-              {totalFollowers > 0 ? fmt(totalFollowers) : '1.4M'}
+              {totalFollowers > 0 ? fmt(totalFollowers) : '—'}
             </div>
           </div>
         </div>
@@ -496,68 +467,65 @@ function HeroSection({ totalFollowers }: { totalFollowers: number }) {
 interface LiveAccount { platform: string; handle: string; followers: number; }
 
 export default function StatsClient() {
-  const [period, setPeriod] = useState<Period>('3m');
+  const [niche, setNiche] = useState<Niche>('football');
   const [liveAccounts, setLiveAccounts] = useState<LiveAccount[]>([]);
-  const [totalFollowers, setTotalFollowers] = useState(0);
   const [studies, setStudies] = useState<CaseStudy[]>([]);
 
   useEffect(() => {
-    fetch('/api/stats')
-      .then(r => r.json())
-      .then(d => {
-        if (d.accounts) {
-          setLiveAccounts(d.accounts);
-          setTotalFollowers(d.totalFollowers || d.accounts.reduce((s: number, a: LiveAccount) => s + a.followers, 0));
-        }
-      })
-      .catch(() => {});
-
-    fetch('/api/case-studies')
-      .then(r => r.json())
-      .then(d => { if (d.studies) setStudies(d.studies); })
-      .catch(() => {});
+    fetch('/api/stats').then(r => r.json()).then(d => { if (d.accounts) setLiveAccounts(d.accounts); }).catch(() => {});
+    fetch('/api/case-studies').then(r => r.json()).then(d => { if (d.studies) setStudies(d.studies); }).catch(() => {});
   }, []);
 
-  const getFollowers = (handle: string, platform: string) => {
-    const match = liveAccounts.find(a => a.handle === handle && a.platform === platform);
-    return match?.followers ?? 0;
-  };
+  const getFollowers = (handle: string, platform: string) =>
+    liveAccounts.find(a => a.handle === handle && a.platform === platform)?.followers ?? 0;
 
-  const tiktokAccounts  = ACCOUNTS.filter(a => a.platform === 'tiktok');
-  const youtubeAccounts = ACCOUNTS.filter(a => a.platform === 'youtube');
-  const instaAccounts   = ACCOUNTS.filter(a => a.platform === 'instagram');
-  const summary = SUMMARY[period];
+  const nicheAccounts   = ACCOUNTS.filter(a => a.group === niche);
+  const tiktokAccounts  = nicheAccounts.filter(a => a.platform === 'tiktok');
+  const youtubeAccounts = nicheAccounts.filter(a => a.platform === 'youtube');
+  const instaAccounts   = nicheAccounts.filter(a => a.platform === 'instagram');
 
-  // Best metrics for accordion headers
-  const bestAvgViews = (accs: AccountStat[]) =>
-    accs.reduce((best, a) => {
-      const v = parseFloat(a.avgViews[period]) * (a.avgViews[period].includes('K') ? 1000 : 1);
-      const bv = parseFloat(best) * (best.includes('K') ? 1000 : 1);
-      return v > bv ? a.avgViews[period] : best;
-    }, accs[0]?.avgViews[period] ?? '');
+  // Niche totals
+  const nicheFollowers = nicheAccounts.reduce((s, a) => s + getFollowers(a.handle, a.platform), 0);
+  const nicheAvgViews  = nicheAccounts.length ? fmt(Math.max(...nicheAccounts.map(a => parseNum(a.avgViews)))) : '—';
+  const nicheEng       = nicheAccounts.length ? (nicheAccounts.reduce((s, a) => s + parseFloat(a.engRate), 0) / nicheAccounts.length).toFixed(1) + '%' : '—';
 
-  const bestEngRate = (accs: AccountStat[]) =>
-    accs.reduce((best, a) => parseFloat(a.engRate[period]) > parseFloat(best) ? a.engRate[period] : best, accs[0]?.engRate[period] ?? '');
+  const bestAvgViews = (accs: AccountStat[]) => accs.length ? fmt(Math.max(...accs.map(a => parseNum(a.avgViews)))) : '';
+  const bestEngRate  = (accs: AccountStat[]) => accs.length ? accs.reduce((b, a) => parseFloat(a.engRate) > parseFloat(b) ? a.engRate : b, accs[0].engRate) : '';
+
+  const platformBar = (['tiktok', 'youtube', 'instagram'] as const)
+    .map(p => ({ platform: p, label: p === 'tiktok' ? 'TikTok' : p === 'youtube' ? 'YouTube' : 'Instagram',
+      count: nicheAccounts.filter(a => a.platform === p).reduce((s, a) => s + getFollowers(a.handle, a.platform), 0) }))
+    .filter(x => nicheAccounts.some(a => a.platform === x.platform));
 
   return (
     <div className="min-h-screen px-4 py-3 sm:py-6 max-w-3xl mx-auto">
 
-      <HeroSection totalFollowers={totalFollowers} />
+      {/* Niche switch — Gaming / Football */}
+      <div className="flex gap-1.5 p-1 rounded-2xl mb-3 sm:mb-4" style={{ background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        {(['gaming', 'football'] as Niche[]).map(n => (
+          <button
+            key={n}
+            onClick={() => setNiche(n)}
+            className="cursor-target flex-1 py-2.5 rounded-xl font-black italic text-sm sm:text-base uppercase tracking-wider transition-all duration-200"
+            style={niche === n
+              ? { background: 'rgba(255,255,255,0.95)', color: '#000' }
+              : { background: 'transparent', color: 'rgba(255,255,255,0.55)' }}
+          >
+            {NICHE_META[n].emoji} {NICHE_META[n].label}
+          </button>
+        ))}
+      </div>
 
-      {/* Platform audience bar — 5 platforms */}
-      <div className="grid grid-cols-5 gap-2 sm:gap-3 mb-2 sm:mb-4">
-        {[
-          { platform: 'tiktok',    count: liveAccounts.filter(a => a.platform === 'tiktok').reduce((s, a) => s + a.followers, 0),     label: 'TikTok',    staticCount: 0 },
-          { platform: 'youtube',   count: liveAccounts.find(a => a.platform === 'youtube')?.followers ?? 0,                            label: 'YouTube',   staticCount: 0 },
-          { platform: 'instagram', count: liveAccounts.filter(a => a.platform === 'instagram').reduce((s, a) => s + a.followers, 0),  label: 'Instagram', staticCount: 0 },
-          { platform: 'twitch',    count: 0,                                                                                           label: 'Twitch',    staticCount: 15000 },
-          { platform: 'facebook',  count: 0,                                                                                           label: 'Facebook',  staticCount: 17000 },
-        ].map(({ platform, count, label, staticCount }) => (
+      <HeroSection totalFollowers={nicheFollowers} niche={niche} />
+
+      {/* Platform audience bar — the platforms in this niche */}
+      <div className={`grid gap-2 sm:gap-3 mb-2 sm:mb-4`} style={{ gridTemplateColumns: `repeat(${platformBar.length}, minmax(0, 1fr))` }}>
+        {platformBar.map(({ platform, count, label }) => (
           <div key={platform} className="cursor-target flex flex-col items-center gap-1.5 px-1 py-3 sm:px-3 sm:py-3 rounded-2xl" style={{ background: 'rgba(0,0,0,0.55)' }}>
             <PlatformIcon platform={platform} size={26} />
             <div className="text-center">
               <div className="font-black italic text-sm sm:text-base text-white leading-none text-stroke-sm">
-                {staticCount > 0 ? fmt(staticCount) : count > 0 ? fmt(count) : '—'}
+                {count > 0 ? fmt(count) : '—'}
               </div>
               <div className="text-[8px] sm:text-[9px] text-white/50 uppercase tracking-wider font-semibold mt-0.5">{label}</div>
             </div>
@@ -607,63 +575,50 @@ export default function StatsClient() {
         Performance
       </ScrollFloat>
 
-      {/* Period filter */}
-      <div className="flex gap-2 mb-3 sm:mb-4">
-        {(['3m', '6m', '12m'] as Period[]).map(p => (
-          <button
-            key={p}
-            onClick={() => setPeriod(p)}
-            className="cursor-target flex-1 sm:flex-none sm:px-5 py-2 rounded-full font-black italic text-xs sm:text-sm uppercase tracking-wider transition-all duration-200"
-            style={period === p
-              ? { background: 'rgba(255,255,255,0.95)', color: '#000' }
-              : { background: 'rgba(0,0,0,0.55)', color: 'rgba(255,255,255,0.6)' }}
-          >
-            {PERIOD_LABELS[p]}
-          </button>
-        ))}
-      </div>
-
-      {/* Scorecards */}
+      {/* Scorecards — avg monthly views (highest), engagement, total views */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-5">
         <div className="cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white/60 mb-1 sm:mb-2">Avg Views</div>
-          <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke">{summary.avgViews}</div>
-          <div className="flex items-center gap-1 mt-1 sm:mt-2">
-            <span className="text-xs font-black text-emerald-300">↑</span>
-            <span className="text-[9px] sm:text-xs text-white/50 font-semibold">{PERIOD_LABELS[period]}</span>
-          </div>
+          <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke">{nicheAvgViews}</div>
+          <div className="text-[9px] sm:text-xs text-white/50 font-semibold mt-1 sm:mt-2">Per video, monthly</div>
         </div>
         <div className="cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white/60 mb-1 sm:mb-2">Eng. Rate</div>
-          <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke">{summary.engRate}</div>
+          <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke">{nicheEng}</div>
           <div className="text-[9px] sm:text-xs text-white/50 font-semibold mt-1 sm:mt-2">Likes + comments</div>
         </div>
         <div className="cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white/60 mb-1 sm:mb-2">Total Views</div>
-          <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke">{summary.totalViews}</div>
-          <div className="text-[9px] sm:text-xs text-white/50 font-semibold mt-1 sm:mt-2">{PERIOD_LABELS[period]}</div>
+          <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke">{NICHE_TOTAL_VIEWS[niche]}</div>
+          <div className="text-[9px] sm:text-xs text-white/50 font-semibold mt-1 sm:mt-2">{niche === 'football' ? 'Since launch' : 'Yearly'}</div>
         </div>
       </div>
 
-      {/* Platform accordions */}
+      {/* Platform accordions — only the platforms in this niche */}
       <div className="flex flex-col gap-3">
-        <AccordionSection icon={<PlatformIcon platform="tiktok" size={40} />} title="TikTok" defaultOpen bestAvgViews={bestAvgViews(tiktokAccounts)} bestEngRate={bestEngRate(tiktokAccounts)}>
-          <div className="flex flex-col gap-2">
-            {tiktokAccounts.map(acc => <AccountRow key={acc.handle} account={acc} followers={getFollowers(acc.handle, acc.platform)} period={period} />)}
-          </div>
-        </AccordionSection>
+        {tiktokAccounts.length > 0 && (
+          <AccordionSection icon={<PlatformIcon platform="tiktok" size={40} />} title="TikTok" defaultOpen bestAvgViews={bestAvgViews(tiktokAccounts)} bestEngRate={bestEngRate(tiktokAccounts)}>
+            <div className="flex flex-col gap-2">
+              {tiktokAccounts.map(acc => <AccountRow key={acc.handle + acc.platform} account={acc} followers={getFollowers(acc.handle, acc.platform)} />)}
+            </div>
+          </AccordionSection>
+        )}
 
-        <AccordionSection icon={<PlatformIcon platform="youtube" size={40} />} title="YouTube" bestAvgViews={youtubeAccounts[0]?.avgViews[period]} bestEngRate={youtubeAccounts[0]?.engRate[period]}>
-          <div className="flex flex-col gap-2">
-            {youtubeAccounts.map(acc => <AccountRow key={acc.handle} account={acc} followers={getFollowers(acc.handle, acc.platform)} period={period} />)}
-          </div>
-        </AccordionSection>
+        {youtubeAccounts.length > 0 && (
+          <AccordionSection icon={<PlatformIcon platform="youtube" size={40} />} title="YouTube" bestAvgViews={bestAvgViews(youtubeAccounts)} bestEngRate={bestEngRate(youtubeAccounts)}>
+            <div className="flex flex-col gap-2">
+              {youtubeAccounts.map(acc => <AccountRow key={acc.handle + acc.platform} account={acc} followers={getFollowers(acc.handle, acc.platform)} />)}
+            </div>
+          </AccordionSection>
+        )}
 
-        <AccordionSection icon={<PlatformIcon platform="instagram" size={40} />} title="Instagram" bestAvgViews={bestAvgViews(instaAccounts)} bestEngRate={bestEngRate(instaAccounts)}>
-          <div className="flex flex-col gap-2">
-            {instaAccounts.map(acc => <AccountRow key={acc.handle} account={acc} followers={getFollowers(acc.handle, acc.platform)} period={period} />)}
-          </div>
-        </AccordionSection>
+        {instaAccounts.length > 0 && (
+          <AccordionSection icon={<PlatformIcon platform="instagram" size={40} />} title="Instagram" bestAvgViews={bestAvgViews(instaAccounts)} bestEngRate={bestEngRate(instaAccounts)}>
+            <div className="flex flex-col gap-2">
+              {instaAccounts.map(acc => <AccountRow key={acc.handle + acc.platform} account={acc} followers={getFollowers(acc.handle, acc.platform)} />)}
+            </div>
+          </AccordionSection>
+        )}
       </div>
 
       <ScrollFloat
