@@ -9,8 +9,6 @@ gsap.registerPlugin(ScrollTrigger);
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Period = '3m' | '6m' | '12m';
-
 type Niche = 'gaming' | 'football';
 
 interface AccountStat {
@@ -19,8 +17,8 @@ interface AccountStat {
   group: Niche;
   niche: string;
   url: string;
-  avgViews: Record<Period, string>;
-  engRate: Record<Period, string>;
+  avgViews: string;
+  engRate: string;
 }
 
 interface CaseStudy {
@@ -407,8 +405,7 @@ function AccountRow({ account, followers }: { account: AccountStat; followers: n
 
 // ─── HeroSection ──────────────────────────────────────────────────────────────
 
-function HeroSection({ totalFollowers, niche }: { totalFollowers: number; niche: Niche }) {
-  const meta = NICHE_META[niche];
+function HeroSection({ totalFollowers }: { totalFollowers: number }) {
   return (
     <div className="mb-2 sm:mb-5">
       <div className="flex items-stretch gap-4 sm:gap-5 mb-2 sm:mb-4">
@@ -439,12 +436,12 @@ function HeroSection({ totalFollowers, niche }: { totalFollowers: number; niche:
                 <path d="M7 12.5l3.5 3.5 6.5-7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <p className="text-white/55 font-semibold text-sm sm:text-base text-stroke-sm">{meta.emoji} {meta.label} · {meta.tag}</p>
+            <p className="text-white/55 font-semibold text-sm sm:text-base text-stroke-sm">🎮 Gaming · ⚽️ Football</p>
           </div>
 
-          {/* Total Audience (for the selected niche) */}
+          {/* Total Audience — everything, every platform */}
           <div>
-            <div className="text-[10px] sm:text-xs font-black uppercase tracking-[0.18em] text-white/60 leading-none mb-1">{meta.label} Audience</div>
+            <div className="text-[10px] sm:text-xs font-black uppercase tracking-[0.18em] text-white/60 leading-none mb-1">Total Audience</div>
             <div className="font-black italic text-3xl sm:text-4xl leading-none text-white text-stroke" style={{ letterSpacing: '-0.02em' }}>
               {totalFollowers > 0 ? fmt(totalFollowers) : '—'}
             </div>
@@ -485,41 +482,35 @@ export default function StatsClient() {
   const youtubeAccounts = nicheAccounts.filter(a => a.platform === 'youtube');
   const instaAccounts   = nicheAccounts.filter(a => a.platform === 'instagram');
 
-  // Niche totals
-  const nicheFollowers = nicheAccounts.reduce((s, a) => s + getFollowers(a.handle, a.platform), 0);
+  // Niche totals (Performance section)
   const nicheAvgViews  = nicheAccounts.length ? fmt(Math.max(...nicheAccounts.map(a => parseNum(a.avgViews)))) : '—';
   const nicheEng       = nicheAccounts.length ? (nicheAccounts.reduce((s, a) => s + parseFloat(a.engRate), 0) / nicheAccounts.length).toFixed(1) + '%' : '—';
 
   const bestAvgViews = (accs: AccountStat[]) => accs.length ? fmt(Math.max(...accs.map(a => parseNum(a.avgViews)))) : '';
   const bestEngRate  = (accs: AccountStat[]) => accs.length ? accs.reduce((b, a) => parseFloat(a.engRate) > parseFloat(b) ? a.engRate : b, accs[0].engRate) : '';
 
-  const platformBar = (['tiktok', 'youtube', 'instagram'] as const)
-    .map(p => ({ platform: p, label: p === 'tiktok' ? 'TikTok' : p === 'youtube' ? 'YouTube' : 'Instagram',
-      count: nicheAccounts.filter(a => a.platform === p).reduce((s, a) => s + getFollowers(a.handle, a.platform), 0) }))
-    .filter(x => nicheAccounts.some(a => a.platform === x.platform));
+  // Grand-total audience bar — every platform, both niches, plus Twitch + Facebook. Descending.
+  const STATIC_PLATFORMS: { platform: string; label: string; count: number }[] = [
+    { platform: 'facebook', label: 'Facebook', count: 18000 },
+    { platform: 'twitch',   label: 'Twitch',   count: 15000 },
+  ];
+  const platformBar = [
+    ...(['tiktok', 'youtube', 'instagram'] as const).map(p => ({
+      platform: p as string,
+      label: p === 'tiktok' ? 'TikTok' : p === 'youtube' ? 'YouTube' : 'Instagram',
+      count: ACCOUNTS.filter(a => a.platform === p).reduce((s, a) => s + getFollowers(a.handle, a.platform), 0),
+    })),
+    ...STATIC_PLATFORMS,
+  ].sort((a, b) => b.count - a.count);
+
+  const grandFollowers = liveAccounts.length ? platformBar.reduce((s, x) => s + x.count, 0) : 0;
 
   return (
     <div className="min-h-screen px-4 py-3 sm:py-6 max-w-3xl mx-auto">
 
-      {/* Niche switch — Gaming / Football */}
-      <div className="flex gap-1.5 p-1 rounded-2xl mb-3 sm:mb-4" style={{ background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.08)' }}>
-        {(['gaming', 'football'] as Niche[]).map(n => (
-          <button
-            key={n}
-            onClick={() => setNiche(n)}
-            className="cursor-target flex-1 py-2.5 rounded-xl font-black italic text-sm sm:text-base uppercase tracking-wider transition-all duration-200"
-            style={niche === n
-              ? { background: 'rgba(255,255,255,0.95)', color: '#000' }
-              : { background: 'transparent', color: 'rgba(255,255,255,0.55)' }}
-          >
-            {NICHE_META[n].emoji} {NICHE_META[n].label}
-          </button>
-        ))}
-      </div>
+      <HeroSection totalFollowers={grandFollowers} />
 
-      <HeroSection totalFollowers={nicheFollowers} niche={niche} />
-
-      {/* Platform audience bar — the platforms in this niche */}
+      {/* Platform audience bar — every platform, descending */}
       <div className={`grid gap-2 sm:gap-3 mb-2 sm:mb-4`} style={{ gridTemplateColumns: `repeat(${platformBar.length}, minmax(0, 1fr))` }}>
         {platformBar.map(({ platform, count, label }) => (
           <div key={platform} className="cursor-target flex flex-col items-center gap-1.5 px-1 py-3 sm:px-3 sm:py-3 rounded-2xl" style={{ background: 'rgba(0,0,0,0.55)' }}>
@@ -620,6 +611,22 @@ export default function StatsClient() {
             </div>
           </AccordionSection>
         )}
+      </div>
+
+      {/* Niche switch — subtle; toggles which niche the Performance section shows */}
+      <div className="flex items-center justify-center gap-1 mt-3 sm:mt-4">
+        {(['gaming', 'football'] as Niche[]).map(n => (
+          <button
+            key={n}
+            onClick={() => setNiche(n)}
+            className="cursor-target px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold tracking-wide transition-colors duration-200"
+            style={niche === n
+              ? { color: 'rgba(255,255,255,0.85)', background: 'rgba(255,255,255,0.07)' }
+              : { color: 'rgba(255,255,255,0.35)', background: 'transparent' }}
+          >
+            {NICHE_META[n].emoji} {NICHE_META[n].label}
+          </button>
+        ))}
       </div>
 
       <ScrollFloat
