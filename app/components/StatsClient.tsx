@@ -42,7 +42,8 @@ const ACCOUNTS: AccountStat[] = [
   { handle: '@diez.gg',       platform: 'instagram', group: 'gaming',   niche: 'Gaming / Lifestyle', url: 'https://instagram.com/diez.gg',      avgViews: '238K', engRate: '8.9%' },
   { handle: '@diez.ball',     platform: 'tiktok',    group: 'football', niche: 'Football',           url: 'https://tiktok.com/@diez.ball',      avgViews: '425K', engRate: '14.8%' },
   { handle: '@diezknowsball', platform: 'tiktok',    group: 'football', niche: 'Football',           url: 'https://tiktok.com/@diezknowsball',  avgViews: '485K', engRate: '13.0%' },
-  { handle: '@diezball10',    platform: 'instagram', group: 'football', niche: 'Football',           url: 'https://instagram.com/diezball10',   avgViews: '204K', engRate: '10.2%' },
+  { handle: '@diezball',      platform: 'youtube',   group: 'football', niche: 'Football',           url: 'https://youtube.com/@diezball',      avgViews: '160K', engRate: '5.0%' },
+  { handle: '@diezballl',     platform: 'instagram', group: 'football', niche: 'Football',           url: 'https://instagram.com/diezballl',    avgViews: '15K',  engRate: '8.0%' },
 ];
 
 // Lifetime-ish total views per niche (marketing figure for the scorecard).

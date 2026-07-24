@@ -4,12 +4,25 @@ import type { AccountStat, VideoStat } from '@/lib/types';
 
 export const revalidate = 86400;
 
+const YT_KEY = process.env.YOUTUBE_API_KEY || '';
+
+// Live subscriber count for a YouTube channel handle (used for the football YT).
+async function ytChannelSubs(handle: string): Promise<number> {
+  if (!YT_KEY) return 0;
+  try {
+    const r = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics&forHandle=${handle}&key=${YT_KEY}`, { cache: 'no-store' });
+    const j = await r.json();
+    return parseInt(j.items?.[0]?.statistics?.subscriberCount || '0');
+  } catch { return 0; }
+}
+
 export async function GET() {
   try {
-    const [tiktokData, youtubeData, instagramData] = await Promise.all([
+    const [tiktokData, youtubeData, instagramData, diezballYtSubs] = await Promise.all([
       getTikTokData(),
       getYouTubeData(),
       getInstagramData(),
+      ytChannelSubs('diezball'),
     ]);
 
     // --- TikTok ---
@@ -106,6 +119,16 @@ export async function GET() {
         niche: 'Warzone / FPS',
       },
       {
+        platform: 'youtube',
+        handle: '@diezball',
+        displayName: 'Diez Ball',
+        followers: diezballYtSubs || 27900,
+        totalViews: 0,
+        videoCount: 0,
+        url: 'https://youtube.com/@diezball',
+        niche: 'Football',
+      },
+      {
         platform: 'instagram',
         handle: '@diez.gg',
         displayName: 'Diez · Gaming',
@@ -117,12 +140,12 @@ export async function GET() {
       },
       {
         platform: 'instagram',
-        handle: '@diezball10',
+        handle: '@diezballl',
         displayName: 'Diez · Football',
-        followers: instagramData.filter((i) => i.ownerUsername === 'diezball10')[0]?.followersCount || 35400,
-        totalViews: instagramPosts.filter(v => v.account === 'diezball10').reduce((s, v) => s + v.views, 0),
-        videoCount: instagramPosts.filter(v => v.account === 'diezball10').length,
-        url: 'https://instagram.com/diezball10',
+        followers: instagramData.filter((i) => i.ownerUsername === 'diezballl')[0]?.followersCount || 5365,
+        totalViews: instagramPosts.filter(v => v.account === 'diezballl').reduce((s, v) => s + v.views, 0),
+        videoCount: instagramPosts.filter(v => v.account === 'diezballl').length,
+        url: 'https://instagram.com/diezballl',
         niche: 'Football',
       },
     ];
