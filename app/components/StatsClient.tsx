@@ -465,7 +465,7 @@ function HeroSection({ totalFollowers }: { totalFollowers: number }) {
 interface LiveAccount { platform: string; handle: string; followers: number; }
 
 export default function StatsClient() {
-  const [niche, setNiche] = useState<Niche>('football');
+  const [niche, setNiche] = useState<Niche>('gaming');
   const [liveAccounts, setLiveAccounts] = useState<LiveAccount[]>([]);
   const [studies, setStudies] = useState<CaseStudy[]>([]);
 
@@ -567,6 +567,22 @@ export default function StatsClient() {
         Performance
       </ScrollFloat>
 
+      {/* Niche switch — pick which niche the Performance section below reflects */}
+      <div className="flex gap-1.5 p-1 rounded-2xl mb-3 sm:mb-4" style={{ background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.1)' }}>
+        {(['gaming', 'football'] as Niche[]).map(n => (
+          <button
+            key={n}
+            onClick={() => setNiche(n)}
+            className="cursor-target flex-1 py-2 rounded-xl font-black italic text-sm sm:text-base uppercase tracking-wider transition-all duration-200"
+            style={niche === n
+              ? { background: 'rgba(255,255,255,0.92)', color: '#000' }
+              : { background: 'transparent', color: 'rgba(255,255,255,0.6)' }}
+          >
+            {NICHE_META[n].emoji} {NICHE_META[n].label}
+          </button>
+        ))}
+      </div>
+
       {/* Scorecards — avg monthly views (highest), engagement, total views */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-5">
         <div className="cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -611,22 +627,6 @@ export default function StatsClient() {
             </div>
           </AccordionSection>
         )}
-      </div>
-
-      {/* Niche switch — subtle; toggles which niche the Performance section shows */}
-      <div className="flex items-center justify-center gap-1 mt-3 sm:mt-4">
-        {(['gaming', 'football'] as Niche[]).map(n => (
-          <button
-            key={n}
-            onClick={() => setNiche(n)}
-            className="cursor-target px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold tracking-wide transition-colors duration-200"
-            style={niche === n
-              ? { color: 'rgba(255,255,255,0.85)', background: 'rgba(255,255,255,0.07)' }
-              : { color: 'rgba(255,255,255,0.35)', background: 'transparent' }}
-          >
-            {NICHE_META[n].emoji} {NICHE_META[n].label}
-          </button>
-        ))}
       </div>
 
       <ScrollFloat
