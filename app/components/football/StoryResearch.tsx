@@ -22,6 +22,21 @@ interface Story {
 type Filter = 'all' | 'personal' | 'country';
 interface ChatMsg { role: 'user' | 'assistant'; content: string }
 
+// ---- Client-side day cache ----
+// Keeps loaded results on-screen across tab switches, open-story-then-back, and
+// sidebar navigation with NO reload/flash. In-memory survives SPA navigation;
+// localStorage survives full page reloads. Both reset on a new day. Refresh overwrites.
+const DAY = () => new Date().toISOString().slice(0, 10);
+function lsGet(key: string): any | null {
+  try { const c = JSON.parse(localStorage.getItem(key) || 'null'); return c && c.day === DAY() ? c.p : null; } catch { return null; }
+}
+function lsSet(key: string, p: any) {
+  try { localStorage.setItem(key, JSON.stringify({ day: DAY(), p })); } catch {}
+}
+
+type StoriesPayload = { stories: Story[]; date: string | null; cost: number };
+let storiesMem: { day: string; p: StoriesPayload } | null = null;
+
 const RELEVANCE_STYLE: Record<string, string> = {
   HOT: 'bg-red-100 text-red-700 border-red-200',
   WARM: 'bg-amber-100 text-amber-700 border-amber-200',
@@ -404,25 +419,36 @@ function TrendingCard({ p, onWrite }: { p: TrendingPlayer; onWrite: () => void }
   );
 }
 
+type TrendingPayload = { players: TrendingPlayer[]; date: string | null; cost: number };
+let trendingMem: { day: string; p: TrendingPayload } | null = null;
+
 function TrendingPlayers({ onWrite }: { onWrite: (s: Story) => void }) {
-  const [players, setPlayers] = useState<TrendingPlayer[]>([]);
+  const tmem = trendingMem?.day === DAY() ? trendingMem.p : null;
+  const [players, setPlayers] = useState<TrendingPlayer[]>(tmem?.players ?? []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastDate, setLastDate] = useState<string | null>(null);
-  const [cost, setCost] = useState(0);
-  const [cached, setCached] = useState(false);
+  const [lastDate, setLastDate] = useState<string | null>(tmem?.date ?? null);
+  const [cost, setCost] = useState(tmem?.cost ?? 0);
+  const [cached, setCached] = useState(!!tmem);
 
   async function safeJson(res: Response) {
     const text = await res.text();
     try { return JSON.parse(text); } catch { return { ok: false, error: `Server returned invalid response (${res.status})` }; }
   }
   const apply = useCallback((data: any) => {
-    setPlayers(data.players || []); setLastDate(data.date); setCached(!!data.cached);
+    const p: TrendingPayload = { players: data.players || [], date: data.date ?? null, cost: data.cost || 0 };
+    setPlayers(p.players); setLastDate(p.date); setCached(!!data.cached);
     if (data.cost && !data.cached) { setCost(data.cost); addSpend(data.cost); }
+    trendingMem = { day: DAY(), p };
+    lsSet('diez-trending', p);
   }, []);
 
-  // On mount: only load today's cached scan (GET is free). Never auto-scan.
+  // On mount: prefer the client cache (instant, no flash). Only GET when nothing's
+  // cached for today. Never auto-scan — the creator must hit Refresh to spend.
   useEffect(() => {
+    if (trendingMem?.day === DAY() && trendingMem.p.players.length) return; // already on-screen
+    const ls = lsGet('diez-trending');
+    if (ls?.players?.length) { apply({ ...ls, cached: true }); return; }
     let cancelled = false;
     (async () => {
       try {
@@ -515,13 +541,14 @@ function TrendingPlayers({ onWrite }: { onWrite: (s: Story) => void }) {
 type Tab = 'stories' | 'trending';
 
 export function StoryResearch() {
-  const [stories, setStories] = useState<Story[]>([]);
+  const mem = storiesMem?.day === DAY() ? storiesMem.p : null;
+  const [stories, setStories] = useState<Story[]>(mem?.stories ?? []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
-  const [lastDate, setLastDate] = useState<string | null>(null);
-  const [cost, setCost] = useState(0);
-  const [cached, setCached] = useState(false);
+  const [lastDate, setLastDate] = useState<string | null>(mem?.date ?? null);
+  const [cost, setCost] = useState(mem?.cost ?? 0);
+  const [cached, setCached] = useState(!!mem);
   const [activeStory, setActiveStory] = useState<Story | null>(null);
   const [customTopic, setCustomTopic] = useState('');
   const [tab, setTab] = useState<Tab>('stories');
@@ -537,10 +564,14 @@ export function StoryResearch() {
   }
 
   const applyData = useCallback((data: any) => {
-    setStories(data.stories || []);
-    setLastDate(data.date);
+    const p: StoriesPayload = { stories: data.stories || [], date: data.date ?? null, cost: data.cost || 0 };
+    setStories(p.stories);
+    setLastDate(p.date);
     setCached(!!data.cached);
     if (data.cost && !data.cached) { setCost(data.cost); addSpend(data.cost); }
+    // Persist for instant restore on remount (no reload/flash).
+    storiesMem = { day: DAY(), p };
+    lsSet('diez-stories', p);
   }, []);
 
   async function safeJson(res: Response) {
@@ -549,9 +580,12 @@ export function StoryResearch() {
     catch { return { ok: false, error: `Server returned invalid response (${res.status})` }; }
   }
 
-  // On mount only LOAD already-cached stories (GET is free — no model call).
-  // Never auto-generate; the creator must hit Refresh to spend tokens.
+  // On mount: prefer the client cache (instant, no network, no flash). Only when
+  // nothing is cached for today do we hit the free server GET. Never auto-generate.
   useEffect(() => {
+    if (storiesMem?.day === DAY() && storiesMem.p.stories.length) return; // already on-screen
+    const ls = lsGet('diez-stories');
+    if (ls?.stories?.length) { applyData({ ...ls, cached: true }); return; }
     let cancelled = false;
     (async () => {
       try {
