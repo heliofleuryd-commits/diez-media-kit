@@ -483,7 +483,13 @@ export default function StatsClient() {
   const instaAccounts   = nicheAccounts.filter(a => a.platform === 'instagram');
 
   // Niche totals (Performance section)
-  const nicheAvgViews  = nicheAccounts.length ? fmt(Math.max(...nicheAccounts.map(a => parseNum(a.avgViews)))) : '—';
+  // Avg Views = sum of each platform's best account (TikTok best + YouTube + Instagram).
+  const nicheAvgViews  = nicheAccounts.length
+    ? fmt((['tiktok', 'youtube', 'instagram'] as const).reduce((sum, p) => {
+        const accs = nicheAccounts.filter(a => a.platform === p);
+        return sum + (accs.length ? Math.max(...accs.map(a => parseNum(a.avgViews))) : 0);
+      }, 0))
+    : '—';
   const nicheEng       = nicheAccounts.length ? (nicheAccounts.reduce((s, a) => s + parseFloat(a.engRate), 0) / nicheAccounts.length).toFixed(1) + '%' : '—';
 
   const bestAvgViews = (accs: AccountStat[]) => accs.length ? fmt(Math.max(...accs.map(a => parseNum(a.avgViews)))) : '';
