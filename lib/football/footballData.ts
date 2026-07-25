@@ -133,13 +133,30 @@ async function fetchReddit(sub: string, limit: number): Promise<string[]> {
   } catch { return []; }
 }
 
+// X/Twitter trending topics (free) via getdaytrends — corroborates who is spiking on
+// X right now (a name/club appearing here = genuinely trending, not just in the news).
+async function fetchXTrends(geo: string): Promise<string[]> {
+  try {
+    const r = await fetch(`https://getdaytrends.com/${geo}/`, {
+      cache: 'no-store',
+      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36' },
+      signal: AbortSignal.timeout(6000),
+    });
+    const html = await r.text();
+    return [...html.matchAll(/<a class="string" href="[^"]*">([^<]+)<\/a>/g)]
+      .map(m => m[1].trim().replace(/&amp;/g, '&')).filter(Boolean);
+  } catch { return []; }
+}
+
 // Every free signal the trending-players scan needs, gathered in parallel.
-export async function fetchTrendSignals(key: string): Promise<{ news: string[]; reddit: string[]; youtube: string[] }> {
-  const [newsBatches, reddit1, reddit2, youtube] = await Promise.all([
+export async function fetchTrendSignals(key: string): Promise<{ news: string[]; reddit: string[]; youtube: string[]; xTrends: string[] }> {
+  const [newsBatches, reddit1, reddit2, youtube, xUk, xUs] = await Promise.all([
     Promise.all(TREND_QUERIES.map(q => googleNews(q, 5))),
     fetchReddit('soccer', 25),
     fetchReddit('football', 15),
     fetchTrendingYouTube(key),
+    fetchXTrends('united-kingdom'),
+    fetchXTrends('united-states'),
   ]);
   const seen = new Set<string>(); const news: string[] = [];
   for (const batch of newsBatches) for (const h of batch) {
@@ -147,5 +164,6 @@ export async function fetchTrendSignals(key: string): Promise<{ news: string[]; 
     if (h.length > 12 && !seen.has(k)) { seen.add(k); news.push(h); }
   }
   const reddit = [...reddit1, ...reddit2].filter((v, i, a) => a.indexOf(v) === i);
-  return { news: news.slice(0, 45), reddit: reddit.slice(0, 35), youtube };
+  const xTrends = [...xUk, ...xUs].filter((v, i, a) => a.indexOf(v) === i);
+  return { news: news.slice(0, 45), reddit: reddit.slice(0, 35), youtube, xTrends: xTrends.slice(0, 60) };
 }

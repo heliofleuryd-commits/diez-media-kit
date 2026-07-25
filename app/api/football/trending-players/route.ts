@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       if (cached) return NextResponse.json({ ok: true, players: cached.players, date: cached.date, cost: 0, cached: true });
     }
 
-    const { news, reddit, youtube } = await fetchTrendSignals(YT_KEY);
+    const { news, reddit, youtube, xTrends } = await fetchTrendSignals(YT_KEY);
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
     const rawData = [
@@ -49,16 +49,17 @@ export async function POST(req: Request) {
       news.map(n => `- ${n}`).join('\n') || 'None',
       '\n## REDDIT r/soccer + r/football (hot right now — what fans are talking about)',
       reddit.map(r => `- ${r}`).join('\n') || 'None',
+      xTrends.length ? `\n## X / TWITTER TRENDING NOW (UK + US — raw trending topics; some are football players/clubs, many are not)\n${xTrends.map(x => `- ${x}`).join('\n')}` : '',
       youtube.length ? `\n## YOUTUBE (most-viewed football, last 48h)\n${youtube.map(y => `- ${y}`).join('\n')}` : '',
     ].join('\n');
 
-    const prompt = `Today is ${today}. Below are today's live football signals scraped from Google News, Reddit (r/soccer + r/football hot), and YouTube.
+    const prompt = `Today is ${today}. Below are today's live football signals scraped from Google News, Reddit (r/soccer + r/football hot), X/Twitter trending topics, and YouTube.
 
 ${rawData}
 
 Your job: identify the TOP TRENDING FOOTBALL PLAYERS right now — the individual people the football world is searching for and talking about TODAY — so the creator can make a short personal-story video about them while they're hot.
 
-A player is "trending" if there's a live trigger: a transfer/signing, a controversy or scandal, an injury, a personal or family story (birth, loss, illness, marriage, a story about their child), a tragedy, a return/comeback, or a standout performance. Cross-reference the signals — a name appearing across News + Reddit + YouTube is hotter than one mentioned once.
+A player is "trending" if there's a live trigger: a transfer/signing, a controversy or scandal, an injury, a personal or family story (birth, loss, illness, marriage, a story about their child), a tragedy, a return/comeback, or a standout performance. Cross-reference the signals — a name appearing across News + Reddit + YouTube is hotter than one mentioned once. The X/TWITTER TRENDING list is a strong heat booster: if a player's name, nickname, or club appears there, they are genuinely spiking right now — rank them higher and lean HOT (but ignore the many non-football trends in that list).
 
 Rank the players by how strong a SHORT-FORM PERSONAL STORY they'd make right now — not just raw fame.
 

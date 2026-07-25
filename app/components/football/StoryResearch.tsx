@@ -495,7 +495,7 @@ function TrendingPlayers({ onWrite }: { onWrite: (s: Story) => void }) {
         <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-12 text-center">
           <div className="text-3xl mb-3 animate-pulse">📡</div>
           <h2 className="text-[14px] font-bold text-gray-800 mb-1">Scanning for trending players…</h2>
-          <p className="text-[11px] text-gray-400 max-w-sm mx-auto">Reading Google News, Reddit r/soccer, and YouTube, then ranking who's hot today. ~15 seconds.</p>
+          <p className="text-[11px] text-gray-400 max-w-sm mx-auto">Reading Google News, Reddit r/soccer, X/Twitter trends, and YouTube, then ranking who's hot today. ~15 seconds.</p>
         </div>
       )}
 
