@@ -349,7 +349,170 @@ function StoryCard({ story, onWriteScript }: { story: Story; onWriteScript: () =
   );
 }
 
+// ---- Trending Players ----
+
+interface TrendingPlayer {
+  rank: number;
+  player: string;
+  club: string | null;
+  category: 'personal' | 'controversy' | 'transfer' | 'injury' | 'tragedy' | 'comeback' | 'performance' | 'other';
+  heat: 'HOT' | 'RISING';
+  emotional: boolean;
+  why_trending: string;
+  angle: string;
+  sources: string[];
+}
+
+const CATEGORY_STYLE: Record<string, string> = {
+  personal: 'bg-violet-100 text-violet-700',
+  controversy: 'bg-rose-100 text-rose-700',
+  tragedy: 'bg-red-100 text-red-700',
+  injury: 'bg-orange-100 text-orange-700',
+  transfer: 'bg-blue-100 text-blue-700',
+  comeback: 'bg-emerald-100 text-emerald-700',
+  performance: 'bg-sky-100 text-sky-700',
+  other: 'bg-gray-100 text-gray-600',
+};
+
+function TrendingCard({ p, onWrite }: { p: TrendingPlayer; onWrite: () => void }) {
+  return (
+    <div className={`rounded-xl border bg-white overflow-hidden ${p.emotional ? 'border-rose-200' : 'border-gray-200'}`}>
+      <div className="px-4 py-3">
+        <div className="flex items-start gap-3">
+          <span className="text-[13px] font-black text-gray-300 mt-0.5 shrink-0 tabular-nums">#{p.rank}</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ${p.heat === 'HOT' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-amber-100 text-amber-700 border-amber-200'}`}>{p.heat}</span>
+              <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${CATEGORY_STYLE[p.category] || CATEGORY_STYLE.other}`}>{p.category}</span>
+              {p.emotional && <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-600 text-white">🔥 does best</span>}
+            </div>
+            <h3 className="font-black text-[15px] text-gray-900 mt-1.5 leading-tight">
+              {p.player}{p.club && <span className="font-semibold text-gray-400 text-[12px]"> · {p.club}</span>}
+            </h3>
+            <p className="text-[11px] text-gray-600 mt-1 leading-relaxed"><span className="font-bold text-gray-400">Why now:</span> {p.why_trending}</p>
+            <p className="text-[11px] text-gray-600 mt-1 leading-relaxed"><span className="font-bold text-gray-400">Angle:</span> {p.angle}</p>
+            {p.sources?.length > 0 && <p className="text-[9px] text-gray-300 mt-1 uppercase tracking-wider font-semibold">{p.sources.join(' · ')}</p>}
+          </div>
+        </div>
+        <button onClick={onWrite}
+          className="w-full mt-2.5 px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider text-white transition-all hover:opacity-90"
+          style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
+          Write Story
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TrendingPlayers({ onWrite }: { onWrite: (s: Story) => void }) {
+  const [players, setPlayers] = useState<TrendingPlayer[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastDate, setLastDate] = useState<string | null>(null);
+  const [cost, setCost] = useState(0);
+  const [cached, setCached] = useState(false);
+
+  async function safeJson(res: Response) {
+    const text = await res.text();
+    try { return JSON.parse(text); } catch { return { ok: false, error: `Server returned invalid response (${res.status})` }; }
+  }
+  const apply = useCallback((data: any) => {
+    setPlayers(data.players || []); setLastDate(data.date); setCached(!!data.cached);
+    if (data.cost && !data.cached) { setCost(data.cost); addSpend(data.cost); }
+  }, []);
+
+  // On mount: only load today's cached scan (GET is free). Never auto-scan.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch('/api/football/trending-players');
+        const d = await safeJson(r);
+        if (!cancelled && d.ok && d.players?.length) apply(d);
+      } catch { /* empty state will show */ }
+    })();
+    return () => { cancelled = true; };
+  }, [apply]);
+
+  async function refresh() {
+    setLoading(true); setError(null);
+    try {
+      const res = await fetch('/api/football/trending-players', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh: true }),
+      });
+      const data = await safeJson(res);
+      if (!data.ok) throw new Error(data.error || 'Failed');
+      if (!data.players?.length) throw new Error('No trending players returned');
+      apply(data);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Something went wrong'); }
+    finally { setLoading(false); }
+  }
+
+  // Build a custom Story from a trending player → drops into the existing script writer
+  // (custom:true so it researches the story first, then drafts + applies viral style).
+  function writeStory(p: TrendingPlayer) {
+    onWrite({
+      rank: 0, type: 'personal', title: `${p.player} — ${p.angle}`.slice(0, 90),
+      player: p.player, teams: p.club, relevance: p.heat === 'HOT' ? 'HOT' : 'WARM',
+      why_today: p.why_trending, headline: '', key_facts: [], emotional_arc: '',
+      script_angle: p.angle, custom: true,
+    });
+  }
+
+  return (
+    <>
+      <div className="mb-5">
+        <h1 className="text-xl font-black text-gray-900 tracking-tight">Trending Players</h1>
+        <p className="text-[12px] text-gray-500 mt-1">
+          The players the football world is searching for right now — ranked for personal-story potential. Emotional &amp; controversial stories rise to the top.
+        </p>
+      </div>
+
+      <div className="flex items-center gap-3 mb-5">
+        <button onClick={refresh} disabled={loading}
+          className="px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider text-white disabled:opacity-40"
+          style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
+          {loading ? 'Scanning the web…' : 'Refresh Trending'}
+        </button>
+        {lastDate && <span className="text-[10px] text-gray-400 font-semibold">{lastDate}{cached ? ' (cached)' : ''}</span>}
+        {cost > 0 && <span className="text-[10px] text-gray-300 font-mono">{formatCost(cost)}</span>}
+        <span className="text-[10px] text-gray-300 font-mono ml-auto">Daily: {formatCost(getDailySpend())}</span>
+      </div>
+
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 mb-5">
+          <p className="text-[11px] text-red-700 font-semibold">{error}</p>
+        </div>
+      )}
+
+      {players.length > 0 && (
+        <div className="space-y-2">
+          {players.map(p => <TrendingCard key={p.rank + p.player} p={p} onWrite={() => writeStory(p)} />)}
+        </div>
+      )}
+
+      {loading && players.length === 0 && (
+        <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-12 text-center">
+          <div className="text-3xl mb-3 animate-pulse">📡</div>
+          <h2 className="text-[14px] font-bold text-gray-800 mb-1">Scanning for trending players…</h2>
+          <p className="text-[11px] text-gray-400 max-w-sm mx-auto">Reading Google News, Reddit r/soccer, and YouTube, then ranking who's hot today. ~15 seconds.</p>
+        </div>
+      )}
+
+      {!loading && players.length === 0 && !error && (
+        <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-12 text-center">
+          <div className="text-3xl mb-3">📡</div>
+          <h2 className="text-[14px] font-bold text-gray-800 mb-1">No scan yet today</h2>
+          <p className="text-[11px] text-gray-400 max-w-sm mx-auto">Hit <span className="font-bold text-violet-600">Refresh Trending</span> to scan the web for today's most-trending players. (Only runs when you click — no tokens spent otherwise.)</p>
+        </div>
+      )}
+    </>
+  );
+}
+
 // ---- Main ----
+
+type Tab = 'stories' | 'trending';
 
 export function StoryResearch() {
   const [stories, setStories] = useState<Story[]>([]);
@@ -361,6 +524,7 @@ export function StoryResearch() {
   const [cached, setCached] = useState(false);
   const [activeStory, setActiveStory] = useState<Story | null>(null);
   const [customTopic, setCustomTopic] = useState('');
+  const [tab, setTab] = useState<Tab>('stories');
 
   function scriptCustom() {
     const t = customTopic.trim();
@@ -426,6 +590,19 @@ export function StoryResearch() {
   return (
     <div className="h-full overflow-y-auto bg-white">
       <div className="max-w-3xl mx-auto px-5 py-6">
+        {/* Tabs */}
+        <div className="flex gap-1.5 mb-5">
+          {([['stories', '📖 Story Research'], ['trending', '📡 Trending Players']] as [Tab, string][]).map(([key, label]) => (
+            <button key={key} onClick={() => setTab(key)}
+              className={`px-3.5 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${tab === key ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'trending' && <TrendingPlayers onWrite={setActiveStory} />}
+
+        {tab === 'stories' && (<>
         <div className="mb-5">
           <h1 className="text-xl font-black text-gray-900 tracking-tight">Story Research</h1>
           <p className="text-[12px] text-gray-500 mt-1">
@@ -501,6 +678,7 @@ export function StoryResearch() {
             <p className="text-[11px] text-gray-400 max-w-sm mx-auto">Hit <span className="font-bold text-violet-600">Refresh Stories</span> to research today's, or type your own story above. (Won't run on its own — no tokens spent until you click.)</p>
           </div>
         )}
+        </>)}
       </div>
     </div>
   );

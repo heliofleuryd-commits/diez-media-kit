@@ -106,3 +106,46 @@ export async function fetchTrendingYouTube(key: string): Promise<string[]> {
     return (json.items || []).map((v: any) => `[${v.snippet.channelTitle}] ${v.snippet.title}`);
   } catch { return []; }
 }
+
+// ─── Trending-players signal layer (free sources: News + Reddit + YouTube) ─────
+
+// Queries tuned to surface WHO is trending and WHY — transfers, but above all the
+// emotional/personal/controversial angles that perform best.
+const TREND_QUERIES = [
+  'footballer trending', 'footballer news today', 'football transfer today', 'footballer signs',
+  'footballer controversy', 'footballer scandal', 'footballer injury', 'footballer death',
+  'footballer tragedy', 'footballer wife', 'footballer son', 'footballer family', 'footballer statement',
+];
+
+// Reddit hot posts (free, no auth) — strong signal for what the football world is talking about now.
+async function fetchReddit(sub: string, limit: number): Promise<string[]> {
+  try {
+    const r = await fetch(`https://www.reddit.com/r/${sub}/hot/.rss?limit=${limit}`, {
+      cache: 'no-store',
+      headers: { 'User-Agent': 'diez-studio/1.0 (trending-players)' },
+      signal: AbortSignal.timeout(6000),
+    });
+    const xml = await r.text();
+    return [...xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g)].slice(0, limit).map(m => {
+      const t = m[1].match(/<title>([\s\S]*?)<\/title>/)?.[1]?.replace(/<!\[CDATA\[|\]\]>/g, '').replace(/&amp;/g, '&').trim();
+      return t || '';
+    }).filter(Boolean);
+  } catch { return []; }
+}
+
+// Every free signal the trending-players scan needs, gathered in parallel.
+export async function fetchTrendSignals(key: string): Promise<{ news: string[]; reddit: string[]; youtube: string[] }> {
+  const [newsBatches, reddit1, reddit2, youtube] = await Promise.all([
+    Promise.all(TREND_QUERIES.map(q => googleNews(q, 5))),
+    fetchReddit('soccer', 25),
+    fetchReddit('football', 15),
+    fetchTrendingYouTube(key),
+  ]);
+  const seen = new Set<string>(); const news: string[] = [];
+  for (const batch of newsBatches) for (const h of batch) {
+    const k = h.toLowerCase();
+    if (h.length > 12 && !seen.has(k)) { seen.add(k); news.push(h); }
+  }
+  const reddit = [...reddit1, ...reddit2].filter((v, i, a) => a.indexOf(v) === i);
+  return { news: news.slice(0, 45), reddit: reddit.slice(0, 35), youtube };
+}

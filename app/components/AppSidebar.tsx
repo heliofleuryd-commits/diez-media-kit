@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const NAV = [
   {
@@ -28,15 +29,45 @@ const NAV = [
       { label: 'Emotional Storyteller', href: '/football/emotional-storyteller', icon: <span className="text-[12px]">🕯️</span> },
       { label: 'Story Research',  href: '/football/stories',  icon: <span className="text-[12px]">📖</span> },
       { label: 'YouTube Lab', href: '/football/youtube-lab', icon: <span className="text-[12px]">📊</span> },
-      { label: 'Tactics Board',   href: '/football/tactics',  icon: <span className="text-[12px]">⚽</span> },
       { label: 'Skill Library',   href: '/football/skills',   icon: <span className="text-[12px]">📂</span> },
+    ],
+  },
+  {
+    // Tucked away by default — open to reach it.
+    section: 'Archive',
+    defaultCollapsed: true,
+    items: [
+      { label: 'Tactics Board',   href: '/football/tactics',  icon: <span className="text-[12px]">⚽</span> },
     ],
   },
 ];
 
+const STORAGE_KEY = 'diez-nav-collapsed';
+
 export function AppSidebar() {
   const pathname = usePathname();
   const router  = useRouter();
+
+  // Collapse state per section. Start from each section's default (stable for SSR),
+  // then hydrate the creator's saved preference on the client.
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(NAV.map(n => [n.section, !!(n as any).defaultCollapsed]))
+  );
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      if (saved && typeof saved === 'object') setCollapsed(prev => ({ ...prev, ...saved }));
+    } catch { /* ignore */ }
+  }, []);
+
+  function toggleSection(section: string) {
+    setCollapsed(prev => {
+      const next = { ...prev, [section]: !prev[section] };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }
 
   async function logout() {
     await fetch('/api/admin/logout', { method: 'POST' });
@@ -66,21 +97,33 @@ export function AppSidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
-        {NAV.map(({ section, items }) => (
-          <div key={section}>
-            <p className={`text-[8px] font-black uppercase tracking-widest px-3 mb-1.5 ${s.section}`}>{section}</p>
-            <div className="space-y-0.5">
-              {items.map(({ label, href, icon }) => (
-                <Link key={href} href={href}
-                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all ${isActive(href) ? s.active : s.inactive}`}>
-                  {icon}
-                  {label}
-                </Link>
-              ))}
+      <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
+        {NAV.map(({ section, items }) => {
+          const isCollapsed = collapsed[section];
+          return (
+            <div key={section}>
+              <button onClick={() => toggleSection(section)}
+                className={`w-full flex items-center gap-1.5 px-3 mb-1.5 group ${s.section} hover:text-gray-600 transition-colors`}>
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
+                  className="transition-transform" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+                <span className="text-[8px] font-black uppercase tracking-widest">{section}</span>
+              </button>
+              {!isCollapsed && (
+                <div className="space-y-0.5">
+                  {items.map(({ label, href, icon }) => (
+                    <Link key={href} href={href}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all ${isActive(href) ? s.active : s.inactive}`}>
+                      {icon}
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
 
       {/* Sign out */}
