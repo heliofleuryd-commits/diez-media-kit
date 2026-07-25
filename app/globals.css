@@ -89,3 +89,50 @@ body {
   0%   { transform: translate(0%, 0%);   opacity: 1; }
   100% { transform: translate(100%, 0%); opacity: 0; }
 }
+
+/* ─── Pro polish: accessibility, focus, motion (UI/UX checklist) ─────────────── */
+
+/* Cleaner interactions: no blue tap flash on mobile, crisper selection */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+::selection {
+  background: rgba(255, 0, 128, 0.35);
+  color: #fff;
+}
+
+/* Every clickable target reads as clickable */
+a, button, [role="button"], .cursor-target {
+  cursor: pointer;
+}
+
+/* Visible keyboard focus (mouse users unaffected) */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+/* Respect reduced-motion: kill decorative loops + scroll animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-pulse-dot,
+  .border-gradient-top,
+  .border-gradient-bottom {
+    animation: none !important;
+  }
+  /* Ensure ScrollFloat text stays fully visible when GSAP is suppressed */
+  .char {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

@@ -36,8 +36,8 @@ interface CaseStudy {
 // avgViews = highest average monthly views; engRate = best.
 const ACCOUNTS: AccountStat[] = [
   { handle: '@diez.gg',       platform: 'tiktok',    group: 'gaming',   niche: 'Warzone / FPS',      url: 'https://tiktok.com/@diez.gg',        avgViews: '310K', engRate: '9.1%' },
-  { handle: '@imDiez',        platform: 'youtube',   group: 'gaming',   niche: 'Warzone / FPS',      url: 'https://youtube.com/@imDiez',        avgViews: '224K', engRate: '6.2%' },
-  { handle: '@diez.gg',       platform: 'instagram', group: 'gaming',   niche: 'Gaming / Lifestyle', url: 'https://instagram.com/diez.gg',      avgViews: '238K', engRate: '8.9%' },
+  { handle: '@imDiez',        platform: 'youtube',   group: 'gaming',   niche: 'Warzone / FPS',      url: 'https://youtube.com/@imDiez',        avgViews: '187K', engRate: '6.2%' },
+  { handle: '@diez.gg',       platform: 'instagram', group: 'gaming',   niche: 'Gaming / Lifestyle', url: 'https://instagram.com/diez.gg',      avgViews: '50K',  engRate: '8.9%' },
   { handle: '@diez.ball',     platform: 'tiktok',    group: 'football', niche: 'Football',           url: 'https://tiktok.com/@diez.ball',      avgViews: '425K', engRate: '14.8%' },
   { handle: '@diezknowsball', platform: 'tiktok',    group: 'football', niche: 'Football',           url: 'https://tiktok.com/@diezknowsball',  avgViews: '485K', engRate: '13.0%' },
   { handle: '@diezball',      platform: 'youtube',   group: 'football', niche: 'Football',           url: 'https://youtube.com/@diezball',      avgViews: '160K', engRate: '5.0%' },
@@ -94,6 +94,11 @@ function ScrollFloat({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Respect reduced-motion: show text statically, skip the scroll animation.
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      gsap.set(el.querySelectorAll('.char'), { opacity: 1, yPercent: 0, scaleY: 1, scaleX: 1 });
+      return;
+    }
     const letters = el.querySelectorAll('.char');
     gsap.fromTo(letters,
       { willChange: 'opacity, transform', opacity: 0, yPercent: 120, scaleY: 2.3, scaleX: 0.7, transformOrigin: '50% 0%' },
