@@ -44,8 +44,8 @@ const ACCOUNTS: AccountStat[] = [
   { handle: '@diezballl',     platform: 'instagram', group: 'football', niche: 'Football',           url: 'https://instagram.com/diezballl',    avgViews: '15K',  engRate: '8.0%' },
 ];
 
-// Lifetime-ish total views per niche (marketing figure for the scorecard).
-const NICHE_TOTAL_VIEWS: Record<Niche, string> = { gaming: '150M', football: '30M' };
+// Monthly views per niche (gaming = 150M yearly ÷ 12; football = last month).
+const NICHE_MONTHLY_VIEWS: Record<Niche, string> = { gaming: '12.5M', football: '32M' };
 
 const NICHE_META: Record<Niche, { emoji: string; label: string; tag: string }> = {
   gaming:   { emoji: '🎮', label: 'Gaming',   tag: 'Warzone · Call of Duty · Lifestyle' },
@@ -596,9 +596,9 @@ export default function StatsClient() {
           <div className="text-[9px] sm:text-xs text-white/50 font-semibold mt-1 sm:mt-2">Likes + comments</div>
         </div>
         <div className="cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white/60 mb-1 sm:mb-2">Total Views</div>
-          <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke">{NICHE_TOTAL_VIEWS[niche]}</div>
-          <div className="text-[9px] sm:text-xs text-white/50 font-semibold mt-1 sm:mt-2">{niche === 'football' ? 'Since launch' : 'Yearly'}</div>
+          <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white/60 mb-1 sm:mb-2">Monthly Views</div>
+          <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke">{NICHE_MONTHLY_VIEWS[niche]}</div>
+          <div className="text-[9px] sm:text-xs text-white/50 font-semibold mt-1 sm:mt-2">{niche === 'football' ? 'Last 30 days' : 'Avg per month'}</div>
         </div>
       </div>
 
