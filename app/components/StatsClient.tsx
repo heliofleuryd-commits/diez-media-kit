@@ -37,7 +37,7 @@ interface CaseStudy {
 const ACCOUNTS: AccountStat[] = [
   { handle: '@diez.gg',       platform: 'tiktok',    group: 'gaming',   niche: 'Warzone / FPS',      url: 'https://tiktok.com/@diez.gg',        avgViews: '310K', engRate: '9.1%' },
   { handle: '@imDiez',        platform: 'youtube',   group: 'gaming',   niche: 'Warzone / FPS',      url: 'https://youtube.com/@imDiez',        avgViews: '187K', engRate: '6.2%' },
-  { handle: '@diez.gg',       platform: 'instagram', group: 'gaming',   niche: 'Gaming / Lifestyle', url: 'https://instagram.com/diez.gg',      avgViews: '50K',  engRate: '8.9%' },
+  { handle: '@diez.gg',       platform: 'instagram', group: 'gaming',   niche: 'Gaming / Lifestyle', url: 'https://instagram.com/diez.gg',      avgViews: '112K', engRate: '8.9%' },
   { handle: '@diez.ball',     platform: 'tiktok',    group: 'football', niche: 'Football',           url: 'https://tiktok.com/@diez.ball',      avgViews: '425K', engRate: '14.8%' },
   { handle: '@diezknowsball', platform: 'tiktok',    group: 'football', niche: 'Football',           url: 'https://tiktok.com/@diezknowsball',  avgViews: '485K', engRate: '13.0%' },
   { handle: '@diezball',      platform: 'youtube',   group: 'football', niche: 'Football',           url: 'https://youtube.com/@diezball',      avgViews: '160K', engRate: '5.0%' },
@@ -314,7 +314,7 @@ function AccordionSection({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="cursor-target rounded-2xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+    <div className="card-surface card-interactive cursor-target rounded-2xl overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center gap-3 px-4 sm:px-6 py-4 sm:py-5 text-left transition-colors hover:bg-white/5"
@@ -524,7 +524,7 @@ export default function StatsClient() {
       {/* Platform audience bar — every platform, descending */}
       <div className={`grid gap-2 sm:gap-3 mb-2 sm:mb-4`} style={{ gridTemplateColumns: `repeat(${platformBar.length}, minmax(0, 1fr))` }}>
         {platformBar.map(({ platform, count, label }) => (
-          <div key={platform} className="cursor-target flex flex-col items-center gap-1.5 px-1 py-3 sm:px-3 sm:py-3 rounded-2xl" style={{ background: 'rgba(0,0,0,0.55)' }}>
+          <div key={platform} className="card-surface card-interactive cursor-target flex flex-col items-center gap-1.5 px-1 py-3 sm:px-3 sm:py-3 rounded-2xl">
             <PlatformIcon platform={platform} size={26} />
             <div className="text-center">
               <div className="font-black italic text-sm sm:text-base text-white leading-none text-stroke-sm">
@@ -579,7 +579,7 @@ export default function StatsClient() {
       </ScrollFloat>
 
       {/* Niche switch — pick which niche the Performance section below reflects */}
-      <div className="flex gap-1.5 p-1 rounded-2xl mb-3 sm:mb-4" style={{ background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.1)' }}>
+      <div className="card-surface flex gap-1.5 p-1 rounded-2xl mb-3 sm:mb-4">
         {(['gaming', 'football'] as Niche[]).map(n => (
           <button
             key={n}
@@ -596,17 +596,17 @@ export default function StatsClient() {
 
       {/* Scorecards — avg monthly views (highest), engagement, total views */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-5">
-        <div className="cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="card-surface card-interactive cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between">
           <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white/60 mb-1 sm:mb-2">Avg Views</div>
           <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke">{nicheAvgViews}</div>
           <div className="text-[9px] sm:text-xs text-white/50 font-semibold mt-1 sm:mt-2">Per video, monthly</div>
         </div>
-        <div className="cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="card-surface card-interactive cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between">
           <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white/60 mb-1 sm:mb-2">Eng. Rate</div>
           <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke">{nicheEng}</div>
           <div className="text-[9px] sm:text-xs text-white/50 font-semibold mt-1 sm:mt-2">Likes + comments</div>
         </div>
-        <div className="cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="card-surface card-interactive cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between">
           <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white/60 mb-1 sm:mb-2">Monthly Views</div>
           <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke">{NICHE_MONTHLY_VIEWS[niche]}</div>
           <div className="text-[9px] sm:text-xs text-white/50 font-semibold mt-1 sm:mt-2">{niche === 'football' ? 'Last 30 days' : 'Avg per month'}</div>
@@ -653,7 +653,7 @@ export default function StatsClient() {
       </ScrollFloat>
 
       {/* Brand Case Studies */}
-      <div className="cursor-target mt-3 rounded-2xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.08)' }}>
+      <div className="card-surface cursor-target mt-3 rounded-2xl overflow-hidden">
         <div className="flex items-center gap-3 px-4 sm:px-6 py-4 sm:py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
           <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -667,12 +667,12 @@ export default function StatsClient() {
         <div className="px-3 sm:px-6 py-4 sm:py-5">
           {/* Brand stats */}
           <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4">
-            <div className="cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="card-surface card-interactive cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between">
               <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white/60 mb-1 sm:mb-2">Avg Views / Brand Video</div>
               <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke">257K</div>
               <div className="text-[9px] sm:text-xs text-white/50 font-semibold mt-1 sm:mt-2">Across all campaigns</div>
             </div>
-            <div className="cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="card-surface card-interactive cursor-target rounded-2xl p-3 sm:p-5 flex flex-col justify-between">
               <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white/60 mb-1 sm:mb-2">Avg Eng. Rate / Brand Video</div>
               <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke">5%</div>
               <div className="text-[9px] sm:text-xs text-white/50 font-semibold mt-1 sm:mt-2">Likes + comments / views</div>
