@@ -35,6 +35,15 @@ function Markdown({ text }: { text: string }) {
 
 const PASS_LABELS = ['Researching the story…', 'Researching — origin, comeback, the deep story…', 'Drafting in Studio (toqueymedio only)…', 'Applying your viral style — hook, flow, length…'];
 
+// Offline fallback if the intent router call fails: does this read as an edit / narrow
+// ask (pasted script, hooks, a section…) rather than "create a new full script"?
+function looksLikeEdit(text: string): boolean {
+  const t = text.toLowerCase();
+  const pasted = text.length > 240 || (text.match(/\n/g)?.length ?? 0) >= 3;
+  const narrow = /\b(hook|hooks|alternativ|rephrase|reword|rewrite|shorten|shorter|longer|punch|variati|option|caption|hashtag|title|section|cta|intro|outro|opening|ending|closing|analy|feedback|critique|improve|tweak|only|just)\b/.test(t);
+  return pasted || narrow;
+}
+
 export function EmotionalStoryteller() {
   const [messages, setMessages] = useState<Message[]>([{
     id: 'welcome', role: 'assistant',
@@ -43,6 +52,7 @@ export function EmotionalStoryteller() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0); // 0 = idle, 1-3 = pass number
+  const [runKind, setRunKind] = useState<'create' | 'edit' | null>(null); // what the current run is doing
   const [cost, setCost] = useState(0);
   const [dailySpend, setDailySpend] = useState(0);
   const [mode, setMode] = useState<'old' | 'new'>('new'); // OLD = base viral style · NEW = blended with Diez's Notion story format
@@ -96,9 +106,24 @@ export function EmotionalStoryteller() {
     // Has a script already been generated this session? (any prior assistant msg that isn't the welcome)
     const hasScript = messages.some(m => m.role === 'assistant' && m.id !== 'welcome');
 
+    // Decide intent. Follow-ups (a script already exists) are always edits. For a first
+    // message, ask the fast router whether this is "create a new full script" or an edit /
+    // narrow ask (pasted script, hooks, a section…) — with a heuristic fallback — so a
+    // "give me 5 hooks" or a pasted script never triggers the full research pipeline.
+    let intent: 'create' | 'edit' = 'edit';
+    if (!hasScript) {
+      intent = looksLikeEdit(text) ? 'edit' : 'create';
+      try {
+        const c: any = await callStage({ stage: 'classify', text });
+        if (c?.intent === 'create' || c?.intent === 'edit') intent = c.intent;
+        track(c?.cost || 0);
+      } catch { /* keep heuristic guess */ }
+    }
+    setRunKind(intent);
+
     try {
-      if (!hasScript) {
-        // ── RESEARCH → STUDIO TOQUEYMEDIO DRAFT → VIRAL POLISH ──
+      if (intent === 'create') {
+        // ── RESEARCH → STUDIO TOQUEYMEDIO DRAFT → VIRAL POLISH (new full script) ──
         setProgress(1); // research
         const researchRes = await callStage({ stage: 'research', topic: text });
         if (!researchRes.ok) throw new Error(researchRes.error || 'Research failed');
@@ -116,7 +141,7 @@ export function EmotionalStoryteller() {
 
         setMessages(p => [...p, { id: `a${Date.now()}`, role: 'assistant', text: viralRes.message || '' }]);
       } else {
-        // ── Single-pass refinement for follow-up chat ──
+        // ── Single-pass edit: do EXACTLY what's asked (hooks, a section, analysis…) ──
         const apiMessages = [...messages.filter(m => m.id !== 'welcome'), userMsg].map(m => ({ role: m.role, content: m.text }));
         const chatRes = await callStage({ stage: 'chat', messages: apiMessages });
         if (!chatRes.ok) throw new Error(chatRes.error || 'Failed');
@@ -128,6 +153,7 @@ export function EmotionalStoryteller() {
     } finally {
       setLoading(false);
       setProgress(0);
+      setRunKind(null);
     }
   }
 
@@ -187,9 +213,11 @@ export function EmotionalStoryteller() {
             <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
               <div className="flex items-center gap-2.5">
                 <span className="animate-spin inline-block w-3 h-3 border-2 border-amber-500 border-t-transparent rounded-full" />
-                <span className="text-[10.5px] text-gray-500 font-semibold">{PASS_LABELS[progress] || 'Writing…'}</span>
+                <span className="text-[10.5px] text-gray-500 font-semibold">
+                  {runKind === 'edit' ? 'Working on your request…' : runKind === 'create' ? (PASS_LABELS[progress] || 'Writing…') : 'Reading your request…'}
+                </span>
               </div>
-              {progress > 0 && (
+              {runKind === 'create' && progress > 0 && (
                 <div className="flex gap-1 mt-2">
                   {[1, 2, 3].map(n => (
                     <div key={n} className={`h-1 rounded-full transition-all ${n <= progress ? 'bg-amber-500' : 'bg-gray-200'}`} style={{ width: 28 }} />
@@ -217,7 +245,7 @@ export function EmotionalStoryteller() {
               style={{ minHeight: 44, maxHeight: '50vh' }}
             />
             <div className="flex items-center justify-end px-3 pb-2">
-              <p className="text-[8px] text-gray-300">Enter · Shift+Enter new line · first script runs 3 passes (~1–3 min)</p>
+              <p className="text-[8px] text-gray-300">Enter · Shift+Enter new line · paste a script for just hooks / a section — full 3-pass build only when you ask for a whole script</p>
             </div>
           </div>
           <button onClick={send} disabled={loading || !input.trim()}

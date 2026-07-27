@@ -2,7 +2,7 @@ export const maxDuration = 300;
 
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { runResearch, runDraft, runViral, runChat, liveResearch } from '@/lib/football/emotionalEngine';
+import { runResearch, runDraft, runViral, runChat, runClassify, liveResearch } from '@/lib/football/emotionalEngine';
 
 const client = new Anthropic();
 
@@ -12,6 +12,11 @@ export async function POST(req: Request) {
     const { stage, topic, bullets, draft, messages, modelOverride } = body;
     const mode = body.mode === 'old' ? 'old' : 'new'; // OLD = base viral only; NEW = blended with Diez's format
     const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+    if (stage === 'classify') {
+      const r = await runClassify(client, body.text || '');
+      return NextResponse.json({ ok: true, intent: r.intent, cost: r.cost });
+    }
 
     if (stage === 'research') {
       const live = await liveResearch(topic);

@@ -11,6 +11,7 @@ import { calcCost } from './costTracker';
 
 export const OPUS = 'claude-opus-4-8';
 export const SONNET = 'claude-sonnet-4-6';
+export const HAIKU = 'claude-haiku-4-5-20251001';
 
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
 const VIRAL_SKILL_PATH = path.join(process.cwd(), 'content-plan', 'emotional-storyteller', 'viral-style-skill.md');
@@ -258,12 +259,48 @@ After the script, on new lines:
   return { text: stripDividers(extractText(res)), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
 }
 
+// Fast, cheap intent router: does the user want a brand-new full script researched
+// from scratch ("create"), or to edit/analyse existing text / answer a narrow ask
+// like hook alternatives or one section ("edit")? Used so a pasted script or a
+// "give me 5 hooks" request never triggers the full research→draft→viral pipeline.
+export async function runClassify(client: Anthropic, text: string): Promise<{ intent: 'create' | 'edit'; cost: number }> {
+  const res = await client.messages.create({
+    model: HAIKU,
+    max_tokens: 8,
+    system: [{ type: 'text', text: `You route requests for an emotional football-script tool. Reply with EXACTLY one word: "create" or "edit".
+
+"create" = the user names a topic/story and wants a brand-new FULL script researched and written from scratch (e.g. "Luis Díaz father kidnapping", "Raúl Jiménez fractured skull comeback").
+
+"edit" = the user wants you to work on existing text or answer a narrow request. This includes: they pasted a script; or they asked for only PART of a script (a hook or hook alternatives, one section or line, a caption, a title, hashtags); or they asked to shorten / lengthen / rewrite / rephrase / punch up / critique / analyse / give feedback / give options or variations.
+
+If the message contains a pasted script, OR asks for anything less than a whole new script, answer "edit". Otherwise "create". One word only.` }],
+    messages: [{ role: 'user', content: String(text).slice(0, 4000) }],
+  });
+  const out = extractText(res).toLowerCase();
+  const intent: 'create' | 'edit' = out.includes('edit') ? 'edit' : 'create';
+  return { intent, cost: calcCost(HAIKU, res.usage.input_tokens, res.usage.output_tokens) };
+}
+
 export async function runChat(client: Anthropic, messages: any[], model = OPUS, mode: StyleMode = 'new'): Promise<StageResult> {
   const style = blendedStyle(mode);
   const res = await client.messages.create({
     model,
     max_tokens: 4000,
-    system: [{ type: 'text', text: `You are the Emotional Storyteller editor. Keep the blended style below. Always: 2–3 line punchy "Imagine…" hook (final line starts And/But); the body in complete, flowing full sentences (not choppy fragments, modest number of lines, blank line between beats); ~500 words and never above 600; clean spoken lines; no "---"; no bold in the script body. VARIETY: never write "they say it is hard to hear silence" (banned); never use "[Country] explodes"/"millions of souls erupt" unless literally describing a goal or a trophy; invent fresh climax and celebration imagery every time.\n\n${style}`, cache_control: { type: 'ephemeral' } }],
+    system: [{ type: 'text', text: `You are the Emotional Storyteller editor. Do EXACTLY what the latest message asks — and nothing more. Match the SCOPE of the request precisely:
+
+- If they ask for only hooks (e.g. "give me 5 hook alternatives"), return ONLY that many hooks — each 2–3 punchy lines — and nothing else. Do NOT append the full script, a caption, or hashtags.
+- If they ask to rewrite, critique or analyse ONE section or line, return only that part.
+- If they ask for a caption, a title, or hashtags, return only that.
+- Write or rewrite a WHOLE script only when they explicitly ask for a full script or a full rewrite.
+- If they pasted a script, work FROM their script (analyse or transform it) — never swap in a different story.
+Never dump the entire script when a smaller answer was requested.
+
+STYLE — apply only to the content you actually produce:
+- Hooks: 2–3 short punchy lines, each a single breath (max ~14 words); the final line is the turn and starts with "And" or "But".
+- Full script body (only when writing one): complete, flowing full sentences (not choppy fragments), a blank line between beats, ~500 words and never above 600, clean spoken lines, no "---", no bold in the body.
+- VARIETY: never write "they say it is hard to hear silence" (banned); never use "[Country] explodes"/"millions of souls erupt" unless literally describing a goal or a trophy; invent fresh imagery every time.
+
+${style}`, cache_control: { type: 'ephemeral' } }],
     messages: (messages || []).slice(-20),
   });
   return { text: stripDividers(extractText(res)), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
