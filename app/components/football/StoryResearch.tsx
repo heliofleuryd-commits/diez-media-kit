@@ -490,7 +490,7 @@ function TrendingPlayers({ onWrite }: { onWrite: (s: Story) => void }) {
       <div className="mb-5">
         <h1 className="text-xl font-black text-gray-900 tracking-tight">Trending Players</h1>
         <p className="text-[12px] text-gray-500 mt-1">
-          The players the football world is searching for right now — ranked for personal-story potential. Emotional &amp; controversial stories rise to the top.
+          Players spiking in the last 24–72h — ranked for personal-story potential. Emotional &amp; controversial stories rise to the top. Only genuinely fresh triggers; no week-old stories.
         </p>
       </div>
 

@@ -151,7 +151,8 @@ async function fetchXTrends(geo: string): Promise<string[]> {
 // Every free signal the trending-players scan needs, gathered in parallel.
 export async function fetchTrendSignals(key: string): Promise<{ news: string[]; reddit: string[]; youtube: string[]; xTrends: string[] }> {
   const [newsBatches, reddit1, reddit2, youtube, xUk, xUs] = await Promise.all([
-    Promise.all(TREND_QUERIES.map(q => googleNews(q, 5))),
+    // when:2d = only articles from the last 48h, so stale players don't leak into the scan.
+    Promise.all(TREND_QUERIES.map(q => googleNews(`${q} when:2d`, 5))),
     fetchReddit('soccer', 25),
     fetchReddit('football', 15),
     fetchTrendingYouTube(key),

@@ -61,6 +61,8 @@ Your job: identify the TOP TRENDING FOOTBALL PLAYERS right now — the individua
 
 A player is "trending" if there's a live trigger: a transfer/signing, a controversy or scandal, an injury, a personal or family story (birth, loss, illness, marriage, a story about their child), a tragedy, a return/comeback, or a standout performance. Cross-reference the signals — a name appearing across News + Reddit + YouTube is hotter than one mentioned once. The X/TWITTER TRENDING list is a strong heat booster: if a player's name, nickname, or club appears there, they are genuinely spiking right now — rank them higher and lean HOT (but ignore the many non-football trends in that list).
 
+⏱️ RECENCY IS THE #1 RULE. Only include players whose trigger is from the LAST 72 HOURS — and strongly prefer the LAST 24 HOURS. The signals above were already filtered to roughly the last day or two; treat that as the window. If you happen to know a story actually broke more than ~3 days ago, DROP that player entirely no matter how famous — it is stale and the creator has very likely already covered it (do NOT resurface week-old or fortnight-old stories). Every player you return must be spiking RIGHT NOW. In "why_trending", state the recency explicitly (e.g. "broke in the last 24h", "spiking today"). If fewer than 12 players have a genuinely fresh (≤72h) trigger, return fewer — quality and freshness over quantity.
+
 Rank the players by how strong a SHORT-FORM PERSONAL STORY they'd make right now — not just raw fame.
 
 STRONGLY PRIORITISE emotional and controversial PERSONAL stories — grief, a child's illness, a scandal, injustice, a family tragedy, a dramatic personal turn. These are the creator's best performers, so they should rank highest and have "emotional": true. A routine transfer with no human angle should rank lower.
@@ -69,7 +71,7 @@ Only use real people and real triggers from the signals above (or clearly, curre
 
 ${CREATOR_BIAS}
 
-Return the TOP 12 trending players. Output ONLY a valid JSON array, no other text:
+Return UP TO 12 trending players, ranked — but only ones with a genuinely fresh (≤72h, ideally ≤24h) trigger. Fewer is fine if that's all that's truly hot. Output ONLY a valid JSON array, no other text:
 [{"rank":1,"player":"Full name","club":"Club/country or null","category":"personal","heat":"HOT","emotional":true,"why_trending":"The live trigger + where it's surfacing (e.g. 'Reddit + BBC: his son's story broke today')","angle":"The short-form story angle to tell","sources":["News","Reddit"]}]
 
 category ∈ personal | controversy | transfer | injury | tragedy | comeback | performance | other
