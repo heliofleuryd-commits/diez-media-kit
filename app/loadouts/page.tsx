@@ -344,7 +344,7 @@ export default function LoadoutsPage() {
 
       {/* Footer CTA */}
       <a
-        href="mailto:hello@diez.gg"
+        href="mailto:diez@gltchgroup.com"
         className="cursor-target w-full flex items-center justify-between px-5 py-3 rounded-2xl mt-2 hover:opacity-90 transition-opacity"
         style={{
           background: 'rgba(255,255,255,0.97)',
@@ -355,7 +355,7 @@ export default function LoadoutsPage() {
           <span>📩</span>
           <span className="font-black italic text-sm text-black/40 uppercase tracking-widest">Let&apos;s Talk</span>
           <span className="text-black/25">·</span>
-          <span className="font-black italic text-sm text-black">hello@diez.gg</span>
+          <span className="font-black italic text-sm text-black">diez@gltchgroup.com</span>
         </div>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />

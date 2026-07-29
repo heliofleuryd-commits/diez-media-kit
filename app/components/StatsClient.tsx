@@ -550,13 +550,13 @@ export default function StatsClient() {
       </StarBorder>
 
       {/* Full-width Let's Talk CTA */}
-      <StarBorder as="a" href="mailto:hello@diez.gg" onClick={() => (window as any).trackCTA?.('lets-talk')} color="white" speed="7s" className="cursor-target w-full mb-2 sm:mb-4 hover:opacity-90 transition-opacity active:scale-[0.99]">
+      <StarBorder as="a" href="mailto:diez@gltchgroup.com" onClick={() => (window as any).trackCTA?.('lets-talk')} color="white" speed="7s" className="cursor-target w-full mb-2 sm:mb-4 hover:opacity-90 transition-opacity active:scale-[0.99]">
         <div className="flex items-center justify-between px-5 sm:px-6 py-2.5 rounded-[13px]" style={{ background: 'rgba(255,255,255,0.95)' }}>
           <div className="flex items-center gap-2.5">
             <span className="text-base">📩</span>
             <span className="font-black italic text-sm sm:text-base text-black/40 uppercase tracking-widest">Let&apos;s Talk</span>
             <span className="text-black/25 font-bold">·</span>
-            <span className="font-black italic text-sm sm:text-base text-black tracking-tight">hello@diez.gg</span>
+            <span className="font-black italic text-sm sm:text-base text-black tracking-tight">diez@gltchgroup.com</span>
           </div>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
@@ -694,7 +694,7 @@ export default function StatsClient() {
 
       {/* Footer */}
       <div className="mt-12 pt-6 border-t border-white/10 text-center">
-        <p className="text-white/25 text-xs tracking-widest uppercase font-semibold">hello@diez.gg</p>
+        <p className="text-white/25 text-xs tracking-widest uppercase font-semibold">diez@gltchgroup.com</p>
       </div>
     </div>
   );
