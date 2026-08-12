@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getTikTokData, getYouTubeData, getInstagramData } from '@/lib/apify';
 import type { AccountStat, VideoStat } from '@/lib/types';
+// Fallback follower counts refreshed twice a month by scripts/refresh-meta.mjs.
+import FB from './followers.json';
 
 export const revalidate = 86400;
 
@@ -82,7 +84,7 @@ export async function GET() {
         platform: 'tiktok',
         handle: '@diez.gg',
         displayName: 'Diez · Warzone',
-        followers: tiktokByAccount('diez.gg')?.authorMeta?.fans || 1200000,
+        followers: tiktokByAccount('diez.gg')?.authorMeta?.fans || FB.tiktok['diez.gg'],
         totalViews: tiktokVideos.filter(v => v.account === 'diez.gg').reduce((s, v) => s + v.views, 0),
         videoCount: tiktokVideos.filter(v => v.account === 'diez.gg').length,
         url: 'https://tiktok.com/@diez.gg',
@@ -92,7 +94,7 @@ export async function GET() {
         platform: 'tiktok',
         handle: '@diez.ball',
         displayName: 'Diez · Football',
-        followers: tiktokByAccount('diez.ball')?.authorMeta?.fans || 196200,
+        followers: tiktokByAccount('diez.ball')?.authorMeta?.fans || FB.tiktok['diez.ball'],
         totalViews: tiktokVideos.filter(v => v.account === 'diez.ball').reduce((s, v) => s + v.views, 0),
         videoCount: tiktokVideos.filter(v => v.account === 'diez.ball').length,
         url: 'https://tiktok.com/@diez.ball',
@@ -102,7 +104,7 @@ export async function GET() {
         platform: 'tiktok',
         handle: '@diezknowsball',
         displayName: 'Diez · Football',
-        followers: tiktokByAccount('diezknowsball')?.authorMeta?.fans || 55700,
+        followers: tiktokByAccount('diezknowsball')?.authorMeta?.fans || FB.tiktok['diezknowsball'],
         totalViews: tiktokVideos.filter(v => v.account === 'diezknowsball').reduce((s, v) => s + v.views, 0),
         videoCount: tiktokVideos.filter(v => v.account === 'diezknowsball').length,
         url: 'https://tiktok.com/@diezknowsball',
@@ -112,7 +114,7 @@ export async function GET() {
         platform: 'youtube',
         handle: '@imDiez',
         displayName: 'imDiez',
-        followers: channelItem?.numberOfSubscribers || channelItem?.subscriberCount || 104000,
+        followers: channelItem?.numberOfSubscribers || channelItem?.subscriberCount || FB.youtube['imDiez'],
         totalViews: youtubeVideos.reduce((s, v) => s + v.views, 0),
         videoCount: youtubeVideos.length,
         url: 'https://youtube.com/@imDiez',
@@ -122,7 +124,7 @@ export async function GET() {
         platform: 'youtube',
         handle: '@diezball',
         displayName: 'Diez Ball',
-        followers: diezballYtSubs || 50200,
+        followers: diezballYtSubs || FB.youtube['diezball'],
         totalViews: 0,
         videoCount: 0,
         url: 'https://youtube.com/@diezball',
@@ -132,7 +134,7 @@ export async function GET() {
         platform: 'instagram',
         handle: '@diez.gg',
         displayName: 'Diez · Gaming',
-        followers: instagramData.filter((i) => i.ownerUsername === 'diez.gg')[0]?.followersCount || 44000,
+        followers: instagramData.filter((i) => i.ownerUsername === 'diez.gg')[0]?.followersCount || FB.instagram['diez.gg'],
         totalViews: instagramPosts.filter(v => v.account === 'diez.gg').reduce((s, v) => s + v.views, 0),
         videoCount: instagramPosts.filter(v => v.account === 'diez.gg').length,
         url: 'https://instagram.com/diez.gg',
@@ -142,7 +144,7 @@ export async function GET() {
         platform: 'instagram',
         handle: '@diezballl',
         displayName: 'Diez · Football',
-        followers: instagramData.filter((i) => i.ownerUsername === 'diezballl')[0]?.followersCount || 5585,
+        followers: instagramData.filter((i) => i.ownerUsername === 'diezballl')[0]?.followersCount || FB.instagram['diezballl'],
         totalViews: instagramPosts.filter(v => v.account === 'diezballl').reduce((s, v) => s + v.views, 0),
         videoCount: instagramPosts.filter(v => v.account === 'diezballl').length,
         url: 'https://instagram.com/diezballl',

@@ -1,0 +1,57 @@
+name: Refresh loadouts + followers
+
+# Runs on the 1st and 15th of every month at 09:00 UTC — with no one online.
+# Scrapes warzoneloadout.games for the top-3 close/long meta and pulls fresh
+# follower counts, commits any changes, then triggers a Vercel production deploy.
+on:
+  schedule:
+    - cron: '0 9 1,15 * *'
+  workflow_dispatch: {}   # lets you run it on demand from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Refresh meta (loadouts + followers)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: node scripts/refresh-meta.mjs
+
+      - name: Commit changes
+        run: |
+          git config user.name  "diez-refresh-bot"
+          git config user.email "actions@github.com"
+          git add app/loadouts/data.json app/api/stats/followers.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "chore(auto): refresh loadouts + followers ($(date -u +'%b %d, %Y'))"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+        id: commit
+
+      - name: Trigger Vercel deploy
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "No VERCEL_DEPLOY_HOOK secret set — skipping deploy (relying on Vercel git auto-deploy)."
+          else
+            curl -fsS -X POST "$HOOK" && echo "Deploy triggered."
+          fi

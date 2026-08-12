@@ -2,8 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import loadoutData from './data.json';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
+// Loadouts live in data.json so the twice-monthly refresh job (GitHub Actions →
+// scripts/refresh-meta.mjs) can update the meta without touching this component.
 
 interface Attachment {
   slot: string;
@@ -23,108 +26,9 @@ interface Gun {
   updatedAt: string;
 }
 
-const LONG_RANGE: Gun[] = [
-  {
-    id: 'mxr17',
-    weapon: 'MXR-17',
-    type: 'Assault Rifle',
-    game: 'BO7',
-    rank: 'Long Range',
-    rankNum: 1,
-    image: 'https://img.wzstats.gg/mxr-17/public',
-    attachments: [
-      { slot: 'Muzzle', name: 'Monolithic Suppressor' },
-      { slot: 'Barrel', name: '17" Greaves Scourge Barrel' },
-      { slot: 'Optic',  name: 'FANG HoverPoint ELO' },
-      { slot: 'Stock',  name: 'Winch Stock' },
-    ],
-    updatedAt: 'Aug 12, 2026',
-  },
-  {
-    id: 'fg42',
-    weapon: 'FG42',
-    type: 'Assault Rifle',
-    game: 'BO7',
-    rank: 'Long Range',
-    rankNum: 2,
-    image: 'https://img.wzstats.gg/fg42/public',
-    attachments: [
-      { slot: 'Muzzle',      name: 'Monolithic Suppressor' },
-      { slot: 'Barrel',      name: '16" Bandolier Barrel' },
-      { slot: 'Optic',       name: 'FANG HoverPoint ELO' },
-      { slot: 'Underbarrel', name: 'RIF Handguard' },
-    ],
-    updatedAt: 'Aug 12, 2026',
-  },
-  {
-    id: 'an94',
-    weapon: 'AN-94',
-    type: 'Assault Rifle',
-    game: 'BO7',
-    rank: 'Long Range',
-    rankNum: 3,
-    image: 'https://img.wzstats.gg/an-94/public',
-    attachments: [
-      { slot: 'Muzzle',      name: 'Monolithic Suppressor' },
-      { slot: 'Barrel',      name: '15" Benthic Barrel' },
-      { slot: 'Optic',       name: 'FANG HoverPoint ELO' },
-      { slot: 'Underbarrel', name: 'VAS Convergence Foregrip' },
-    ],
-    updatedAt: 'Aug 12, 2026',
-  },
-];
-
-const SHORT_RANGE: Gun[] = [
-  {
-    id: 'cbrs3',
-    weapon: 'CBRS-3',
-    type: 'SMG',
-    game: 'BO7',
-    rank: 'Close Range',
-    rankNum: 1,
-    image: 'https://img.wzstats.gg/cbrs-3/public',
-    attachments: [
-      { slot: 'Muzzle',   name: 'LTI Stentorian Brake' },
-      { slot: 'Barrel',   name: '11" Gaunt Barrel' },
-      { slot: 'Optic',    name: 'FANG HoverPoint ELO' },
-      { slot: 'Stock',    name: 'Casino Light Stock' },
-      { slot: 'Magazine', name: 'MFS Carrousel Fast Mag' },
-    ],
-    updatedAt: 'Aug 12, 2026',
-  },
-  {
-    id: 'vst',
-    weapon: 'VST',
-    type: 'SMG',
-    game: 'BO7',
-    rank: 'Close Range',
-    rankNum: 2,
-    image: 'https://img.wzstats.gg/vst/public',
-    attachments: [
-      { slot: 'Muzzle',      name: 'LTI Stentorian Brake' },
-      { slot: 'Barrel',      name: '9.7" Enmity Barrel' },
-      { slot: 'Stock',       name: 'Hawker Cub-55 Pad' },
-      { slot: 'Underbarrel', name: 'EAM Steady-90 Grip' },
-    ],
-    updatedAt: 'Aug 12, 2026',
-  },
-  {
-    id: 'rev46',
-    weapon: 'REV-46',
-    type: 'SMG',
-    game: 'BO7',
-    rank: 'Close Range',
-    rankNum: 3,
-    image: 'https://img.wzstats.gg/rev-46/public',
-    attachments: [
-      { slot: 'Muzzle',      name: 'LTI Stentorian Brake' },
-      { slot: 'Barrel',      name: '14.9" Caudal Target Barrel' },
-      { slot: 'Optic',       name: 'FANG HoverPoint ELO' },
-      { slot: 'Underbarrel', name: 'Sapper Guard Handstop' },
-    ],
-    updatedAt: 'Aug 12, 2026',
-  },
-];
+const LONG_RANGE:  Gun[] = loadoutData.longRange  as Gun[];
+const SHORT_RANGE: Gun[] = loadoutData.shortRange as Gun[];
+const HEADER_UPDATED = loadoutData.updatedAt;
 
 const RANK_BG: Record<number, string> = {
   1: '#E8A000',
@@ -299,7 +203,7 @@ export default function LoadoutsPage() {
             className="text-[10px] font-black uppercase tracking-[0.25em] mb-1"
             style={{ color: 'rgba(255,255,255,0.75)', textShadow: '0 1px 6px rgba(0,0,0,0.95), 0 2px 12px rgba(0,0,0,0.8)' }}
           >
-            Updated: Aug 12, 2026
+            Updated: {HEADER_UPDATED}
           </div>
           <h1
             className="font-black italic text-2xl sm:text-4xl text-white leading-none mb-1"

@@ -1,0 +1,199 @@
+{
+  "updatedAt": "Aug 12, 2026",
+  "longRange": [
+    {
+      "id": "mxr17",
+      "weapon": "MXR-17",
+      "type": "Assault Rifle",
+      "game": "BO7",
+      "rank": "Long Range",
+      "rankNum": 1,
+      "image": "https://img.wzstats.gg/mxr-17/public",
+      "attachments": [
+        {
+          "slot": "Muzzle",
+          "name": "Monolithic Suppressor"
+        },
+        {
+          "slot": "Barrel",
+          "name": "17\" Greaves Scourge Barrel"
+        },
+        {
+          "slot": "Optic",
+          "name": "FANG HoverPoint ELO"
+        },
+        {
+          "slot": "Stock",
+          "name": "Winch Stock"
+        },
+        {
+          "slot": "Magazine",
+          "name": "Rhodes Drum Mag"
+        }
+      ],
+      "updatedAt": "Aug 12, 2026"
+    },
+    {
+      "id": "fg42",
+      "weapon": "FG42",
+      "type": "Assault Rifle",
+      "game": "BO7",
+      "rank": "Long Range",
+      "rankNum": 2,
+      "image": "https://img.wzstats.gg/fg42/public",
+      "attachments": [
+        {
+          "slot": "Muzzle",
+          "name": "Monolithic Suppressor"
+        },
+        {
+          "slot": "Barrel",
+          "name": "16\" Bandolier Barrel"
+        },
+        {
+          "slot": "Optic",
+          "name": "FANG HoverPoint ELO"
+        },
+        {
+          "slot": "Underbarrel",
+          "name": "RIF Handguard"
+        },
+        {
+          "slot": "Magazine",
+          "name": "Debase Extended Mag"
+        }
+      ],
+      "updatedAt": "Aug 12, 2026"
+    },
+    {
+      "id": "an94",
+      "weapon": "AN-94",
+      "type": "Assault Rifle",
+      "game": "BO7",
+      "rank": "Long Range",
+      "rankNum": 3,
+      "image": "https://img.wzstats.gg/an-94/public",
+      "attachments": [
+        {
+          "slot": "Muzzle",
+          "name": "Monolithic Suppressor"
+        },
+        {
+          "slot": "Barrel",
+          "name": "15\" Benthic Barrel"
+        },
+        {
+          "slot": "Optic",
+          "name": "FANG HoverPoint ELO"
+        },
+        {
+          "slot": "Underbarrel",
+          "name": "VAS Convergence Foregrip"
+        },
+        {
+          "slot": "Magazine",
+          "name": "Rexford Extended II"
+        }
+      ],
+      "updatedAt": "Aug 12, 2026"
+    }
+  ],
+  "shortRange": [
+    {
+      "id": "cbrs3",
+      "weapon": "CBRS-3",
+      "type": "SMG",
+      "game": "BO7",
+      "rank": "Close Range",
+      "rankNum": 1,
+      "image": "https://img.wzstats.gg/cbrs-3/public",
+      "attachments": [
+        {
+          "slot": "Muzzle",
+          "name": "LTI Stentorian Brake"
+        },
+        {
+          "slot": "Barrel",
+          "name": "11\" Gaunt Barrel"
+        },
+        {
+          "slot": "Optic",
+          "name": "FANG HoverPoint ELO"
+        },
+        {
+          "slot": "Stock",
+          "name": "Casino Light Stock"
+        },
+        {
+          "slot": "Magazine",
+          "name": "MFS Carrousel Fast Mag"
+        }
+      ],
+      "updatedAt": "Aug 12, 2026"
+    },
+    {
+      "id": "vst",
+      "weapon": "VST",
+      "type": "SMG",
+      "game": "BO7",
+      "rank": "Close Range",
+      "rankNum": 2,
+      "image": "https://img.wzstats.gg/vst/public",
+      "attachments": [
+        {
+          "slot": "Muzzle",
+          "name": "LTI Stentorian Brake"
+        },
+        {
+          "slot": "Barrel",
+          "name": "9.7\" Enmity Barrel"
+        },
+        {
+          "slot": "Stock",
+          "name": "Hawker Cub-55 Pad"
+        },
+        {
+          "slot": "Underbarrel",
+          "name": "EAM Steady-90 Grip"
+        },
+        {
+          "slot": "Magazine",
+          "name": "Amplify Extended Mag I"
+        }
+      ],
+      "updatedAt": "Aug 12, 2026"
+    },
+    {
+      "id": "rev46",
+      "weapon": "REV-46",
+      "type": "SMG",
+      "game": "BO7",
+      "rank": "Close Range",
+      "rankNum": 3,
+      "image": "https://img.wzstats.gg/rev-46/public",
+      "attachments": [
+        {
+          "slot": "Muzzle",
+          "name": "LTI Stentorian Brake"
+        },
+        {
+          "slot": "Barrel",
+          "name": "14.9\" Caudal Target Barrel"
+        },
+        {
+          "slot": "Optic",
+          "name": "FANG HoverPoint ELO"
+        },
+        {
+          "slot": "Underbarrel",
+          "name": "Sapper Guard Handstop"
+        },
+        {
+          "slot": "Magazine",
+          "name": "Cawdor Extended Mag"
+        }
+      ],
+      "updatedAt": "Aug 12, 2026"
+    }
+  ]
+}
