@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      { source: '/thunderpick', destination: 'https://bit.ly/ThunderDiez', permanent: false },
+    ];
+  },
   transpilePackages: ['remotion', '@remotion/player'],
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },

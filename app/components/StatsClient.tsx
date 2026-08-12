@@ -543,6 +543,19 @@ export default function StatsClient() {
         ))}
       </div>
 
+      {/* Thunderpick banner */}
+      <StarBorder as="a" href="https://bit.ly/ThunderDiez" target="_blank" rel="noopener noreferrer" onClick={() => (window as any).trackCTA?.('thunderpick')} color="orange" speed="4s" className="cursor-target w-full mb-1.5 hover:opacity-90 transition-opacity active:scale-[0.99]">
+        <div className="flex items-center justify-between px-5 sm:px-6 py-2.5 rounded-[13px]" style={{ background: 'linear-gradient(90deg, #FF7A00 0%, #FFB800 100%)' }}>
+          <div className="flex items-center gap-2.5">
+            <span className="text-base">⚡</span>
+            <span className="font-black italic text-sm sm:text-base text-black uppercase tracking-widest">Thunderpick Loadouts</span>
+          </div>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
+      </StarBorder>
+
       {/* Loadouts CTA */}
       <StarBorder as="a" href="/loadouts" onClick={() => (window as any).trackCTA?.('loadouts')} color="cyan" speed="5s" className="cursor-target w-full mb-1.5 hover:opacity-90 transition-opacity active:scale-[0.99]">
         <div className="flex items-center justify-between px-5 sm:px-6 py-2.5 rounded-[13px]" style={{ background: 'rgba(255,255,255,0.95)' }}>
