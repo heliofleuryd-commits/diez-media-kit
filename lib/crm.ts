@@ -139,4 +139,4 @@ export const DIEZ_PROFILE = `Diez (diez.gg) is a top Call of Duty: Warzone / FPS
 - 150M+ views/year on gaming; ~12.5M views/month. Also a fast-growing football brand (@diez.ball).
 - Warzone / FPS focused: loadouts, meta, gameplay, launches. UK-based creator, English-speaking US+UK audience, core demo 16-34 male gamers.
 - Past brand work: Call of Duty, Razer, PlayStation, Epic Games, PUBG, Thunderpick, EklipseGG.
-- Managed by GLTCH Group; business contact diez@gltchgroup.com.`;
+- Managed by GLTCH Group; business contact hello@diez.gg.`;

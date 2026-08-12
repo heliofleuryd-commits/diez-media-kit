@@ -32,7 +32,7 @@ Requirements:
 - Open with a specific hook tying Diez's Warzone/FPS audience to THIS brand's product.
 - Include 2-3 hard proof points from the profile (audience size, monthly views, past brand work like Call of Duty / Razer / PlayStation) — pick the ones most relevant to this brand.
 - Propose a concrete, low-friction next step (a quick call, or send the media kit).
-- Sign off as "Diez — via the GLTCH Group team" with reply-to diez@gltchgroup.com.
+- Sign off as "Diez — via the GLTCH Group team" with reply-to hello@diez.gg.
 - Plain text, no markdown, no placeholders like [X] except the recipient's first name if unknown use a friendly generic greeting.
 
 Output ONLY JSON: {"subject":"...","body":"..."}`;
