@@ -516,6 +516,13 @@ export default function StatsClient() {
 
   const grandFollowers = liveAccounts.length ? platformBar.reduce((s, x) => s + x.count, 0) : 0;
 
+  // Niche total followers (Performance banner) — live sum of this niche's accounts,
+  // plus Facebook + Twitch on the gaming side.
+  const nicheStatic = niche === 'gaming' ? STATIC_PLATFORMS.reduce((s, p) => s + p.count, 0) : 0;
+  const nicheFollowers = liveAccounts.length
+    ? nicheAccounts.reduce((s, a) => s + getFollowers(a.handle, a.platform), 0) + nicheStatic
+    : 0;
+
   return (
     <div className="min-h-screen px-4 py-3 sm:py-6 max-w-3xl mx-auto">
 
@@ -592,6 +599,19 @@ export default function StatsClient() {
             {NICHE_META[n].emoji} {NICHE_META[n].label}
           </button>
         ))}
+      </div>
+
+      {/* Total-followers banner — this niche's combined audience */}
+      <div className="card-surface cursor-target rounded-2xl px-4 py-3 sm:px-5 sm:py-4 mb-3 sm:mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          <span className="text-lg sm:text-xl">{NICHE_META[niche].emoji}</span>
+          <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white/55">
+            {NICHE_META[niche].label} · Total Followers
+          </span>
+        </div>
+        <div className="font-black italic text-xl sm:text-3xl text-white leading-none text-stroke-sm">
+          {nicheFollowers > 0 ? fmt(nicheFollowers) : '—'}
+        </div>
       </div>
 
       {/* Scorecards — avg monthly views (highest), engagement, total views */}
