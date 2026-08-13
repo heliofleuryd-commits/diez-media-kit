@@ -61,29 +61,7 @@ const ScrollFloat = ({
       transformOrigin: '50% 0%',
     };
 
-    // If the heading is already on-screen at mount (above the fold), a scrubbed
-    // ScrollTrigger can resolve to progress 0 and leave the text invisible until
-    // the user scrolls. Detect that case and just play the reveal once, so the
-    // heading always shows before any scrolling.
-    const usingWindow = scroller === window;
-    const rect = el.getBoundingClientRect();
-    const viewportH = usingWindow ? window.innerHeight : (scroller as HTMLElement).clientHeight;
-    const alreadyVisible = usingWindow && rect.top < viewportH * 0.95 && rect.bottom > 0;
-
-    if (alreadyVisible) {
-      const tween = gsap.fromTo(charElements, fromVars, {
-        duration: animationDuration,
-        ease,
-        opacity: 1,
-        yPercent: 0,
-        scaleY: 1,
-        scaleX: 1,
-        stagger,
-      });
-      return () => { tween.kill(); };
-    }
-
-    const tween = gsap.fromTo(charElements, fromVars, {
+    const toVars = {
       duration: animationDuration,
       ease,
       opacity: 1,
@@ -91,12 +69,30 @@ const ScrollFloat = ({
       scaleY: 1,
       scaleX: 1,
       stagger,
+    };
+
+    // If the heading is already on-screen at mount (above the fold), just play
+    // the reveal once so it always shows before any scrolling.
+    const usingWindow = scroller === window;
+    const rect = el.getBoundingClientRect();
+    const viewportH = usingWindow ? window.innerHeight : (scroller as HTMLElement).clientHeight;
+    const alreadyVisible = usingWindow && rect.top < viewportH && rect.bottom > 0;
+
+    if (alreadyVisible) {
+      const tween = gsap.fromTo(charElements, fromVars, toVars);
+      return () => { tween.kill(); };
+    }
+
+    // Below the fold: reveal once when it enters the viewport. No scrub — the
+    // text fully animates in rather than being frozen mid-reveal by scroll pos.
+    const tween = gsap.fromTo(charElements, fromVars, {
+      ...toVars,
       scrollTrigger: {
         trigger: el,
         scroller,
-        start: scrollStart,
-        end: scrollEnd,
-        scrub: true,
+        start: 'top 88%',
+        toggleActions: 'play none none none',
+        once: true,
       },
     });
 
