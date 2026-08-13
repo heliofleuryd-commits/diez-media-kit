@@ -52,17 +52,26 @@ const ScrollFloat = ({
 
     const charElements = el.querySelectorAll('.char');
 
-    gsap.fromTo(
-      charElements,
-      {
-        willChange: 'opacity, transform',
-        opacity: 0,
-        yPercent: 120,
-        scaleY: 2.3,
-        scaleX: 0.7,
-        transformOrigin: '50% 0%',
-      },
-      {
+    const fromVars = {
+      willChange: 'opacity, transform',
+      opacity: 0,
+      yPercent: 120,
+      scaleY: 2.3,
+      scaleX: 0.7,
+      transformOrigin: '50% 0%',
+    };
+
+    // If the heading is already on-screen at mount (above the fold), a scrubbed
+    // ScrollTrigger can resolve to progress 0 and leave the text invisible until
+    // the user scrolls. Detect that case and just play the reveal once, so the
+    // heading always shows before any scrolling.
+    const usingWindow = scroller === window;
+    const rect = el.getBoundingClientRect();
+    const viewportH = usingWindow ? window.innerHeight : (scroller as HTMLElement).clientHeight;
+    const alreadyVisible = usingWindow && rect.top < viewportH * 0.95 && rect.bottom > 0;
+
+    if (alreadyVisible) {
+      const tween = gsap.fromTo(charElements, fromVars, {
         duration: animationDuration,
         ease,
         opacity: 1,
@@ -70,15 +79,31 @@ const ScrollFloat = ({
         scaleY: 1,
         scaleX: 1,
         stagger,
-        scrollTrigger: {
-          trigger: el,
-          scroller,
-          start: scrollStart,
-          end: scrollEnd,
-          scrub: true,
-        },
-      }
-    );
+      });
+      return () => { tween.kill(); };
+    }
+
+    const tween = gsap.fromTo(charElements, fromVars, {
+      duration: animationDuration,
+      ease,
+      opacity: 1,
+      yPercent: 0,
+      scaleY: 1,
+      scaleX: 1,
+      stagger,
+      scrollTrigger: {
+        trigger: el,
+        scroller,
+        start: scrollStart,
+        end: scrollEnd,
+        scrub: true,
+      },
+    });
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, [scrollContainerRef, animationDuration, ease, scrollStart, scrollEnd, stagger]);
 
   return (
