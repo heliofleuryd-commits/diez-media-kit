@@ -1,5 +1,5 @@
 {
-  "updatedAt": "Aug 12, 2026",
+  "updatedAt": "Aug 15, 2026",
   "longRange": [
     {
       "id": "mxr17",
@@ -31,7 +31,7 @@
           "name": "Rhodes Drum Mag"
         }
       ],
-      "updatedAt": "Aug 12, 2026"
+      "updatedAt": "Aug 15, 2026"
     },
     {
       "id": "fg42",
@@ -63,16 +63,16 @@
           "name": "Debase Extended Mag"
         }
       ],
-      "updatedAt": "Aug 12, 2026"
+      "updatedAt": "Aug 15, 2026"
     },
     {
-      "id": "an94",
-      "weapon": "AN-94",
+      "id": "mk35isr",
+      "weapon": "MK35 ISR",
       "type": "Assault Rifle",
       "game": "BO7",
       "rank": "Long Range",
       "rankNum": 3,
-      "image": "https://img.wzstats.gg/an-94/public",
+      "image": "https://img.wzstats.gg/mk35-isr/public",
       "attachments": [
         {
           "slot": "Muzzle",
@@ -80,7 +80,7 @@
         },
         {
           "slot": "Barrel",
-          "name": "15\" Benthic Barrel"
+          "name": "16.5\" Greaves Bellum Barrel"
         },
         {
           "slot": "Optic",
@@ -92,10 +92,10 @@
         },
         {
           "slot": "Magazine",
-          "name": "Rexford Extended II"
+          "name": "Bowen Siren Drum"
         }
       ],
-      "updatedAt": "Aug 12, 2026"
+      "updatedAt": "Aug 15, 2026"
     }
   ],
   "shortRange": [
@@ -129,7 +129,7 @@
           "name": "MFS Carrousel Fast Mag"
         }
       ],
-      "updatedAt": "Aug 12, 2026"
+      "updatedAt": "Aug 15, 2026"
     },
     {
       "id": "vst",
@@ -161,7 +161,7 @@
           "name": "Amplify Extended Mag I"
         }
       ],
-      "updatedAt": "Aug 12, 2026"
+      "updatedAt": "Aug 15, 2026"
     },
     {
       "id": "rev46",
@@ -193,7 +193,7 @@
           "name": "Cawdor Extended Mag"
         }
       ],
-      "updatedAt": "Aug 12, 2026"
+      "updatedAt": "Aug 15, 2026"
     }
   ]
 }
