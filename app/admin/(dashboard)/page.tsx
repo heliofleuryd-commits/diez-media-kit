@@ -329,13 +329,14 @@ export default function AdminDashboard() {
             </div>
 
             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
-              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">CTA Clicks (30d)</h2>
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">CTA Clicks (30d)</h2>
+              <p className="text-[10px] text-gray-400 mb-4">Total clicks — not unique</p>
               <div className="space-y-3">
                 {Object.entries(data.ctaCounts).length === 0
                   ? <p className="text-gray-300 text-sm">No clicks yet</p>
                   : (() => {
                     const max = Math.max(...Object.values(data.ctaCounts));
-                    const labels: Record<string, string> = { 'lets-talk': '📩 Let\'s Talk', 'loadouts': '📝 Loadouts' };
+                    const labels: Record<string, string> = { 'thunderpick': '⚡ Thunderpick Loadouts', 'lets-talk': '📩 Let\'s Talk', 'loadouts': '📝 All My Loadouts' };
                     return Object.entries(data.ctaCounts).sort((a,b)=>b[1]-a[1]).map(([name, count]) => (
                       <div key={name}>
                         <div className="flex justify-between text-xs mb-1">
