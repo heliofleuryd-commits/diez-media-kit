@@ -1,69 +1,37 @@
 {
-  "updatedAt": "Aug 15, 2026",
+  "updatedAt": "Sep 01, 2026",
   "longRange": [
     {
-      "id": "mxr17",
-      "weapon": "MXR-17",
+      "id": "an94",
+      "weapon": "AN-94",
       "type": "Assault Rifle",
       "game": "BO7",
       "rank": "Long Range",
       "rankNum": 1,
-      "image": "https://img.wzstats.gg/mxr-17/public",
+      "image": "https://img.wzstats.gg/an-94/public",
       "attachments": [
         {
           "slot": "Muzzle",
-          "name": "Monolithic Suppressor"
+          "name": "Firepower Suppressor"
         },
         {
           "slot": "Barrel",
-          "name": "17\" Greaves Scourge Barrel"
+          "name": "Control Barrel"
         },
         {
           "slot": "Optic",
-          "name": "FANG HoverPoint ELO"
-        },
-        {
-          "slot": "Stock",
-          "name": "Winch Stock"
-        },
-        {
-          "slot": "Magazine",
-          "name": "Rhodes Drum Mag"
-        }
-      ],
-      "updatedAt": "Aug 15, 2026"
-    },
-    {
-      "id": "fg42",
-      "weapon": "FG42",
-      "type": "Assault Rifle",
-      "game": "BO7",
-      "rank": "Long Range",
-      "rankNum": 2,
-      "image": "https://img.wzstats.gg/fg42/public",
-      "attachments": [
-        {
-          "slot": "Muzzle",
-          "name": "Monolithic Suppressor"
-        },
-        {
-          "slot": "Barrel",
-          "name": "16\" Bandolier Barrel"
-        },
-        {
-          "slot": "Optic",
-          "name": "FANG HoverPoint ELO"
+          "name": "Redwell 30-S 2x"
         },
         {
           "slot": "Underbarrel",
-          "name": "RIF Handguard"
+          "name": "Bullet Deviation Foregrip"
         },
         {
           "slot": "Magazine",
-          "name": "Debase Extended Mag"
+          "name": "Flip Mag"
         }
       ],
-      "updatedAt": "Aug 15, 2026"
+      "updatedAt": "Sep 01, 2026"
     },
     {
       "id": "mk35isr",
@@ -71,12 +39,12 @@
       "type": "Assault Rifle",
       "game": "BO7",
       "rank": "Long Range",
-      "rankNum": 3,
+      "rankNum": 2,
       "image": "https://img.wzstats.gg/mk35-isr/public",
       "attachments": [
         {
           "slot": "Muzzle",
-          "name": "Monolithic Suppressor"
+          "name": "Firepower Suppressor"
         },
         {
           "slot": "Barrel",
@@ -84,52 +52,84 @@
         },
         {
           "slot": "Optic",
-          "name": "FANG HoverPoint ELO"
+          "name": "Redwell 30-S 2x"
         },
         {
           "slot": "Underbarrel",
-          "name": "VAS Convergence Foregrip"
+          "name": "Bullet Deviation Foregrip"
         },
         {
           "slot": "Magazine",
           "name": "Bowen Siren Drum"
         }
       ],
-      "updatedAt": "Aug 15, 2026"
+      "updatedAt": "Sep 01, 2026"
+    },
+    {
+      "id": "egrt17",
+      "weapon": "EGRT-17",
+      "type": "Assault Rifle",
+      "game": "BO7",
+      "rank": "Long Range",
+      "rankNum": 3,
+      "image": "https://img.wzstats.gg/egrt-17/public",
+      "attachments": [
+        {
+          "slot": "Muzzle",
+          "name": "Firepower Suppressor"
+        },
+        {
+          "slot": "Barrel",
+          "name": "Damage Barrel"
+        },
+        {
+          "slot": "Optic",
+          "name": "ELO"
+        },
+        {
+          "slot": "Stock",
+          "name": "Control Stock"
+        },
+        {
+          "slot": "Magazine",
+          "name": "55 Round Extended Mag"
+        }
+      ],
+      "updatedAt": "Sep 01, 2026"
     }
   ],
   "shortRange": [
     {
-      "id": "cbrs3",
-      "weapon": "CBRS-3",
+      "id": "rev46",
+      "weapon": "REV-46",
       "type": "SMG",
       "game": "BO7",
       "rank": "Close Range",
       "rankNum": 1,
-      "image": "https://img.wzstats.gg/cbrs-3/public",
+      "image": "https://img.wzstats.gg/rev-46/public",
       "attachments": [
         {
           "slot": "Muzzle",
-          "name": "LTI Stentorian Brake"
+          "name": "Fire Rate Brake"
         },
         {
           "slot": "Barrel",
-          "name": "11\" Gaunt Barrel"
+          "name": "Long Barrel"
         },
         {
           "slot": "Optic",
-          "name": "FANG HoverPoint ELO"
+          "name": "Mini Reflex 03"
         },
         {
-          "slot": "Stock",
-          "name": "Casino Light Stock"
+          "slot": "Underbarrel",
+          "name": "Mobile Recoil Handstop"
         },
         {
           "slot": "Magazine",
-          "name": "MFS Carrousel Fast Mag"
+          "name": "45 Round Extended Mag"
         }
       ],
-      "updatedAt": "Aug 15, 2026"
+      "updatedAt": "Sep 01, 2026"
     },
     {
       "id": "vst",
@@ -142,11 +142,11 @@
       "attachments": [
         {
           "slot": "Muzzle",
-          "name": "LTI Stentorian Brake"
+          "name": "Fire Rate Brake"
         },
         {
           "slot": "Barrel",
-          "name": "9.7\" Enmity Barrel"
+          "name": "Short Barrel"
         },
         {
           "slot": "Stock",
@@ -154,46 +154,46 @@
         },
         {
           "slot": "Underbarrel",
-          "name": "EAM Steady-90 Grip"
+          "name": "Mobile Recoil Foregrip"
         },
         {
           "slot": "Magazine",
-          "name": "Amplify Extended Mag I"
+          "name": "9x19 Extended Mag I"
         }
       ],
-      "updatedAt": "Aug 15, 2026"
+      "updatedAt": "Sep 01, 2026"
     },
     {
-      "id": "rev46",
-      "weapon": "REV-46",
+      "id": "mpc25",
+      "weapon": "MPC-25",
       "type": "SMG",
       "game": "BO7",
       "rank": "Close Range",
       "rankNum": 3,
-      "image": "https://img.wzstats.gg/rev-46/public",
+      "image": "https://img.wzstats.gg/mpc-25/public",
       "attachments": [
         {
           "slot": "Muzzle",
-          "name": "LTI Stentorian Brake"
+          "name": "Fire Rate Brake"
         },
         {
           "slot": "Barrel",
-          "name": "14.9\" Caudal Target Barrel"
-        },
-        {
-          "slot": "Optic",
-          "name": "FANG HoverPoint ELO"
+          "name": "14.5\" VAS Ashe Barrel"
         },
         {
           "slot": "Underbarrel",
-          "name": "Sapper Guard Handstop"
+          "name": "Mobile Recoil Foregrip"
         },
         {
           "slot": "Magazine",
-          "name": "Cawdor Extended Mag"
+          "name": "Sustain-25 Extended Mag"
+        },
+        {
+          "slot": "Fire Mods",
+          "name": "Recoil Springs"
         }
       ],
-      "updatedAt": "Aug 15, 2026"
+      "updatedAt": "Sep 01, 2026"
     }
   ]
 }
