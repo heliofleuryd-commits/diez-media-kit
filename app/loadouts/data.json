@@ -1,5 +1,5 @@
 {
-  "updatedAt": "Sep 01, 2026",
+  "updatedAt": "Sep 15, 2026",
   "longRange": [
     {
       "id": "an94",
@@ -31,7 +31,7 @@
           "name": "Flip Mag"
         }
       ],
-      "updatedAt": "Sep 01, 2026"
+      "updatedAt": "Sep 15, 2026"
     },
     {
       "id": "mk35isr",
@@ -60,10 +60,10 @@
         },
         {
           "slot": "Magazine",
-          "name": "Bowen Siren Drum"
+          "name": "Siskin Flip Mag"
         }
       ],
-      "updatedAt": "Sep 01, 2026"
+      "updatedAt": "Sep 15, 2026"
     },
     {
       "id": "egrt17",
@@ -95,7 +95,7 @@
           "name": "55 Round Extended Mag"
         }
       ],
-      "updatedAt": "Sep 01, 2026"
+      "updatedAt": "Sep 15, 2026"
     }
   ],
   "shortRange": [
@@ -129,7 +129,7 @@
           "name": "45 Round Extended Mag"
         }
       ],
-      "updatedAt": "Sep 01, 2026"
+      "updatedAt": "Sep 15, 2026"
     },
     {
       "id": "vst",
@@ -161,7 +161,7 @@
           "name": "9x19 Extended Mag I"
         }
       ],
-      "updatedAt": "Sep 01, 2026"
+      "updatedAt": "Sep 15, 2026"
     },
     {
       "id": "mpc25",
@@ -193,7 +193,7 @@
           "name": "Recoil Springs"
         }
       ],
-      "updatedAt": "Sep 01, 2026"
+      "updatedAt": "Sep 15, 2026"
     }
   ]
 }
