@@ -7,11 +7,26 @@ import type Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs';
 import path from 'path';
 import { CREATOR_BIAS } from './creatorBias';
-import { calcCost } from './costTracker';
+import { calcUsageCost } from './costTracker';
 
-export const OPUS = 'claude-opus-4-8';
-export const SONNET = 'claude-sonnet-4-6';
+export const OPUS = 'claude-opus-5-5';
+export const SONNET = 'claude-sonnet-5-5';
 export const HAIKU = 'claude-haiku-4-5-20251001';
+
+// Opus/Sonnet 5.5 always think, and thinking is billed as output and counts
+// toward max_tokens. Spend effort where the recorded script is shaped (viral)
+// and keep the other stages lean.
+const PARAMS = {
+  research: { max_tokens: 16000, output_config: { effort: 'medium' as const } },
+  draft: { max_tokens: 16000, output_config: { effort: 'medium' as const } },
+  viral: { max_tokens: 16000, output_config: { effort: 'high' as const } },
+  check: { max_tokens: 16000, output_config: { effort: 'medium' as const } },
+  edit: { max_tokens: 16000, output_config: { effort: 'medium' as const } },
+};
+
+// Style guides are reused across drafts, viral passes and every amendment —
+// keep them cached for an hour rather than 5 minutes.
+const CACHE_1H = { type: 'ephemeral' as const, ttl: '1h' as const };
 
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
 const VIRAL_SKILL_PATH = path.join(process.cwd(), 'content-plan', 'emotional-storyteller', 'viral-style-skill.md');
@@ -137,6 +152,107 @@ function extractText(res: any): string {
   return res.content.filter((b: any) => b.type === 'text').map((b: any) => b.text).join('');
 }
 
+// Cost of one response (tokens, cache and searches), logged per stage so real
+// per-script spend shows up in the server logs.
+function bill(stage: string, model: string, res: Anthropic.Messages.Message): number {
+  const searches = res.usage.server_tool_use?.web_search_requests ?? 0;
+  const cost = calcUsageCost(model, res.usage) + searches * WEB_SEARCH_COST;
+  console.log(`[storyteller-usage] ${JSON.stringify({
+    stage, model, in: res.usage.input_tokens, out: res.usage.output_tokens,
+    cacheRead: res.usage.cache_read_input_tokens ?? 0, cacheWrite: res.usage.cache_creation_input_tokens ?? 0,
+    searches, cost: Number(cost.toFixed(4)),
+  })}`);
+  return cost;
+}
+
+// ── Word limit ("max 300 words", "under 250 words", "300 words max"…) ──────────
+
+export function parseWordLimit(text: string): number | undefined {
+  const t = String(text || '').toLowerCase();
+  const m = t.match(/(?:max(?:imum)?|under|below|no more than|less than|fewer than|up to|at most|limit(?: of)?|within)\s*:?\s*(\d{2,4})\s*-?\s*words?/)
+    || t.match(/(\d{2,4})\s*-?\s*words?\s*(?:max(?:imum)?|or less|or fewer|tops|limit)/)
+    || t.match(/\b(\d{2,4})\s*-?\s*words?\b/);
+  const n = m ? parseInt(m[1], 10) : NaN;
+  return n >= 50 && n <= 1500 ? n : undefined;
+}
+
+// Latest limit the creator gave in the conversation — it sticks to amendments.
+export function wordLimitFromMessages(messages: any[]): number | undefined {
+  for (const m of [...(messages || [])].reverse()) {
+    if (m?.role !== 'user') continue;
+    const n = parseWordLimit(typeof m.content === 'string' ? m.content : '');
+    if (n) return n;
+  }
+  return undefined;
+}
+
+function lengthRule(limit?: number): string {
+  return limit
+    ? `LENGTH — the creator asked for MAX ${limit} words. The spoken script body (everything before **Hook:**) must be ${limit} words or fewer. This overrides every length rule in the style guide: compress the beats, keep the hook, the wound, the climax and the closer, and cut everything else.`
+    : `LENGTH — HARD limit: ~480–540 words, NEVER above 600 (the longest reference script). Cut sprawl to fit.`;
+}
+
+// Words in the spoken body only — the Hook/Caption/Hashtags/Fact check tail doesn't count.
+function bodyWordCount(text: string): number {
+  const cut = text.search(/^\s*\*\*(Hook|Caption|Hashtags|Fact check):?\*\*/im);
+  const body = cut >= 0 ? text.slice(0, cut) : text;
+  return (body.match(/\S+/g) || []).length;
+}
+
+// Models overshoot word counts, so check in code and trim only when over.
+async function enforceWordLimit(client: Anthropic, text: string, limit: number | undefined, model = OPUS): Promise<{ text: string; cost: number }> {
+  if (!limit) return { text, cost: 0 };
+  const words = bodyWordCount(text);
+  if (words <= limit) return { text, cost: 0 };
+  const res = await client.messages.create({
+    model,
+    ...PARAMS.edit,
+    messages: [{
+      role: 'user',
+      content: `This script body is ${words} words. The creator's hard maximum is ${limit} words. Cut it to ${limit} words or fewer (aim for ~${Math.round(limit * 0.95)}).
+
+Keep the hook, the key facts, the climax and the closer. Cut sprawl, never add. Keep the voice, line breaks and formatting. Leave any **Hook:** / **Caption:** / **Hashtags:** / **Fact check:** sections after the body exactly as they are. Reply with the full result only, no preamble.
+
+"""
+${text}
+"""`,
+    }],
+  });
+  return { text: stripDividers(extractText(res)), cost: bill('trim', model, res) };
+}
+
+// ── Web search (research + fact check) ──────────────────────────────────────────
+
+const WEB_SEARCH_COST = 0.01; // $10 per 1,000 searches
+
+function webSearch(maxUses: number): Anthropic.Messages.WebSearchTool20260209 {
+  return { type: 'web_search_20260209', name: 'web_search', max_uses: maxUses };
+}
+
+// Only the text after the last search result is the answer; anything earlier
+// is the model talking between searches.
+function finalText(res: Anthropic.Messages.Message): string {
+  const lastResult = res.content.map(b => b.type).lastIndexOf('web_search_tool_result');
+  const tail = res.content.slice(lastResult + 1)
+    .filter((b): b is Anthropic.Messages.TextBlock => b.type === 'text')
+    .map(b => b.text).join('').trim();
+  return tail || extractText(res).trim();
+}
+
+// Long search turns can come back as pause_turn — send the partial turn back
+// and let the model carry on until it finishes.
+async function runWithSearch(client: Anthropic, stage: string, params: Anthropic.Messages.MessageCreateParamsNonStreaming): Promise<{ text: string; cost: number }> {
+  const messages = [...params.messages];
+  let cost = 0;
+  for (let i = 0; i < 4; i++) {
+    const res = await client.messages.create({ ...params, messages });
+    cost += bill(stage, params.model, res);
+    if (res.stop_reason !== 'pause_turn') return { text: finalText(res), cost };
+    messages.push({ role: 'assistant', content: res.content });
+  }
+  throw new Error('Search took too many rounds — try again');
+}
+
 // ── Live research (recency-aware) ───────────────────────────────────────────────
 
 async function fetchHeadlines(query: string, limit: number): Promise<string[]> {
@@ -172,12 +288,15 @@ export async function liveResearch(topic: string): Promise<string> {
 export interface StageResult { text: string; cost: number; model: string; }
 
 export async function runResearch(client: Anthropic, topic: string, todayStr: string, live: string, model = SONNET): Promise<StageResult> {
-  const res = await client.messages.create({
+  const { text, cost } = await runWithSearch(client, 'research', {
     model,
-    max_tokens: 1500,
+    ...PARAMS.research,
+    tools: [webSearch(5)],
     system: [{
       type: 'text',
-      text: `You are a football story researcher who digs out the deep, emotional human spine behind a player or a nation: where they came from, childhood and early life, poverty, migration, family, loss, injury, rejection, comeback arcs, underdog journeys. You are ruthlessly factual — real names, real dates, no invention. You never present an old event as if it were recent.`,
+      text: `You are a football story researcher who digs out the deep, emotional human spine behind a player or a nation: where they came from, childhood and early life, poverty, migration, family, loss, injury, rejection, comeback arcs, underdog journeys. You are ruthlessly factual — real names, real dates, no invention. You never present an old event as if it were recent.
+
+Use web search to confirm every year, date, club, transfer, fee and score before you write it down — especially anything from the last two seasons, where your memory is least reliable. A year that only "feels right" is not confirmed.`,
     }],
     messages: [{
       role: 'user',
@@ -196,35 +315,82 @@ Produce EXACTLY 10 factual bullet points that will feed an emotional football sc
 - the comeback arc / underdog journey / what they overcame
 - IF the request mentions a recent match or performance, the ACCURATE specifics of that recent moment (date, opponent, what happened) — take these from the RECENT headlines above, NOT from an unrelated old match. If unsure of a recent detail, say so rather than inventing or substituting an old event.
 
-Player-tied or country-tied are both fine. Each bullet is one specific, checkable fact with names and dates where possible.
+Player-tied or country-tied are both fine. Each bullet is one specific, checkable fact with names and dates where possible, ending with the site that confirms it in brackets, e.g. "(source: bbc.co.uk)". The fact-checker relies on these to avoid searching again.
 
 Output ONLY the 10 bullets, one per line, each starting with "- ". No preamble.`,
     }],
   });
-  return { text: extractText(res), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
+  return { text, cost, model };
 }
 
-export async function runDraft(client: Anthropic, topic: string, context: string, model = OPUS): Promise<StageResult> {
+// Final gate before the creator sees a script: verify every tangible fact
+// against live sources and fix only what's wrong, leaving the voice untouched.
+// Runs once per new script — never on amendments. Sonnet: checking a year or a
+// score is a lookup, not writing. Claims the research already sourced are
+// trusted, so searches go only to facts the writing stages added.
+export async function runFactCheck(client: Anthropic, script: string, todayStr: string, research = '', wordLimit?: number, model = SONNET): Promise<StageResult> {
+  const { text, cost } = await runWithSearch(client, 'factcheck', {
+    model,
+    ...PARAMS.check,
+    tools: [webSearch(4)],
+    system: [{
+      type: 'text',
+      text: `You are the fact-checker for an emotional football storytelling channel. The scripts are lyrical, but every tangible fact in them must be true — one wrong year or score in a comment section undoes the whole video. You change facts, never style.`,
+    }],
+    messages: [{
+      role: 'user',
+      content: `Fact-check this script before it is published. Today is ${todayStr}.
+
+VERIFIED RESEARCH — already confirmed with web search, with sources. Trust these; do not search them again:
+${research || '(none provided)'}
+
+SCRIPT:
+"""
+${script}
+"""
+
+1. Find every tangible, checkable claim: years and dates, transfer windows and fees, clubs, ages, match minutes, scores, goal and appearance counts, trophies, records, stadiums, opponents and quotes.
+2. A claim that matches the verified research is confirmed. Use web search only for claims the research doesn't cover or that contradict it — most recent first, because memory of recent events is the least reliable and a year that "feels right" is not verified.
+3. Fix only what is wrong, changing as few words as possible. Keep the voice, rhythm, line breaks and formatting exactly as they are. If a claim can't be confirmed, soften it to something that is true (for example drop the exact minute) rather than leave a guess.${wordLimit ? `\n4. The creator's hard maximum is ${wordLimit} words for the script body — don't make it longer.` : ''}
+
+Reply in exactly this shape, with no preamble:
+- The full corrected script, including its **Hook:** / **Caption:** / **Hashtags:** lines.
+- Then a line "**Fact check:**" followed by one bullet per claim you changed or softened, written as "- old → new (source)". If nothing needed changing, write "- No corrections needed." End with "- Verified: N claims".`,
+    }],
+  });
+  const trimmed = await enforceWordLimit(client, stripDividers(text), wordLimit);
+  return { text: trimmed.text, cost: cost + trimmed.cost, model };
+}
+
+export async function runDraft(client: Anthropic, topic: string, context: string, model = OPUS, wordLimit?: number): Promise<StageResult> {
   const systemBlocks: any[] = [
-    { type: 'text', text: buildStudioToqueymedioPrompt(), cache_control: { type: 'ephemeral' } },
-    { type: 'text', text: `## YOUR SKILL LIBRARY (120 viral football videos analysed)\n\n${loadSkills(['toqueymedio'])}`, cache_control: { type: 'ephemeral' } },
+    { type: 'text', text: buildStudioToqueymedioPrompt() },
+    { type: 'text', text: `## YOUR SKILL LIBRARY (120 viral football videos analysed)\n\n${loadSkills(['toqueymedio'])}`, cache_control: CACHE_1H },
   ];
   const userMsg = `Write me a complete emotional toqueymedio script about:
 
 "${topic}"
 
-Researched context — weave these real facts in, and use the origin/early-life facts to open the story:
-${context || '(no extra context)'}`;
-  const res = await client.messages.create({ model, max_tokens: 4000, system: systemBlocks, messages: [{ role: 'user', content: userMsg }] });
-  return { text: extractText(res), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
+Researched context — weave these real facts in (ignore the "(source: …)" tags), and use the origin/early-life facts to open the story:
+${context || '(no extra context)'}${wordLimit ? `\n\nThe creator wants the final script at MAX ${wordLimit} words — write about that length, not the usual 2-minute length.` : ''}`;
+  const res = await client.messages.create({ model, ...PARAMS.draft, system: systemBlocks, messages: [{ role: 'user', content: userMsg }] });
+  return { text: extractText(res), cost: bill('draft', model, res), model };
 }
 
-export async function runViral(client: Anthropic, draft: string, model = OPUS, mode: StyleMode = 'new'): Promise<StageResult> {
-  const style = blendedStyle(mode);
+// Viral and chat share the same cached style-guide block (first in the system
+// prompt), so every amendment after a script reads it from cache.
+function styleSystem(mode: StyleMode, instructions: string): Anthropic.Messages.TextBlockParam[] {
+  return [
+    { type: 'text', text: blendedStyle(mode), cache_control: CACHE_1H },
+    { type: 'text', text: instructions },
+  ];
+}
+
+export async function runViral(client: Anthropic, draft: string, model = OPUS, mode: StyleMode = 'new', wordLimit?: number): Promise<StageResult> {
   const res = await client.messages.create({
     model,
-    max_tokens: 4000,
-    system: [{ type: 'text', text: `You are the final editor. You take a toqueymedio script that is ~75% there and elevate it to the perfected style below. This style guide OVERRIDES everything else.\n\n${style}`, cache_control: { type: 'ephemeral' } }],
+    ...PARAMS.viral,
+    system: styleSystem(mode, `You are the final editor. You take a toqueymedio script that is ~75% there and elevate it to the perfected style guide above. That style guide OVERRIDES everything else.`),
     messages: [{
       role: 'user',
       content: `Here is the toqueymedio draft to elevate:
@@ -242,7 +408,7 @@ VARIETY — CRITICAL: do NOT reuse stock lines. NEVER write "they say it is hard
 
 2. FLOW & FULL SENTENCES — after the hook, write in COMPLETE, FLOWING SENTENCES, exactly like the reference scripts. Each sentence is a full thought that breathes — use connectors (and, because, until, while) and commas WITHIN a sentence to carry the listener forward. Do NOT chop the script into many short staccato lines or fragments. Reserve a standalone short fragment only for a single deliberate hammer-blow (the turn, the goal, the silence). The body should feel like flowing narration, not a bullet list.
 
-3. LENGTH — HARD limit: ~480–540 words, NEVER above 600 (the longest reference script). Cut sprawl to fit.
+3. ${lengthRule(wordLimit)}
 
 4. Keep every real fact, the emotional spine, the ceremonial full name at the climax, the sky-point dedication, and the earned aphoristic closer — but express each in FRESH words for this specific story, never a recycled template line.
 
@@ -256,7 +422,9 @@ After the script, on new lines:
 **Hashtags:** (6–8 tags)`,
     }],
   });
-  return { text: stripDividers(extractText(res)), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
+  const cost = bill('viral', model, res);
+  const trimmed = await enforceWordLimit(client, stripDividers(extractText(res)), wordLimit, model);
+  return { text: trimmed.text, cost: cost + trimmed.cost, model };
 }
 
 // Fast, cheap intent router: does the user want a brand-new full script researched
@@ -278,15 +446,22 @@ If the message contains a pasted script, OR asks for anything less than a whole 
   });
   const out = extractText(res).toLowerCase();
   const intent: 'create' | 'edit' = out.includes('edit') ? 'edit' : 'create';
-  return { intent, cost: calcCost(HAIKU, res.usage.input_tokens, res.usage.output_tokens) };
+  return { intent, cost: bill('classify', HAIKU, res) };
 }
 
-export async function runChat(client: Anthropic, messages: any[], model = OPUS, mode: StyleMode = 'new'): Promise<StageResult> {
-  const style = blendedStyle(mode);
+// Amendments: one call, no research, no redraft, no fact check.
+export async function runChat(client: Anthropic, messages: any[], model = OPUS, mode: StyleMode = 'new', wordLimit?: number): Promise<StageResult> {
+  const history = (messages || []).slice(-20);
+  // Put the creator's word limit on the latest message so it beats the
+  // ~500-word default without touching the cached system prompt.
+  const last = history[history.length - 1];
+  if (wordLimit && last?.role === 'user' && typeof last.content === 'string') {
+    history[history.length - 1] = { ...last, content: `${last.content}\n\n(If you write or rewrite a script: ${lengthRule(wordLimit)})` };
+  }
   const res = await client.messages.create({
     model,
-    max_tokens: 4000,
-    system: [{ type: 'text', text: `You are the Emotional Storyteller editor. Do EXACTLY what the latest message asks — and nothing more. Match the SCOPE of the request precisely:
+    ...PARAMS.edit,
+    system: styleSystem(mode, `You are the Emotional Storyteller editor. Do EXACTLY what the latest message asks — and nothing more. Match the SCOPE of the request precisely:
 
 - If they ask for only hooks (e.g. "give me 5 hook alternatives"), return ONLY that many hooks — each 2–3 punchy lines — and nothing else. Do NOT append the full script, a caption, or hashtags.
 - If they ask to rewrite, critique or analyse ONE section or line, return only that part.
@@ -300,8 +475,15 @@ STYLE — apply only to the content you actually produce:
 - Full script body (only when writing one): complete, flowing full sentences (not choppy fragments), a blank line between beats, ~500 words and never above 600, clean spoken lines, no "---", no bold in the body.
 - VARIETY: never write "they say it is hard to hear silence" (banned); never use "[Country] explodes"/"millions of souls erupt" unless literally describing a goal or a trophy; invent fresh imagery every time.
 
-${style}`, cache_control: { type: 'ephemeral' } }],
-    messages: (messages || []).slice(-20),
+Apply the style guide above to anything you write.`),
+    messages: history,
   });
-  return { text: stripDividers(extractText(res)), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
+  const cost = bill('edit', model, res);
+  const text = stripDividers(extractText(res));
+  // Only trim replies that are actually a script (hooks or notes stay as-is).
+  if (wordLimit && /\*\*Hook:?\*\*/i.test(text)) {
+    const trimmed = await enforceWordLimit(client, text, wordLimit, model);
+    return { text: trimmed.text, cost: cost + trimmed.cost, model };
+  }
+  return { text, cost, model };
 }

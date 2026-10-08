@@ -33,7 +33,7 @@ function Markdown({ text }: { text: string }) {
   );
 }
 
-const PASS_LABELS = ['Researching the story…', 'Researching — origin, comeback, the deep story…', 'Drafting in Studio (toqueymedio only)…', 'Applying your viral style — hook, flow, length…'];
+const PASS_LABELS = ['Researching the story…', 'Researching — origin, comeback, the deep story…', 'Drafting in Studio (toqueymedio only)…', 'Applying your viral style — hook, flow, length…', 'Fact-checking every date, score and stat…'];
 
 // Offline fallback if the intent router call fails: does this read as an edit / narrow
 // ask (pasted script, hooks, a section…) rather than "create a new full script"?
@@ -135,11 +135,22 @@ export function EmotionalStoryteller() {
         track(draftRes.cost || 0);
 
         setProgress(3); // viral elevation
-        const viralRes = await callStage({ stage: 'viral', draft: draftRes.message });
+        const viralRes = await callStage({ stage: 'viral', topic: text, draft: draftRes.message });
         if (!viralRes.ok) throw new Error(viralRes.error || 'Viral pass failed');
         track(viralRes.cost || 0);
 
-        setMessages(p => [...p, { id: `a${Date.now()}`, role: 'assistant', text: viralRes.message || '' }]);
+        setProgress(4); // fact check against live sources
+        let finalScript = viralRes.message || '';
+        try {
+          const checkRes = await callStage({ stage: 'factcheck', topic: text, script: finalScript, bullets: researchRes.message });
+          track(checkRes.cost || 0);
+          if (checkRes.ok && checkRes.message) finalScript = checkRes.message;
+          else finalScript += `\n\n**Fact check:**\n- ⚠️ Fact check failed (${checkRes.error || 'unknown error'}) — verify dates and stats before recording.`;
+        } catch {
+          finalScript += '\n\n**Fact check:**\n- ⚠️ Fact check failed — verify dates and stats before recording.';
+        }
+
+        setMessages(p => [...p, { id: `a${Date.now()}`, role: 'assistant', text: finalScript }]);
       } else {
         // ── Single-pass edit: do EXACTLY what's asked (hooks, a section, analysis…) ──
         const apiMessages = [...messages.filter(m => m.id !== 'welcome'), userMsg].map(m => ({ role: m.role, content: m.text }));
@@ -164,7 +175,7 @@ export function EmotionalStoryteller() {
         <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px]" style={{ background: 'linear-gradient(135deg,#f59e0b,#dc2626)' }}>🕯️</span>
         <div className="flex-1 min-w-0">
           <p className="text-[12px] font-black text-gray-900">Emotional Storyteller</p>
-          <p className="text-[8px] text-gray-400 uppercase tracking-widest font-bold">{mode === 'new' ? 'diez format · 50% merged' : 'base viral style'} · 3-pass</p>
+          <p className="text-[8px] text-gray-400 uppercase tracking-widest font-bold">{mode === 'new' ? 'diez format · 50% merged' : 'base viral style'} · 3-pass + fact check</p>
         </div>
 
         {/* OLD / NEW style toggle */}
@@ -219,7 +230,7 @@ export function EmotionalStoryteller() {
               </div>
               {runKind === 'create' && progress > 0 && (
                 <div className="flex gap-1 mt-2">
-                  {[1, 2, 3].map(n => (
+                  {[1, 2, 3, 4].map(n => (
                     <div key={n} className={`h-1 rounded-full transition-all ${n <= progress ? 'bg-amber-500' : 'bg-gray-200'}`} style={{ width: 28 }} />
                   ))}
                 </div>
