@@ -351,15 +351,47 @@ ${script}
 
 1. Find every tangible, checkable claim: years and dates, transfer windows and fees, clubs, ages, match minutes, scores, goal and appearance counts, trophies, records, stadiums, opponents and quotes.
 2. A claim that matches the verified research is confirmed. Use web search only for claims the research doesn't cover or that contradict it — most recent first, because memory of recent events is the least reliable and a year that "feels right" is not verified.
-3. Fix only what is wrong, changing as few words as possible. Keep the voice, rhythm, line breaks and formatting exactly as they are. If a claim can't be confirmed, soften it to something that is true (for example drop the exact minute) rather than leave a guess.${wordLimit ? `\n4. The creator's hard maximum is ${wordLimit} words for the script body — don't make it longer.` : ''}
+3. For each claim that is wrong, give the smallest fix, keeping the voice and rhythm. If a claim can't be confirmed, soften it to something true (for example drop the exact minute) rather than leave a guess.${wordLimit ? ` Fixes must not make the script longer — the creator's hard maximum is ${wordLimit} words.` : ''}
 
-Reply in exactly this shape, with no preamble:
-- The full corrected script, including its **Hook:** / **Caption:** / **Hashtags:** lines.
-- Then a line "**Fact check:**" followed by one bullet per claim you changed or softened, written as "- old → new (source)". If nothing needed changing, write "- No corrections needed." End with "- Verified: N claims".`,
+Do NOT rewrite or return the script. When you're done, end your reply with exactly this:
+<corrections>
+[{"old": "exact text from the script", "new": "corrected text", "source": "site.com"}]
+</corrections>
+<verified>N</verified>
+
+"old" must be copied character-for-character from the script — the shortest phrase that is unique in it (e.g. "in 2015 Tottenham paid five million pounds"). Use [] if nothing needs changing. N is how many claims you checked.`,
     }],
   });
-  const trimmed = await enforceWordLimit(client, stripDividers(text), wordLimit);
+  const checked = applyCorrections(script, text);
+  const trimmed = await enforceWordLimit(client, checked, wordLimit);
   return { text: trimmed.text, cost: cost + trimmed.cost, model };
+}
+
+// The fact checker only returns a list of fixes; the code swaps them in, so
+// the script's structure, opening and formatting can't be disturbed.
+function applyCorrections(script: string, reply: string): string {
+  const block = [...reply.matchAll(/<corrections>([\s\S]*?)<\/corrections>/g)].pop()?.[1];
+  let fixes: { old?: string; new?: string; source?: string }[];
+  try { fixes = JSON.parse(block ?? ''); if (!Array.isArray(fixes)) throw new Error(); }
+  catch {
+    return `${script}\n\n**Fact check:**\n- ⚠️ Couldn't read the fact-check result — verify dates and stats before recording.`;
+  }
+  const verified = reply.match(/<verified>\s*(\d+)\s*<\/verified>/)?.[1];
+  let out = script;
+  const notes: string[] = [];
+  for (const f of fixes) {
+    if (!f.old || typeof f.new !== 'string' || f.old === f.new) continue;
+    const src = f.source ? ` (${f.source})` : '';
+    if (out.includes(f.old)) {
+      out = out.replace(f.old, f.new);
+      notes.push(`- ${f.old} → ${f.new}${src}`);
+    } else {
+      notes.push(`- ⚠️ Not applied, fix by hand: ${f.old} → ${f.new}${src}`);
+    }
+  }
+  if (!notes.length) notes.push('- No corrections needed.');
+  if (verified) notes.push(`- Verified: ${verified} claims`);
+  return `${out}\n\n**Fact check:**\n${notes.join('\n')}`;
 }
 
 export async function runDraft(client: Anthropic, topic: string, context: string, model = OPUS, wordLimit?: number): Promise<StageResult> {
