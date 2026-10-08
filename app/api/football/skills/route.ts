@@ -13,6 +13,11 @@ const SKILL_META: Record<string, { name: string; description: string; category: 
     description: 'How to pick, construct, and deliver every hook type — with decision maps, step-by-step templates, and what kills each one.',
     category: 'Writing Guides',
   },
+  'diez-hook-skill': {
+    name: 'Diez Hook Skill',
+    description: "Your own hooks — the opening lines up to the player's name — from 36 of your Notion FOOTBALL scripts: the 3-line formula, the rules and 8 archetypes with every real example. Used by the Emotional Storyteller.",
+    category: 'Writing Guides',
+  },
   'structure-guide': {
     name: 'Structure Guide',
     description: 'Beat-by-beat architecture for analytical football scripts — video length guide, format templates, and the most common structural mistakes.',

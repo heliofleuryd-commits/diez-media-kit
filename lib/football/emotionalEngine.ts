@@ -31,6 +31,7 @@ const CACHE_1H = { type: 'ephemeral' as const, ttl: '1h' as const };
 const SKILLS_DIR = path.join(process.cwd(), 'content-plan', 'skills');
 const VIRAL_SKILL_PATH = path.join(process.cwd(), 'content-plan', 'emotional-storyteller', 'viral-style-skill.md');
 const DIEZ_SKILL_PATH = path.join(process.cwd(), 'content-plan', 'emotional-storyteller', 'diez-format-skill.md');
+const HOOK_SKILL_PATH = path.join(process.cwd(), 'content-plan', 'skills', 'diez-hook-skill.md');
 
 // ── Studio toqueymedio base (faithful copy of Content Studio › Studio) ──────────
 
@@ -123,6 +124,12 @@ function loadDiezFormat(): string {
   try { return fs.readFileSync(DIEZ_SKILL_PATH, 'utf-8'); } catch { return ''; }
 }
 
+// Diez's own hooks (the lines before the player's name), built from his Notion
+// FOOTBALL scripts. Shown under Football › Skills.
+function loadHookSkill(): string {
+  try { return fs.readFileSync(HOOK_SKILL_PATH, 'utf-8'); } catch { return ''; }
+}
+
 // Emotional Storyteller style modes:
 //  'old' = the base viral style only (pre-Diez-merge).
 //  'new' = base viral style blended 50/50 with Diez's own Notion Story format.
@@ -130,16 +137,18 @@ export type StyleMode = 'old' | 'new';
 
 function blendedStyle(mode: StyleMode = 'new'): string {
   const viral = loadViralSkill();
-  if (mode === 'old') return viral;
+  const hooks = loadHookSkill();
+  const hookGuide = hooks ? `\n\n=== HOOK GUIDE — DIEZ'S OWN HOOKS (governs the opening lines, up to the player's name) ===\n${hooks}` : '';
+  if (mode === 'old') return viral + hookGuide;
   const diez = loadDiezFormat();
-  if (!diez) return viral;
+  if (!diez) return viral + hookGuide;
   return `Blend the TWO style guides below roughly 50/50. Guide A is the base viral style; Guide B is DIEZ'S OWN format, reverse-engineered from his real posted scripts. Where they differ, FOLLOW GUIDE B (Diez's own hooks, closers, structure and motifs win — they are his proven voice).
 
 === GUIDE A — BASE VIRAL STYLE ===
 ${viral}
 
 === GUIDE B — DIEZ'S OWN FORMAT (wins on any conflict) ===
-${diez}`;
+${diez}${hookGuide}`;
 }
 
 export function stripDividers(s: string): string {
@@ -169,9 +178,13 @@ function bill(stage: string, model: string, res: Anthropic.Messages.Message): nu
 
 export function parseWordLimit(text: string): number | undefined {
   const t = String(text || '').toLowerCase();
-  const m = t.match(/(?:max(?:imum)?|under|below|no more than|less than|fewer than|up to|at most|limit(?: of)?|within)\s*:?\s*(\d{2,4})\s*-?\s*words?/)
-    || t.match(/(\d{2,4})\s*-?\s*words?\s*(?:max(?:imum)?|or less|or fewer|tops|limit)/)
-    || t.match(/\b(\d{2,4})\s*-?\s*words?\b/);
+  const LIMIT = '(?:max(?:imum)?|under|below|no more than|less than|fewer than|up to|at most|limit(?: of)?|within)\\s*(?:of\\s*)?:?\\s*';
+  const WORDS = '\\s*-?\\s*(?:words?|wrds?|w)\\b';
+  const m = t.match(new RegExp(`${LIMIT}(\\d{2,4})${WORDS}`))
+    || t.match(new RegExp(`(\\d{2,4})${WORDS}\\s*(?:max(?:imum)?|or less|or fewer|tops|limit)`))
+    || t.match(new RegExp(`\\b(\\d{2,4})${WORDS}`))
+    // "max 300" with no unit — the Dele request that slipped through
+    || t.match(new RegExp(`\\b${LIMIT}(\\d{2,4})\\b(?!\\s*(?:goals?|games?|matches|minutes?|mins?|years?|caps|apps|appearances|million|m\\b|k\\b|%))`));
   const n = m ? parseInt(m[1], 10) : NaN;
   return n >= 50 && n <= 1500 ? n : undefined;
 }
@@ -192,18 +205,25 @@ function lengthRule(limit?: number): string {
     : `LENGTH — HARD limit: ~480–540 words, NEVER above 600 (the longest reference script). Cut sprawl to fit.`;
 }
 
-// Words in the spoken body only — the Hook/Caption/Hashtags/Fact check tail doesn't count.
+// Where the spoken body ends — the Hook/Caption/Hashtags/Fact check tail, bold or not.
+const TAIL_RE = /^\s*(?:\*\*)?(?:Hook|Caption|Hashtags|Fact check)\s*:?\s*(?:\*\*)?\s*:?/im;
+
 function bodyWordCount(text: string): number {
-  const cut = text.search(/^\s*\*\*(Hook|Caption|Hashtags|Fact check):?\*\*/im);
+  const cut = text.search(TAIL_RE);
   const body = cut >= 0 ? text.slice(0, cut) : text;
   return (body.match(/\S+/g) || []).length;
 }
 
+export function looksLikeScript(text: string): boolean {
+  return TAIL_RE.test(text);
+}
+
 // Models overshoot word counts, so check in code and trim only when over.
-async function enforceWordLimit(client: Anthropic, text: string, limit: number | undefined, model = OPUS): Promise<{ text: string; cost: number }> {
+async function enforceWordLimit(client: Anthropic, text: string, limit: number | undefined, model = OPUS, keepHook?: string): Promise<{ text: string; cost: number }> {
   if (!limit) return { text, cost: 0 };
   const words = bodyWordCount(text);
   if (words <= limit) return { text, cost: 0 };
+  const hookRule = keepHook ? `\n\nThe opening lines are the creator's chosen hook — keep them word for word:\n"""\n${keepHook}\n"""` : '';
   const res = await client.messages.create({
     model,
     ...PARAMS.edit,
@@ -211,7 +231,7 @@ async function enforceWordLimit(client: Anthropic, text: string, limit: number |
       role: 'user',
       content: `This script body is ${words} words. The creator's hard maximum is ${limit} words. Cut it to ${limit} words or fewer (aim for ~${Math.round(limit * 0.95)}).
 
-Keep the hook, the key facts, the climax and the closer. Cut sprawl, never add. Keep the voice, line breaks and formatting. Leave any **Hook:** / **Caption:** / **Hashtags:** / **Fact check:** sections after the body exactly as they are. Reply with the full result only, no preamble.
+Keep the hook, the key facts, the climax and the closer. Cut sprawl, never add. Keep the voice, line breaks and formatting. Leave any **Hook:** / **Caption:** / **Hashtags:** / **Fact check:** sections after the body exactly as they are. Reply with the full result only, no preamble.${hookRule}
 
 """
 ${text}
@@ -219,6 +239,19 @@ ${text}
     }],
   });
   return { text: stripDividers(extractText(res)), cost: bill('trim', model, res) };
+}
+
+// The chosen hook must open the script verbatim; if the writer drifted, put it back.
+function lockHook(script: string, hook?: string): string {
+  if (!hook) return script;
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const firstHookLine = norm(hook.split('\n').find(l => l.trim()) || '');
+  const opening = norm(script.split('\n').slice(0, 6).join(' '));
+  if (!firstHookLine || opening.includes(firstHookLine)) return script;
+  // The writer reworded it: swap its own short opening block for the chosen hook.
+  const [first, ...rest] = script.split(/\n\s*\n/);
+  const firstLines = first.split('\n').filter(l => l.trim()).length;
+  return firstLines <= 4 && rest.length ? [hook.trim(), ...rest].join('\n\n') : `${hook.trim()}\n\n${script}`;
 }
 
 // ── Web search (research + fact check) ──────────────────────────────────────────
@@ -328,7 +361,7 @@ Output ONLY the 10 bullets, one per line, each starting with "- ". No preamble.`
 // Runs once per new script — never on amendments. Sonnet: checking a year or a
 // score is a lookup, not writing. Claims the research already sourced are
 // trusted, so searches go only to facts the writing stages added.
-export async function runFactCheck(client: Anthropic, script: string, todayStr: string, research = '', wordLimit?: number, model = SONNET): Promise<StageResult> {
+export async function runFactCheck(client: Anthropic, script: string, todayStr: string, research = '', wordLimit?: number, model = SONNET, hook?: string): Promise<StageResult> {
   const { text, cost } = await runWithSearch(client, 'factcheck', {
     model,
     ...PARAMS.check,
@@ -363,7 +396,7 @@ Do NOT rewrite or return the script. When you're done, end your reply with exact
     }],
   });
   const checked = applyCorrections(script, text);
-  const trimmed = await enforceWordLimit(client, checked, wordLimit);
+  const trimmed = await enforceWordLimit(client, checked, wordLimit, OPUS, hook);
   return { text: trimmed.text, cost: cost + trimmed.cost, model };
 }
 
@@ -394,7 +427,47 @@ function applyCorrections(script: string, reply: string): string {
   return `${out}\n\n**Fact check:**\n${notes.join('\n')}`;
 }
 
-export async function runDraft(client: Anthropic, topic: string, context: string, model = OPUS, wordLimit?: number): Promise<StageResult> {
+// Hook mode, step 1: five genuinely different openings in Diez's own hook
+// style, written from the researched facts, for the creator to pick from.
+export interface HookOption { type: string; hook: string; }
+
+export async function runHooks(client: Anthropic, topic: string, research: string, feedback = '', previous: string[] = [], model = OPUS): Promise<{ hooks: HookOption[]; raw: string; cost: number; model: string }> {
+  const res = await client.messages.create({
+    model,
+    ...PARAMS.viral,
+    system: [
+      { type: 'text', text: loadHookSkill(), cache_control: CACHE_1H },
+      { type: 'text', text: `You write hooks for Diez's emotional football videos — the opening lines, up to the moment the player's name is first spoken. The hook skill above is built from every one of his real scripts; write in exactly that voice and shape.` },
+    ],
+    messages: [{
+      role: 'user',
+      content: `STORY REQUEST: "${topic}"
+
+VERIFIED RESEARCH (only use facts from here — a wrong age or year in a hook kills the video):
+${research || '(none)'}
+${previous.length ? `\nHOOKS ALREADY SHOWN (write new ones, don't repeat these):\n${previous.map(h => `- ${h.replace(/\n/g, ' / ')}`).join('\n')}\n` : ''}${feedback ? `\nCREATOR'S FEEDBACK ON THE LAST HOOKS: ${feedback}\n` : ''}
+Write 5 hooks, each a different archetype as the skill's "How to write 5 options" section describes. Each hook is 2–3 lines, one breath per line, and stops before the player's name.
+
+Reply with ONLY this:
+<hooks>
+[{"type": "Wound → glory", "hook": "line 1\\nline 2\\nline 3"}]
+</hooks>`,
+    }],
+  });
+  const raw = extractText(res);
+  const cost = bill('hooks', model, res);
+  let hooks: HookOption[] = [];
+  try {
+    const block = [...raw.matchAll(/<hooks>([\s\S]*?)<\/hooks>/g)].pop()?.[1] ?? '';
+    hooks = (JSON.parse(block) as any[])
+      .filter(h => h && typeof h.hook === 'string' && h.hook.trim())
+      .map(h => ({ type: String(h.type || 'Hook'), hook: h.hook.trim() }))
+      .slice(0, 5);
+  } catch { /* fall back to showing the raw reply */ }
+  return { hooks, raw, cost, model };
+}
+
+export async function runDraft(client: Anthropic, topic: string, context: string, model = OPUS, wordLimit?: number, hook?: string): Promise<StageResult> {
   const systemBlocks: any[] = [
     { type: 'text', text: buildStudioToqueymedioPrompt() },
     { type: 'text', text: `## YOUR SKILL LIBRARY (120 viral football videos analysed)\n\n${loadSkills(['toqueymedio'])}`, cache_control: CACHE_1H },
@@ -404,7 +477,7 @@ export async function runDraft(client: Anthropic, topic: string, context: string
 "${topic}"
 
 Researched context — weave these real facts in (ignore the "(source: …)" tags), and use the origin/early-life facts to open the story:
-${context || '(no extra context)'}${wordLimit ? `\n\nThe creator wants the final script at MAX ${wordLimit} words — write about that length, not the usual 2-minute length.` : ''}`;
+${context || '(no extra context)'}${hook ? `\n\nOPEN WITH THIS EXACT HOOK — the creator chose it. Use it word for word as the first lines, then continue straight into the player's name:\n"""\n${hook}\n"""` : ''}${wordLimit ? `\n\nThe creator wants the final script at MAX ${wordLimit} words — write about that length, not the usual 2-minute length.` : ''}`;
   const res = await client.messages.create({ model, ...PARAMS.draft, system: systemBlocks, messages: [{ role: 'user', content: userMsg }] });
   return { text: extractText(res), cost: bill('draft', model, res), model };
 }
@@ -418,7 +491,10 @@ function styleSystem(mode: StyleMode, instructions: string): Anthropic.Messages.
   ];
 }
 
-export async function runViral(client: Anthropic, draft: string, model = OPUS, mode: StyleMode = 'new', wordLimit?: number): Promise<StageResult> {
+export async function runViral(client: Anthropic, draft: string, model = OPUS, mode: StyleMode = 'new', wordLimit?: number, hook?: string): Promise<StageResult> {
+  const hookRule = hook
+    ? `1. THE HOOK — LOCKED. The creator chose this hook. It must be the opening lines, word for word, then go straight into the player's name. Do not rewrite, extend or add to it:\n"""\n${hook}\n"""`
+    : `1. THE HOOK — follow the HOOK GUIDE above (Diez's own hooks). EXACTLY 2 or 3 short punchy lines, each a single breath (max ~14 words), plain text, stopping before the player's name. The final line is the turn and usually starts with "And" or "But". No long sprawling multi-clause hook.`;
   const res = await client.messages.create({
     model,
     ...PARAMS.viral,
@@ -436,7 +512,7 @@ Rewrite it into a finished script that reads like the creator's own viral script
 
 VARIETY — CRITICAL: do NOT reuse stock lines. NEVER write "they say it is hard to hear silence" — that line is banned. NEVER write "[Country] explodes" or "millions of souls erupt" UNLESS the script is literally describing a goal being scored or a trophy being lifted; if there is no goal/celebration, do not use crowd-eruption imagery at all. For the climax and the crowd reaction, invent FRESH imagery every time, specific to this person's story — no two scripts should share the same climax sentence or celebration line.
 
-1. THE HOOK — EXACTLY 2 or 3 short punchy lines, each a single breath (max ~14 words), plain text. The final line is the turn and MUST start with "And" or "But". No long sprawling multi-clause hook. Reference rhythm: "Imagine watching men take your father away into the jungle / You don't know if he is alive or if he is ever coming back / And years later, you score in your country's World Cup opener — for the man they tried to take from you."
+${hookRule}
 
 2. FLOW & FULL SENTENCES — after the hook, write in COMPLETE, FLOWING SENTENCES, exactly like the reference scripts. Each sentence is a full thought that breathes — use connectors (and, because, until, while) and commas WITHIN a sentence to carry the listener forward. Do NOT chop the script into many short staccato lines or fragments. Reserve a standalone short fragment only for a single deliberate hammer-blow (the turn, the goal, the silence). The body should feel like flowing narration, not a bullet list.
 
@@ -455,7 +531,8 @@ After the script, on new lines:
     }],
   });
   const cost = bill('viral', model, res);
-  const trimmed = await enforceWordLimit(client, stripDividers(extractText(res)), wordLimit, model);
+  const script = lockHook(stripDividers(extractText(res)), hook);
+  const trimmed = await enforceWordLimit(client, script, wordLimit, model, hook);
   return { text: trimmed.text, cost: cost + trimmed.cost, model };
 }
 
@@ -513,7 +590,7 @@ Apply the style guide above to anything you write.`),
   const cost = bill('edit', model, res);
   const text = stripDividers(extractText(res));
   // Only trim replies that are actually a script (hooks or notes stay as-is).
-  if (wordLimit && /\*\*Hook:?\*\*/i.test(text)) {
+  if (wordLimit && looksLikeScript(text)) {
     const trimmed = await enforceWordLimit(client, text, wordLimit, model);
     return { text: trimmed.text, cost: cost + trimmed.cost, model };
   }
