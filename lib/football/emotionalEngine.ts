@@ -7,9 +7,9 @@ import type Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs';
 import path from 'path';
 import { CREATOR_BIAS } from './creatorBias';
-import { calcCost } from './costTracker';
+import { calcUsageCost } from './costTracker';
 
-export const OPUS = 'claude-opus-4-8';
+export const OPUS = 'claude-opus-5-5';
 export const SONNET = 'claude-sonnet-4-6';
 export const HAIKU = 'claude-haiku-4-5-20251001';
 
@@ -133,6 +133,13 @@ export function stripDividers(s: string): string {
     .join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
+// Opus 5.5 always thinks (billed as output, counted in max_tokens). Low effort
+// keeps a script at roughly the Opus 4.8 cost; the extra max_tokens is room for
+// that thinking so the script itself never gets cut off.
+function writeParams(model: string): { max_tokens: number; output_config?: { effort: 'low' } } {
+  return model.startsWith('claude-opus-5') ? { max_tokens: 8000, output_config: { effort: 'low' } } : { max_tokens: 4000 };
+}
+
 function extractText(res: any): string {
   return res.content.filter((b: any) => b.type === 'text').map((b: any) => b.text).join('');
 }
@@ -201,7 +208,7 @@ Player-tied or country-tied are both fine. Each bullet is one specific, checkabl
 Output ONLY the 10 bullets, one per line, each starting with "- ". No preamble.`,
     }],
   });
-  return { text: extractText(res), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
+  return { text: extractText(res), cost: calcUsageCost(model, res.usage), model };
 }
 
 export async function runDraft(client: Anthropic, topic: string, context: string, model = OPUS): Promise<StageResult> {
@@ -215,15 +222,15 @@ export async function runDraft(client: Anthropic, topic: string, context: string
 
 Researched context — weave these real facts in, and use the origin/early-life facts to open the story:
 ${context || '(no extra context)'}`;
-  const res = await client.messages.create({ model, max_tokens: 4000, system: systemBlocks, messages: [{ role: 'user', content: userMsg }] });
-  return { text: extractText(res), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
+  const res = await client.messages.create({ model, ...writeParams(model), system: systemBlocks, messages: [{ role: 'user', content: userMsg }] });
+  return { text: extractText(res), cost: calcUsageCost(model, res.usage), model };
 }
 
 export async function runViral(client: Anthropic, draft: string, model = OPUS, mode: StyleMode = 'new'): Promise<StageResult> {
   const style = blendedStyle(mode);
   const res = await client.messages.create({
     model,
-    max_tokens: 4000,
+    ...writeParams(model),
     system: [{ type: 'text', text: `You are the final editor. You take a toqueymedio script that is ~75% there and elevate it to the perfected style below. This style guide OVERRIDES everything else.\n\n${style}`, cache_control: { type: 'ephemeral' } }],
     messages: [{
       role: 'user',
@@ -256,7 +263,7 @@ After the script, on new lines:
 **Hashtags:** (6–8 tags)`,
     }],
   });
-  return { text: stripDividers(extractText(res)), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
+  return { text: stripDividers(extractText(res)), cost: calcUsageCost(model, res.usage), model };
 }
 
 // Fast, cheap intent router: does the user want a brand-new full script researched
@@ -278,14 +285,14 @@ If the message contains a pasted script, OR asks for anything less than a whole 
   });
   const out = extractText(res).toLowerCase();
   const intent: 'create' | 'edit' = out.includes('edit') ? 'edit' : 'create';
-  return { intent, cost: calcCost(HAIKU, res.usage.input_tokens, res.usage.output_tokens) };
+  return { intent, cost: calcUsageCost(HAIKU, res.usage) };
 }
 
 export async function runChat(client: Anthropic, messages: any[], model = OPUS, mode: StyleMode = 'new'): Promise<StageResult> {
   const style = blendedStyle(mode);
   const res = await client.messages.create({
     model,
-    max_tokens: 4000,
+    ...writeParams(model),
     system: [{ type: 'text', text: `You are the Emotional Storyteller editor. Do EXACTLY what the latest message asks — and nothing more. Match the SCOPE of the request precisely:
 
 - If they ask for only hooks (e.g. "give me 5 hook alternatives"), return ONLY that many hooks — each 2–3 punchy lines — and nothing else. Do NOT append the full script, a caption, or hashtags.
@@ -303,5 +310,5 @@ STYLE — apply only to the content you actually produce:
 ${style}`, cache_control: { type: 'ephemeral' } }],
     messages: (messages || []).slice(-20),
   });
-  return { text: stripDividers(extractText(res)), cost: calcCost(model, res.usage.input_tokens, res.usage.output_tokens), model };
+  return { text: stripDividers(extractText(res)), cost: calcUsageCost(model, res.usage), model };
 }
