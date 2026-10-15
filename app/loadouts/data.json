@@ -1,5 +1,5 @@
 {
-  "updatedAt": "Oct 01, 2026",
+  "updatedAt": "Oct 15, 2026",
   "longRange": [
     {
       "id": "voyakkt3",
@@ -31,7 +31,7 @@
           "name": "V-Last Control Pad"
         }
       ],
-      "updatedAt": "Oct 01, 2026"
+      "updatedAt": "Oct 15, 2026"
     },
     {
       "id": "egrt17",
@@ -63,7 +63,7 @@
           "name": "Frigate Control Stock"
         }
       ],
-      "updatedAt": "Oct 01, 2026"
+      "updatedAt": "Oct 15, 2026"
     },
     {
       "id": "ds20mirage",
@@ -95,7 +95,7 @@
           "name": "Pinion Flip Mags"
         }
       ],
-      "updatedAt": "Oct 01, 2026"
+      "updatedAt": "Oct 15, 2026"
     }
   ],
   "shortRange": [
@@ -129,7 +129,7 @@
           "name": "Greaves Valour Pad"
         }
       ],
-      "updatedAt": "Oct 01, 2026"
+      "updatedAt": "Oct 15, 2026"
     },
     {
       "id": "mpc25",
@@ -161,7 +161,7 @@
           "name": "K-1 Pedal Stock"
         }
       ],
-      "updatedAt": "Oct 01, 2026"
+      "updatedAt": "Oct 15, 2026"
     },
     {
       "id": "rev46",
@@ -193,7 +193,7 @@
           "name": "Cawdor Extended Mag"
         }
       ],
-      "updatedAt": "Oct 01, 2026"
+      "updatedAt": "Oct 15, 2026"
     }
   ]
 }
