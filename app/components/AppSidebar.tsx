@@ -33,6 +33,12 @@ const NAV = [
     ],
   },
   {
+    section: 'La Fecha',
+    items: [
+      { label: 'Storyteller', href: '/football/la-fecha', icon: <span className="text-[12px]">📅</span> },
+    ],
+  },
+  {
     // Tucked away by default — open to reach it.
     section: 'Archive',
     defaultCollapsed: true,
