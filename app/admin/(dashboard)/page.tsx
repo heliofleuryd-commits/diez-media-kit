@@ -336,7 +336,7 @@ export default function AdminDashboard() {
                   ? <p className="text-gray-300 text-sm">No clicks yet</p>
                   : (() => {
                     const max = Math.max(...Object.values(data.ctaCounts));
-                    const labels: Record<string, string> = { 'thunderpick': '⚡ Thunderpick Loadouts', 'lets-talk': '📩 Let\'s Talk', 'loadouts': '📝 All My Loadouts' };
+                    const labels: Record<string, string> = { 'temu': '🛍️ £0 Temu Haul', 'thunderpick': '⚡ Thunderpick Loadouts', 'lets-talk': '📩 Let\'s Talk', 'loadouts': '📝 All My Loadouts' };
                     return Object.entries(data.ctaCounts).sort((a,b)=>b[1]-a[1]).map(([name, count]) => (
                       <div key={name}>
                         <div className="flex justify-between text-xs mb-1">
